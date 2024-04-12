@@ -56,6 +56,12 @@ onPlayerSpawned()
 		self setClientDvar("waypointOffscreenPointerWidth", 0.1);
 		self setClientDvar("waypointOffscreenPointerHeight", 0.1);
 
+		// Disable FX
+		self setClientDvar("fx_enable", 0);
+		self setClientDvar("fx_marks", 0);
+		self setClientDvar("fx_marks_ents", 0);
+		self setClientDvar("fx_marks_smodels", 0);
+
 		if(self isHost()){
 			self thread watchOldschoolModeToggle();
 		}
