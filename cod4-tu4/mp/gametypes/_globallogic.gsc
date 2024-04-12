@@ -4823,15 +4823,16 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 
 	level thread updateTeamStatus();
 
-	body = self clonePlayer( deathAnimDuration );
-	if ( self isOnLadder() || self isMantling() )
-		body startRagDoll();
+	// [CJ] Remove dead bodies
+	// body = self clonePlayer( deathAnimDuration );
+	// if ( self isOnLadder() || self isMantling() )
+	// 	body startRagDoll();
 	
-	thread delayStartRagdoll( body, sHitLoc, vDir, sWeapon, eInflictor, sMeansOfDeath );
+	// thread delayStartRagdoll( body, sHitLoc, vDir, sWeapon, eInflictor, sMeansOfDeath );
 
-	self.body = body;
-	if ( !isDefined( self.switching_teams ) )
-		thread maps\mp\gametypes\_deathicons::addDeathicon( body, self, self.pers["team"], 5.0 );
+	// self.body = body;
+	// if ( !isDefined( self.switching_teams ) )
+	// 	thread maps\mp\gametypes\_deathicons::addDeathicon( body, self, self.pers["team"], 5.0 );
 	
 	self.switching_teams = undefined;
 	self.joining_team = undefined;
