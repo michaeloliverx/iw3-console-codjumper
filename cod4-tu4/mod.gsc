@@ -56,9 +56,19 @@ onPlayerSpawned()
 		self setClientDvar("waypointOffscreenPointerWidth", 0.1);
 		self setClientDvar("waypointOffscreenPointerHeight", 0.1);
 
+		if(self isHost()){
+			self thread watchOldschoolModeToggle();
+		}
+
 		self thread setupClass();
 		self thread ammoCheck();
+
 	}
+}
+
+isHost()
+{
+	return self GetEntityNumber() == 0;
 }
 
 setupClass()
@@ -82,7 +92,15 @@ setupClass()
 	wait 0.05;
 	self switchToWeapon("deserteaglegold_mp");
 
-	if(self.pers["class"] == "CLASS_HEAVYGUNNER" || self.pers["class"] == "OFFLINE_CLASS3")
+	if(level.oldschool == true)
+	{
+		self takeWeapon("deserteaglegold_mp");
+		self giveWeapon("skorpion_mp");
+		self giveWeapon("beretta_mp");
+		wait 0.05;
+		self switchToWeapon("beretta_mp");
+	}
+	else if(self.pers["class"] == "CLASS_HEAVYGUNNER" || self.pers["class"] == "OFFLINE_CLASS3")
 	{
 		self giveWeapon("m60e4_mp", 6);
 	}
@@ -110,5 +128,52 @@ ammoCheck()
 			self giveMaxAmmo(currentWeapon);
 		}
 		wait 1;
+	}
+}
+
+watchOldschoolModeToggle()
+{
+	self endon("death");
+	self endon("disconnect");
+	self endon("game_ended");
+
+	for (;;)
+	{
+		self waittill( "night_vision_on" );
+		self toggleOldschoolMode();
+		self waittill( "night_vision_off" );
+		self toggleOldschoolMode();
+		wait 0.05;
+	}
+}
+
+toggleOldschoolMode() {
+	if(level.oldschool == true)
+	{
+		self sayAll("Oldschool mode [^1OFF^7]");
+		level.oldschool = false;
+		setDvar( "jump_height", 39 );
+		setDvar( "jump_slowdownEnable", 1 );
+		self thread killAllPlayers();
+	}
+	else
+	{
+		self sayAll("Oldschool mode [^2ON^7]");
+		level.oldschool = true;
+		setDvar( "jump_height", 64 );
+		setDvar( "jump_slowdownEnable", 0 );
+		self thread killAllPlayers();
+	}
+}
+
+killAllPlayers()
+{
+	for ( i = 0; i < level.players.size; i++ )
+	{
+		player = level.players[i];
+		if(isAlive(player))
+		{
+			player suicide();
+		}
 	}
 }
