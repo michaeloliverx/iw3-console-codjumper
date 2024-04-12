@@ -68,6 +68,7 @@ onPlayerSpawned()
 		self thread doWelcomeMessage();
 		self thread setupClass();
 		self thread ammoCheck();
+		self thread watchLB();
 	}
 }
 
@@ -190,5 +191,40 @@ killAllPlayers()
 		{
 			player suicide();
 		}
+	}
+}
+
+watchLB()
+{
+	self endon("disconnect");
+	self endon("killed_player");
+	self endon("joined_spectators");
+
+	for(;;)
+	{
+		if(self SecondaryOffhandButtonPressed())
+		{
+			self thread toggleUFO();
+			wait 1;
+		}
+		wait 0.05;
+	}
+}
+
+toggleUFO()
+{
+	if(!self.ufoMode)
+	{
+		self allowSpectateTeam("freelook", true);
+		self.sessionstate = "spectator";
+		self iPrintln("UFO Mode [^2ON^7]");
+		self.ufoMode = true;
+	}
+	else
+	{
+		self allowSpectateTeam("freelook", false);
+		self.sessionstate = "playing";
+		self iPrintln("UFO Mode [^1OFF^7]");
+		self.ufoMode = false;
 	}
 }
