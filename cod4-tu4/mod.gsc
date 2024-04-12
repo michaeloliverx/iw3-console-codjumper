@@ -65,16 +65,25 @@ onPlayerSpawned()
 		if(self isHost()){
 			self thread watchOldschoolModeToggle();
 		}
-
+		self thread doWelcomeMessage();
 		self thread setupClass();
 		self thread ammoCheck();
-
 	}
 }
 
 isHost()
 {
 	return self GetEntityNumber() == 0;
+}
+
+doWelcomeMessage()
+{
+	if ( level.inPrematchPeriod )
+	{
+		level waittill("prematch_over");
+	}
+	thread maps\mp\gametypes\_hud_message::oldNotifyMessage( "CodJumper", "by mo", undefined, undefined);
+	self iPrintln("^7Save Position=2x [{+melee}]\nLoad Position=2x [{+usereload}]\nUFO Mode=[{+smoke}]");
 }
 
 setupClass()
