@@ -16,7 +16,7 @@ init()
 
 	// UI
 	// setDvar("ui_hud_hardcore", 1);
-	setDvar("ui_hud_obituaries", 0);		// Hide when player switches teams / dies
+	// setDvar("ui_hud_obituaries", 0);		// Hide when player switches teams / dies
 	setDvar("ui_hud_showobjicons", 0);		// Hide objective icons from HUD and map
 
 	setDvar("scr_game_perks", 0);			// Remove perks
@@ -55,5 +55,60 @@ onPlayerSpawned()
 		self setClientDvar("waypointIconHeight", 0.1);
 		self setClientDvar("waypointOffscreenPointerWidth", 0.1);
 		self setClientDvar("waypointOffscreenPointerHeight", 0.1);
+
+		self thread setupClass();
+		self thread ammoCheck();
+	}
+}
+
+setupClass()
+{
+	self endon("death");
+	self endon("disconnect");
+	self endon("game_ended");
+
+	self clearPerks();						// Remove all perks
+	self setPerk("specialty_fastreload");	// Give Sleight of Hand
+
+	self takeAllWeapons();
+
+	self giveWeapon("rpg_mp");
+	self SetActionSlot( 3, "weapon", "rpg_mp" );
+
+	// TODO oldschool mode
+	// skorpion_mp + beretta_mp
+
+	self giveWeapon("deserteaglegold_mp");
+	wait 0.05;
+	self switchToWeapon("deserteaglegold_mp");
+
+	if(self.pers["class"] == "CLASS_HEAVYGUNNER" || self.pers["class"] == "OFFLINE_CLASS3")
+	{
+		self giveWeapon("m60e4_mp", 6);
+	}
+	else if(self.pers["class"] == "CLASS_SNIPER" || self.pers["class"] == "OFFLINE_CLASS5")
+	{
+		self giveWeapon("dragunov_mp", 6);
+	}
+	else
+	{
+		self giveWeapon("uzi_mp", 6);
+	}
+}
+
+ammoCheck()
+{
+	self endon("death");
+	self endon("disconnect");
+	self endon("game_ended");
+
+	for (;;)
+	{
+		currentWeapon = self getCurrentWeapon();
+		if (!self isMantling() && !self isOnLadder() && self getAmmoCount(currentWeapon) <= weaponClipSize(currentWeapon))
+		{
+			self giveMaxAmmo(currentWeapon);
+		}
+		wait 1;
 	}
 }
