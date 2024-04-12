@@ -4533,11 +4533,12 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 		obituary(self, attacker, sWeapon, sMeansOfDeath);
 
 //	self maps\mp\gametypes\_weapons::updateWeaponUsageStats();
-	if ( !level.inGracePeriod )
-	{
-		self maps\mp\gametypes\_weapons::dropWeaponForDeath( attacker );
-		self maps\mp\gametypes\_weapons::dropOffhand();
-	}
+	// [CJ] Remove dropped weapons
+	// if ( !level.inGracePeriod )
+	// {
+	// 	self maps\mp\gametypes\_weapons::dropWeaponForDeath( attacker );
+	// 	self maps\mp\gametypes\_weapons::dropOffhand();
+	// }
 
 	maps\mp\gametypes\_spawnlogic::deathOccured(self, attacker);
 
@@ -5123,7 +5124,8 @@ Callback_PlayerLastStand( eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon,
 
 	self thread maps\mp\gametypes\_gameobjects::onPlayerLastStand();
 	
-	self maps\mp\gametypes\_weapons::dropWeaponForDeath( attacker );
+	// [CJ] Remove dropped weapons
+	// self maps\mp\gametypes\_weapons::dropWeaponForDeath( attacker );
 
 	notifyData = spawnStruct();
 	notifyData.titleText = game["strings"]["last_stand"]; //"Last Stand!";
