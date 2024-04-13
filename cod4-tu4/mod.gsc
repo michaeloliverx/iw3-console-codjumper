@@ -14,6 +14,11 @@ init()
 	setDvar("scr_sd_timelimit", 0);
 	setDvar("scr_sd_numlives", 0);
 
+	// DEATHMATCH
+	setDvar("scr_dm_scorelimit", 0);
+	setDvar("scr_dm_timelimit", 0);
+	setDvar("scr_dm_roundlimit", 0);
+
 	// UI
 	// setDvar("ui_hud_hardcore", 1);
 	// setDvar("ui_hud_obituaries", 0);		// Hide when player switches teams / dies
