@@ -62,6 +62,8 @@ onPlayerSpawned()
 		self setClientDvar("fx_marks_ents", 0);
 		self setClientDvar("fx_marks_smodels", 0);
 
+		self setClientDvar("clanname", "");					// Remove clan tag
+
 		if(self isHost()){
 			self thread watchOldschoolModeToggle();
 		}
