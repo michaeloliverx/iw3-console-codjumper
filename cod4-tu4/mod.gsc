@@ -111,6 +111,9 @@ setupClass()
 
 	self takeAllWeapons();
 
+	self giveWeapon("c4_mp");
+	self SetActionSlot( 2, "weapon", "c4_mp" );
+
 	self giveWeapon("rpg_mp");
 	self SetActionSlot( 3, "weapon", "rpg_mp" );
 
