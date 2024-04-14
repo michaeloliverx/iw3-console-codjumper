@@ -30,6 +30,9 @@ init()
 
 	setDvar("player_sprintUnlimited", 1);
 
+	setDvar("bg_fallDamageMaxHeight", 9999);
+	setDvar("bg_fallDamageMinHeight", 9998);
+
 	level thread onPlayerConnect();
 }
 
@@ -50,9 +53,10 @@ onPlayerSpawned()
 	{
 		self waittill("spawned_player");
 
-		self setClientDvar("aim_automelee_range", 0);		// Remove melee lunge
+		self setClientDvar("aim_automelee_enabled", 0);		// Remove melee lunge
 		self setClientDvar("cg_overheadRankSize", 0);		// Remove overhead rank
 		self setClientDvar("cg_overheadIconSize", 0);		// Remove overhead rank icon
+		// self setClientDvar("cg_overheadNamesSize", 0);		// Remove overhead name
 		self setClientDvar("nightVisionDisableEffects", 1);	// Remove nightvision fx
 
 		// Remove objective waypoints on screen
