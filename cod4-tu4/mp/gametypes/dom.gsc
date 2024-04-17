@@ -52,6 +52,7 @@ initMenuOpts()
 		m = "";
 		self addMenu(m, "Host menu", "main");
 		self addOpt(m, "Toggle jump_slowdownEnable", ::toggleBooleanClientDvar, "jump_slowdownEnable");
+		self addOpt(m, "Toggle oldschool", ::toggleOldschool);
 	}
 }
 
@@ -286,4 +287,21 @@ addBlockerBot()
 		wait 1;
 	}
 	self.bot setOrigin(origin);
+}
+
+toggleOldschool(){
+	if(level.oldschool == true)
+	{
+		iPrintln("Oldschool mode [^1OFF^7]");
+		level.oldschool = false;
+		setDvar( "jump_height", 39 );
+		setDvar( "jump_slowdownEnable", 1 );
+	}
+	else
+	{
+		iPrintln("Oldschool mode [^2ON^7]");
+		level.oldschool = true;
+		setDvar( "jump_height", 64 );
+		setDvar( "jump_slowdownEnable", 0 );
+	}
 }
