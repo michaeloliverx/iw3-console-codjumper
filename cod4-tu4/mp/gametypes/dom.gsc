@@ -60,6 +60,29 @@ onPlayerSpawned()
 	for(;;)
 	{
 		self waittill("spawned_player");
+
+		self setClientDvar("aim_automelee_enabled", 0);		// Remove melee lunge
+
+		self setClientDvar("cg_overheadRankSize", 0);		// Remove overhead rank
+		self setClientDvar("cg_overheadIconSize", 0);		// Remove overhead rank icon
+		// self setClientDvar("cg_overheadNamesSize", 0);		// Remove overhead name
+
+		self setClientDvar("nightVisionDisableEffects", 1);	// Remove nightvision fx
+
+		// Remove objective waypoints on screen
+		self setClientDvar("waypointIconWidth", 0.1);
+		self setClientDvar("waypointIconHeight", 0.1);
+		self setClientDvar("waypointOffscreenPointerWidth", 0.1);
+		self setClientDvar("waypointOffscreenPointerHeight", 0.1);
+
+		// Disable FX
+		self setClientDvar("fx_enable", 0);
+		self setClientDvar("fx_marks", 0);
+		self setClientDvar("fx_marks_ents", 0);
+		self setClientDvar("fx_marks_smodels", 0);
+
+		self setClientDvar("clanname", "");					// Remove clan tag
+
 		self thread initMenu();
 	}
 }
