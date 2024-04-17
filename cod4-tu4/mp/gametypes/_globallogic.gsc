@@ -4526,11 +4526,12 @@ Callback_PlayerKilled(eInflictor, attacker, iDamage, sMeansOfDeath, sWeapon, vDi
 	if( attacker.classname == "script_vehicle" && isDefined( attacker.owner ) )
 		attacker = attacker.owner;
 
-	// send out an obituary message to all clients about the kill
-	if( level.teamBased && isDefined( attacker.pers ) && self.team == attacker.team && sMeansOfDeath == "MOD_GRENADE" && level.friendlyfire == 0 )
-		obituary(self, self, sWeapon, sMeansOfDeath);
-	else
-		obituary(self, attacker, sWeapon, sMeansOfDeath);
+	// [CJ] Remove obituary message when switching teams
+	// // send out an obituary message to all clients about the kill
+	// if( level.teamBased && isDefined( attacker.pers ) && self.team == attacker.team && sMeansOfDeath == "MOD_GRENADE" && level.friendlyfire == 0 )
+	// 	obituary(self, self, sWeapon, sMeansOfDeath);
+	// else
+	// 	obituary(self, attacker, sWeapon, sMeansOfDeath);
 
 //	self maps\mp\gametypes\_weapons::updateWeaponUsageStats();
 	// [CJ] Remove dropped weapons
