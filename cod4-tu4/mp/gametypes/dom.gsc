@@ -50,6 +50,7 @@ onPlayerConnect()
 	for (;;)
 	{
 		level waittill("connecting", player);
+		player setupPlayer();
 		player thread onPlayerSpawned();
 	}
 }
@@ -60,31 +61,36 @@ onPlayerSpawned()
 	for(;;)
 	{
 		self waittill("spawned_player");
-
-		self setClientDvar("aim_automelee_enabled", 0);		// Remove melee lunge
-
-		self setClientDvar("cg_overheadRankSize", 0);		// Remove overhead rank
-		self setClientDvar("cg_overheadIconSize", 0);		// Remove overhead rank icon
-		// self setClientDvar("cg_overheadNamesSize", 0);		// Remove overhead name
-
-		self setClientDvar("nightVisionDisableEffects", 1);	// Remove nightvision fx
-
-		// Remove objective waypoints on screen
-		self setClientDvar("waypointIconWidth", 0.1);
-		self setClientDvar("waypointIconHeight", 0.1);
-		self setClientDvar("waypointOffscreenPointerWidth", 0.1);
-		self setClientDvar("waypointOffscreenPointerHeight", 0.1);
-
-		// Disable FX
-		self setClientDvar("fx_enable", 0);
-		self setClientDvar("fx_marks", 0);
-		self setClientDvar("fx_marks_ents", 0);
-		self setClientDvar("fx_marks_smodels", 0);
-
-		self setClientDvar("clanname", "");					// Remove clan tag
-
 		self thread initMenu();
 	}
+}
+
+setupPlayer()
+{
+	self.cj = [];
+	self.cj["settings"] = [];
+
+	self setClientDvar("aim_automelee_enabled", 0);		// Remove melee lunge
+
+	self setClientDvar("cg_overheadRankSize", 0);		// Remove overhead rank
+	self setClientDvar("cg_overheadIconSize", 0);		// Remove overhead rank icon
+	// self setClientDvar("cg_overheadNamesSize", 0);		// Remove overhead name
+
+	self setClientDvar("nightVisionDisableEffects", 1);	// Remove nightvision fx
+
+	// Remove objective waypoints on screen
+	self setClientDvar("waypointIconWidth", 0.1);
+	self setClientDvar("waypointIconHeight", 0.1);
+	self setClientDvar("waypointOffscreenPointerWidth", 0.1);
+	self setClientDvar("waypointOffscreenPointerHeight", 0.1);
+
+	// Disable FX
+	self setClientDvar("fx_enable", 0);
+	self setClientDvar("fx_marks", 0);
+	self setClientDvar("fx_marks_ents", 0);
+	self setClientDvar("fx_marks_smodels", 0);
+
+	self setClientDvar("clanname", "");					// Remove clan tag
 }
 
 initMenuOpts()
@@ -98,8 +104,8 @@ initMenuOpts()
 		self addOpt(m, "Host menu", ::subMenu, "");
 	}
 
-	self addOpt(m, "Toggle cg_thirdPerson", ::toggleBooleanClientDvar, "cg_thirdPerson");
-	self addOpt(m, "Toggle cg_drawgun", ::toggleBooleanClientDvar, "cg_drawgun");
+	self addOpt(m, "Toggle 3rd Person", ::toggleThirdPerson);
+	self addOpt(m, "Toggle cg_drawgun", ::toggleShowGun);
 	self addOpt(m, "Add bot blocker", ::addBlockerBot);
 	self addOpt(m, "Sub Menu", ::subMenu, "");
 
@@ -113,8 +119,8 @@ initMenuOpts()
 	{
 		m = "";
 		self addMenu(m, "Host menu", "main");
-		self addOpt(m, "Toggle jump_slowdownEnable", ::toggleBooleanClientDvar, "jump_slowdownEnable");
-		self addOpt(m, "Toggle oldschool", ::toggleOldschool);
+		self addOpt(m, "Toggle jump_slowdownEnable", ::toggleJumpSlowdown);
+		self addOpt(m, "Toggle Old School Mode", ::toggleOldschool);
 	}
 }
 
@@ -304,15 +310,6 @@ destroyOnDeath(elem)
 		elem destroy();
 }
 
-
-// TODO: Fix for clients
-toggleBooleanClientDvar(dvar)
-{
-	value = getDvarInt(dvar);
-	self setClientDvar(dvar, !value);
-	self iPrintLn(dvar + " " + value);
-}
-
 initBot()
 {
 	bot = addtestclient();
@@ -351,19 +348,86 @@ addBlockerBot()
 	self.bot setOrigin(origin);
 }
 
-toggleOldschool(){
-	if(level.oldschool == true)
+toggleOldschool()
+{
+	setting = "oldschool";
+	printName = "Old School Mode";
+
+
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
 	{
-		iPrintln("Oldschool mode [^1OFF^7]");
-		level.oldschool = false;
-		setDvar( "jump_height", 39 );
-		setDvar( "jump_slowdownEnable", 1 );
+		self.cj["settings"][setting] = true;
+		self.cj["settings"]["jump_slowdownEnable"] = false;
+		setDvar( "jump_height", 64 );
+		setDvar( "jump_slowdownEnable", 0 );
+		iPrintln(printName + " [^2ON^7]");
 	}
 	else
 	{
-		iPrintln("Oldschool mode [^2ON^7]");
-		level.oldschool = true;
-		setDvar( "jump_height", 64 );
-		setDvar( "jump_slowdownEnable", 0 );
+		self.cj["settings"][setting] = false;
+		self.cj["settings"]["jump_slowdownEnable"] = true;
+		setDvar( "jump_height", 39 );
+		setDvar( "jump_slowdownEnable", 1 );
+		iPrintln(printName + " [^1OFF^7]");
+	}
+}
+
+toggleJumpSlowdown()
+{
+	setting = "jump_slowdownEnable";
+	printName = setting;
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
+	{
+		self.cj["settings"][setting] = false;
+		setDvar("jump_slowdownEnable", 0);
+		iPrintln(printName + " [^1OFF^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = true;
+		setDvar("jump_slowdownEnable", 1);
+		iPrintln(printName + " [^2ON^7]");
+	}
+
+
+}
+
+toggleShowGun()
+{
+	setting = "cg_drawgun";
+	printName = setting;
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
+	{
+		self.cj["settings"][setting] = false;
+		self setClientDvar("cg_drawgun", 0);
+		self iPrintln(printName + " [^1OFF^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = true;
+		self setClientDvar("cg_drawgun", 1);
+		self iPrintln(printName + " [^2ON^7]");
+	}
+}
+
+toggleThirdPerson()
+{
+	setting = "cg_thirdPerson";
+	printName = "3rd Person";
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
+	{
+		self.cj["settings"][setting] = true;
+		self setClientDvar("cg_thirdPerson", 1);
+		self iPrintln(printName + " [^2ON^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = false;
+		self setClientDvar("cg_thirdPerson", 0);
+		self iPrintln(printName + " [^1OFF^7]");
 	}
 }
