@@ -4050,9 +4050,10 @@ Callback_PlayerConnect()
 	if ( level.console && self getEntityNumber() == 0 )
 		self thread listenForGameEnd();
 
-	// only print that we connected if we haven't connected in a previous round
-	if( !level.splitscreen && !isdefined( self.pers["score"] ) )
-		iPrintLn(&"MP_CONNECTED", self);
+	// [CJ] Remove obituary message when player connected
+	// // only print that we connected if we haven't connected in a previous round
+	// if( !level.splitscreen && !isdefined( self.pers["score"] ) )
+	// 	iPrintLn(&"MP_CONNECTED", self);
 
 	lpselfnum = self getEntityNumber();
 	lpGuid = self getGuid();
