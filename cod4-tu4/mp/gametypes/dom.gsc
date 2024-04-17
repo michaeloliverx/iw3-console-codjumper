@@ -4,6 +4,45 @@
 init()
 {
 	level thread onPlayerConnect();
+
+	// TEAM DEATHMATCH
+	setDvar("scr_war_scorelimit", 0);
+	setDvar("scr_war_timelimit", 0);
+
+	// SABOTAGE
+	setDvar("scr_sab_scorelimit", 0);
+	setDvar("scr_sab_timelimit", 0);
+	setDvar("scr_sab_playerrespawndelay", 0);
+
+	// SEARCH AND DESTROY
+	setDvar("scr_sd_scorelimit", 0);
+	setDvar("scr_sd_timelimit", 0);
+	setDvar("scr_sd_numlives", 0);
+
+	// DEATHMATCH
+	setDvar("scr_dm_scorelimit", 0);
+	setDvar("scr_dm_timelimit", 0);
+	setDvar("scr_dm_roundlimit", 0);
+
+	// UI
+	// setDvar("ui_hud_hardcore", 1);
+	// setDvar("ui_hud_obituaries", 0);		// Hide when player switches teams / dies 
+											// (disables all obituary messages including those from iPrintln)
+	setDvar("ui_hud_showobjicons", 0);		// Hide objective icons from HUD and map
+
+	setDvar("scr_game_perks", 0);			// Remove perks
+	setDvar("scr_showperksonspawn", 0);		// Remove perks icons shown on spawn
+	setDvar("scr_game_hardpoints", 0);		// Remove killstreaks
+
+	setDvar("player_sprintUnlimited", 1);
+
+	// Remove fall damage
+	setDvar("bg_fallDamageMaxHeight", 9999);
+	setDvar("bg_fallDamageMinHeight", 9998);
+
+	// Prevent bots from moving
+	setDvar("sv_botsRandomInput", 0);
+	setDvar("sv_botsPressAttackBtn", 0);
 }
 
 onPlayerConnect()
