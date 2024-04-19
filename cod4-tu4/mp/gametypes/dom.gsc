@@ -3,6 +3,8 @@
 
 init()
 {
+	level.__VERSION__ = "v0.1";
+
 	level.hardcoreMode = true;				// Force hardcore mode
 
 	// TEAM DEATHMATCH
@@ -109,7 +111,7 @@ setupPlayer()
 initMenuOpts()
 {
 	m = "main";
-	self addMenu(m, "CodJumper - by mo", undefined);
+	self addMenu(m, "CodJumper " + level.__VERSION__, undefined);
 
 	// Host submenu
 	if(self GetEntityNumber() == 0)
