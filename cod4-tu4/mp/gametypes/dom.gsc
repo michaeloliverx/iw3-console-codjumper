@@ -155,6 +155,10 @@ initMenu()
 				self initMenuOpts();
 				menuOpts = self.menuAction[self.currentMenu].opt.size;
 
+				instructionsString = "Press [{+activate}] to select item\nPress [{+attack}] [{+speed_throw}] to navigate Menu\nPress [{+melee}] to go back";
+			 	self.instructionsText = self createText("default", 1.5, "TOPLEFT", "LEFT", 10, -54 ,100 ,1, (0, 0, 0) ,instructionsString);
+				self.instructionsBackground = self createRectangle("TOPLEFT", "LEFT", 5, -55, 200, 3*19, (0, 0, 0), "white", 4, (1/1.6));
+
 				self.openBox = self createRectangle("TOP", "TOPRIGHT", -160, 10, 300, 445, (0, 0, 0), "white", 1, .7);
 				self.openText = self createText("default", 1.5, "TOP", "TOPRIGHT", -160, 16, 2, 1, ( 0, 0, 1), self.menuAction[self.currentMenu].title);
 				string = "";
@@ -204,10 +208,12 @@ initMenu()
 					self.inMenu = undefined;
 					self.menuCurs = 0;
 
+					self.instructionsBackground destroy();
+					self.instructionsText destroy();
 					self.openBox destroy();
 					self.menuText destroy();
 					self.scrollBar destroy();
-					self.openText destroy("");
+					self.openText destroy();
 				}
 				else
 					self subMenu(self.menuAction[self.currentMenu].parent);
