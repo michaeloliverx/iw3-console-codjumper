@@ -85,7 +85,7 @@ setupPlayer()
 	self.cj["settings"] = [];
 	self.cj["deserteagle_choice"] = "deserteaglegold_mp";
 
-	self setClientDvar("aim_automelee_enabled", 0);		// Remove melee lunge
+	self setClientDvar("aim_automelee_range", 0);		// Remove melee lunge
 
 	self setClientDvar("cg_overheadRankSize", 0);		// Remove overhead rank
 	self setClientDvar("cg_overheadIconSize", 0);		// Remove overhead rank icon
