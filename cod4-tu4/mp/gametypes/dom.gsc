@@ -3,7 +3,7 @@
 
 init()
 {
-	level thread onPlayerConnect();
+	level.hardcoreMode = true;				// Force hardcore mode
 
 	// TEAM DEATHMATCH
 	setDvar("scr_war_scorelimit", 0);
