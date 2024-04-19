@@ -101,7 +101,7 @@ initMenuOpts()
 	// Host submenu
 	if(self GetEntityNumber() == 0)
 	{
-		self addOpt(m, "Host menu", ::subMenu, "");
+		self addOpt(m, "Host menu", ::subMenu, "host_menu");
 	}
 
 	self addOpt(m, "Toggle UFO Mode", ::toggleUFO);
@@ -109,9 +109,9 @@ initMenuOpts()
 	self addOpt(m, "Toggle cg_drawgun", ::toggleShowGun);
 	self addOpt(m, "Spawn bot blocker", ::addBlockerBot);
 	self addOpt(m, "Spawn clone", ::addClone);
-	self addOpt(m, "Sub Menu", ::subMenu, "");
+	self addOpt(m, "Sub Menu", ::subMenu, "sub_menu");
 
-	m = "";
+	m = "sub_menu";
 	self addMenu(m, "Sub Menu", "main");
 	self addOpt(m, "TEST", ::test);
 	self addOpt(m, "TEST", ::test);
@@ -119,7 +119,7 @@ initMenuOpts()
 	// Host submenu options
 	if(self GetEntityNumber() == 0)
 	{
-		m = "";
+		m = "host_menu";
 		self addMenu(m, "Host menu", "main");
 		self addOpt(m, "Toggle jump_slowdownEnable", ::toggleJumpSlowdown);
 		self addOpt(m, "Toggle Old School Mode", ::toggleOldschool);
