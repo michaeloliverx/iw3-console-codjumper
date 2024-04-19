@@ -104,6 +104,7 @@ initMenuOpts()
 		self addOpt(m, "Host menu", ::subMenu, "");
 	}
 
+	self addOpt(m, "Toggle UFO Mode", ::toggleUFO);
 	self addOpt(m, "Toggle 3rd Person", ::toggleThirdPerson);
 	self addOpt(m, "Toggle cg_drawgun", ::toggleShowGun);
 	self addOpt(m, "Add bot blocker", ::addBlockerBot);
@@ -434,6 +435,27 @@ toggleThirdPerson()
 	{
 		self.cj["settings"][setting] = false;
 		self setClientDvar("cg_thirdPerson", 0);
+		self iPrintln(printName + " [^1OFF^7]");
+	}
+}
+
+toggleUFO()
+{
+	setting = "ufo_mode";
+	printName = "UFO Mode";
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
+	{
+		self.cj["settings"][setting] = true;
+		self allowSpectateTeam("freelook", true);
+		self.sessionstate = "spectator";
+		self iPrintln(printName + " [^2ON^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = false;
+		self allowSpectateTeam("freelook", false);
+		self.sessionstate = "playing";
 		self iPrintln(printName + " [^1OFF^7]");
 	}
 }
