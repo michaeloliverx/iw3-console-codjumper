@@ -110,36 +110,26 @@ setupPlayer()
 
 initMenuOpts()
 {
-	m = "main";
-	self addMenu(m, "CodJumper " + level.__VERSION__, undefined);
+	self addMenu("main", "CodJumper " + level.__VERSION__, undefined);
 
 	// Host submenu
 	if(self GetEntityNumber() == 0)
 	{
-		self addOpt(m, "Host menu", ::subMenu, "host_menu");
+		self addOpt("main", "Host menu", ::subMenu, "host_menu");
+
+		self addMenu("host_menu", "Host menu", "main");
+		self addOpt("host_menu", "Toggle jump_slowdownEnable", ::toggleJumpSlowdown);
+		self addOpt("host_menu", "Toggle Old School Mode", ::toggleOldschool);
 	}
 
-	self addOpt(m, "Toggle UFO Mode", ::toggleUFO);
-	self addOpt(m, "Toggle 3rd Person", ::toggleThirdPerson);
-	self addOpt(m, "Toggle cg_drawgun", ::toggleShowGun);
-	self addOpt(m, "Spawn bot blocker", ::addBlockerBot);
-	self addOpt(m, "Spawn clone", ::addClone);
-	self addOpt(m, "Switch Desert Eagle", ::switchDesertEagle);
-	self addOpt(m, "Sub Menu", ::subMenu, "sub_menu");
-
-	m = "sub_menu";
-	self addMenu(m, "Sub Menu", "main");
-	self addOpt(m, "TEST", ::test);
-	self addOpt(m, "TEST", ::test);
-
-	// Host submenu options
-	if(self GetEntityNumber() == 0)
-	{
-		m = "host_menu";
-		self addMenu(m, "Host menu", "main");
-		self addOpt(m, "Toggle jump_slowdownEnable", ::toggleJumpSlowdown);
-		self addOpt(m, "Toggle Old School Mode", ::toggleOldschool);
-	}
+	self addOpt("main", "Toggle UFO Mode", ::toggleUFO);
+	self addOpt("main", "Toggle 3rd Person", ::toggleThirdPerson);
+	self addOpt("main", "Toggle cg_drawgun", ::toggleShowGun);
+	self addOpt("main", "Toggle player names", ::togglePlayerNames);
+	self addOpt("main", "Toggle gun bob", ::toggleGunBob);
+	self addOpt("main", "Spawn bot blocker", ::addBlockerBot);
+	self addOpt("main", "Spawn clone", ::addClone);
+	self addOpt("main", "Switch Desert Eagle", ::switchDesertEagle);
 }
 
 initMenu()
