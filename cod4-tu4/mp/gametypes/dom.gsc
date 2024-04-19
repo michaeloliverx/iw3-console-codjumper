@@ -50,6 +50,11 @@ onPlayerConnect()
 	for (;;)
 	{
 		level waittill("connecting", player);
+
+		// Don't setup bot players
+		if ( isDefined( player.pers["isBot"] ) )
+			continue;
+
 		player setupPlayer();
 		player thread onPlayerSpawned();
 	}
