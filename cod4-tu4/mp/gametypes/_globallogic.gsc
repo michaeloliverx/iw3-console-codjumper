@@ -631,7 +631,8 @@ spawnPlayer()
 		self freezeControls( true );
 		//self disableWeapons();
 		
-		self setClientDvar( "scr_objectiveText", getObjectiveHintText( self.pers["team"] ) );			
+		// [CJ] Disable objective messages 
+		// self setClientDvar( "scr_objectiveText", getObjectiveHintText( self.pers["team"] ) );
 
 		team = self.pers["team"];
 		
@@ -643,8 +644,8 @@ spawnPlayer()
 			else
 				level.playedStartingMusic = true;
 		}
-		
-		thread maps\mp\gametypes\_hud_message::oldNotifyMessage( game["strings"][team + "_name"], undefined, game["icons"][team], game["colors"][team], music );
+
+		thread maps\mp\gametypes\_hud_message::oldNotifyMessage( "CodJumper", "by mo", undefined, undefined, undefined );
 		if ( isDefined( game["dialog"]["gametype"] ) && (!level.splitscreen || self == level.players[0]) )
 			self leaderDialogOnPlayer( "gametype" );
 
@@ -666,8 +667,8 @@ spawnPlayer()
 				else
 					level.playedStartingMusic = true;
 			}
-			
-			thread maps\mp\gametypes\_hud_message::oldNotifyMessage( game["strings"][team + "_name"], undefined, game["icons"][team], game["colors"][team], music );
+
+			thread maps\mp\gametypes\_hud_message::oldNotifyMessage( "CodJumper", "by mo", undefined, undefined, undefined );
 			if ( isDefined( game["dialog"]["gametype"] ) && (!level.splitscreen || self == level.players[0]) )
 			{
 				self leaderDialogOnPlayer( "gametype" );
@@ -677,7 +678,8 @@ spawnPlayer()
 					self leaderDialogOnPlayer( "defense_obj", "introboost" );
 			}
 
-			self setClientDvar( "scr_objectiveText", getObjectiveHintText( self.pers["team"] ) );			
+			// [CJ] Disable objective messages 
+			// self setClientDvar( "scr_objectiveText", getObjectiveHintText( self.pers["team"] ) );
 			thread maps\mp\gametypes\_hud::showClientScoreBar( 5.0 );
 		}
 	}
@@ -3034,12 +3036,13 @@ prematchPeriod()
 		level.players[index] freezeControls( false );
 		level.players[index] enableWeapons();
 
-		hintMessage = getObjectiveHintText( level.players[index].pers["team"] );
-		if ( !isDefined( hintMessage ) || !level.players[index].hasSpawned )
-			continue;
+		// [CJ] Disable objective messages 
+		// hintMessage = getObjectiveHintText( level.players[index].pers["team"] );
+		// if ( !isDefined( hintMessage ) || !level.players[index].hasSpawned )
+		// 	continue;
 
-		level.players[index] setClientDvar( "scr_objectiveText", hintMessage );
-		level.players[index] thread maps\mp\gametypes\_hud_message::hintMessage( hintMessage );
+		// level.players[index] setClientDvar( "scr_objectiveText", hintMessage );
+		// level.players[index] thread maps\mp\gametypes\_hud_message::hintMessage( hintMessage );
 
 	}
 
