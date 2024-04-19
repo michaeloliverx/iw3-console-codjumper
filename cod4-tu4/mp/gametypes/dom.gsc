@@ -107,7 +107,8 @@ initMenuOpts()
 	self addOpt(m, "Toggle UFO Mode", ::toggleUFO);
 	self addOpt(m, "Toggle 3rd Person", ::toggleThirdPerson);
 	self addOpt(m, "Toggle cg_drawgun", ::toggleShowGun);
-	self addOpt(m, "Add bot blocker", ::addBlockerBot);
+	self addOpt(m, "Spawn bot blocker", ::addBlockerBot);
+	self addOpt(m, "Spawn clone", ::addClone);
 	self addOpt(m, "Sub Menu", ::subMenu, "");
 
 	m = "";
@@ -458,4 +459,10 @@ toggleUFO()
 		self.sessionstate = "playing";
 		self iPrintln(printName + " [^1OFF^7]");
 	}
+}
+
+addClone()
+{
+	body = self clonePlayer(100000);
+	self.cj["clones"][self.cj["clones"].size] = body;
 }
