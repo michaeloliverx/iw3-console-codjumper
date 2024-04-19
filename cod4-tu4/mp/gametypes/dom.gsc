@@ -629,6 +629,26 @@ toggleUFO()
 		self iPrintln(printName + " [^1OFF^7]");
 	}
 }
+
+togglePlayerNames()
+{
+	setting = "cg_overheadnamessize";
+	printName = "Player names";
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
+	{
+		self.cj["settings"][setting] = false;
+		self setClientDvar(setting, 0);
+		self iPrintln(printName + " [^1OFF^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = true;
+		self setClientDvar(setting, 0.65);
+		self iPrintln(printName + " [^2ON^7]");
+	}
+}
+
 toggleGunBob()
 {
 	setting = "bg_bobMax";
