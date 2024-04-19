@@ -61,6 +61,8 @@ onPlayerSpawned()
 	for(;;)
 	{
 		self waittill("spawned_player");
+		self thread ammoCheck();
+		self thread setupLoadout();
 		self thread initMenu();
 	}
 }
@@ -69,6 +71,7 @@ setupPlayer()
 {
 	self.cj = [];
 	self.cj["settings"] = [];
+	self.cj["deserteagle_choice"] = "deserteaglegold_mp";
 
 	self setClientDvar("aim_automelee_enabled", 0);		// Remove melee lunge
 
@@ -109,6 +112,7 @@ initMenuOpts()
 	self addOpt(m, "Toggle cg_drawgun", ::toggleShowGun);
 	self addOpt(m, "Spawn bot blocker", ::addBlockerBot);
 	self addOpt(m, "Spawn clone", ::addClone);
+	self addOpt(m, "Switch Desert Eagle", ::switchDesertEagle);
 	self addOpt(m, "Sub Menu", ::subMenu, "sub_menu");
 
 	m = "sub_menu";
@@ -318,6 +322,66 @@ destroyOnDeath(elem)
 		elem destroy();
 }
 
+ammoCheck()
+{
+	self endon("death");
+	self endon("disconnect");
+	self endon("game_ended");
+
+	for (;;)
+	{
+		currentWeapon = self getCurrentWeapon();
+		if (!self isMantling() && !self isOnLadder() && self getAmmoCount(currentWeapon) <= weaponClipSize(currentWeapon))
+		{
+			self giveMaxAmmo(currentWeapon);
+		}
+		wait 2;
+	}
+}
+
+setupLoadout()
+{
+	
+	self clearPerks();						// Remove all perks
+	self setPerk("specialty_fastreload");	// Give Sleight of Hand
+
+	self takeAllWeapons();
+
+	self giveWeapon("c4_mp");
+	self SetActionSlot( 2, "weapon", "c4_mp" );
+
+	self giveWeapon("rpg_mp");
+	self SetActionSlot( 3, "weapon", "rpg_mp" );
+
+	deserteagle_choice = self.cj["deserteagle_choice"];
+
+	self giveWeapon(deserteagle_choice);
+	wait 0.05;
+	self switchToWeapon(deserteagle_choice);
+
+	// Oldschool mode gets the default oldschool weapons
+	if(getDvarInt("jump_height") == 64)
+	{
+		self takeWeapon(deserteagle_choice);
+		self giveWeapon("skorpion_mp");
+		self giveWeapon("beretta_mp");
+		wait 0.05;
+		self switchToWeapon("beretta_mp");
+	}
+	else if(self.pers["class"] == "CLASS_HEAVYGUNNER" || self.pers["class"] == "OFFLINE_CLASS3")
+	{
+		self giveWeapon("m60e4_mp", 6);		// Gold M60
+	}
+	else if(self.pers["class"] == "CLASS_SNIPER" || self.pers["class"] == "OFFLINE_CLASS5")
+	{
+		self giveWeapon("dragunov_mp", 6);	// Gold Dragunov
+	}
+	else
+	{
+		self giveWeapon("uzi_mp", 6);		// Gold Mini-Uzi
+	}
+}
+
 initBot()
 {
 	bot = addtestclient();
@@ -361,8 +425,6 @@ toggleOldschool()
 	setting = "oldschool";
 	printName = "Old School Mode";
 
-
-
 	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
 	{
 		self.cj["settings"][setting] = true;
@@ -378,6 +440,14 @@ toggleOldschool()
 		setDvar( "jump_height", 39 );
 		setDvar( "jump_slowdownEnable", 1 );
 		iPrintln(printName + " [^1OFF^7]");
+	}
+	for ( i = 0; i < level.players.size; i++ )
+	{
+		player = level.players[i];
+		if(isAlive(player))
+		{
+			player setupLoadout();
+		}
 	}
 }
 
@@ -398,8 +468,6 @@ toggleJumpSlowdown()
 		setDvar("jump_slowdownEnable", 1);
 		iPrintln(printName + " [^2ON^7]");
 	}
-
-
 }
 
 toggleShowGun()
@@ -465,4 +533,14 @@ addClone()
 {
 	body = self clonePlayer(100000);
 	self.cj["clones"][self.cj["clones"].size] = body;
+}
+
+switchDesertEagle()
+{
+	if(self.cj["deserteagle_choice"] == "deserteaglegold_mp")
+		self.cj["deserteagle_choice"] = "deserteagle_mp";
+	else
+		self.cj["deserteagle_choice"] = "deserteaglegold_mp";
+
+	self setupLoadout();
 }
