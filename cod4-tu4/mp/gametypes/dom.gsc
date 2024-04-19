@@ -43,6 +43,8 @@ init()
 	// Prevent bots from moving
 	setDvar("sv_botsRandomInput", 0);
 	setDvar("sv_botsPressAttackBtn", 0);
+
+	level thread onPlayerConnect();
 }
 
 onPlayerConnect()
@@ -68,6 +70,8 @@ onPlayerSpawned()
 		self waittill("spawned_player");
 		self thread ammoCheck();
 		self thread setupLoadout();
+		self thread watchMelee();
+		self thread watchUse();
 		self thread initMenu();
 	}
 }
@@ -75,6 +79,7 @@ onPlayerSpawned()
 setupPlayer()
 {
 	self.cj = [];
+	self.cj["saves"] = [];
 	self.cj["settings"] = [];
 	self.cj["deserteagle_choice"] = "deserteaglegold_mp";
 
@@ -385,6 +390,95 @@ setupLoadout()
 	{
 		self giveWeapon("uzi_mp", 6);		// Gold Mini-Uzi
 	}
+}
+
+watchMelee()
+{
+	self endon("disconnect");
+	self endon("killed_player");
+	self endon("joined_spectators");
+
+	for(;;)
+	{
+		if(!self.inMenu && self meleeButtonPressed())
+		{
+			catch_next = false;
+			count = 0;
+
+			for(i=0; i<0.5; i+=0.05)
+			{
+				if(catch_next && self meleeButtonPressed() && self isOnGround())
+				{
+					self thread savePos(1);
+					wait 1;
+					break;
+				}
+				else if(!(self meleeButtonPressed()) && !(self attackButtonPressed()))
+					catch_next = true;
+
+				wait 0.05;
+			}
+		}
+
+		wait 0.05;
+	}
+}
+
+watchUse()
+{
+	self endon("disconnect");
+	self endon("killed_player");
+	self endon("joined_spectators");
+
+	for(;;)
+	{
+		if(!self.inMenu && self useButtonPressed())
+		{
+			catch_next = false;
+			count = 0;
+
+			for(i=0; i<=0.5; i+=0.05)
+			{
+				if(catch_next && self useButtonPressed() && !(self isMantling()))
+				{
+					self thread loadPos(1);
+					wait 1;
+					break;
+				}
+				else if(!(self useButtonPressed()))
+					catch_next = true;
+
+				wait 0.05;
+			}
+		}
+
+		wait 0.05;
+	}
+}
+
+savePos(i)
+{
+	wait 0.05;
+	self.cj["save"]["org"+i] = self.origin;
+	self.cj["save"]["ang"+i] = self getPlayerAngles();
+}
+
+loadPos(i)
+{
+	self freezecontrols(true);
+	wait 0.05;
+
+	if(!self isOnGround())
+		wait 0.05;
+
+	self setPlayerAngles(self.cj["save"]["ang"+i]);
+	self setOrigin(self.cj["save"]["org"+i]);
+
+	if(!self isOnGround())
+		wait 0.05;
+
+	wait 0.05;
+	self freezecontrols(false);
 }
 
 initBot()
