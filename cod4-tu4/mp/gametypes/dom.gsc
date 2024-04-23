@@ -106,6 +106,19 @@ setupPlayer()
 	self setClientDvar("fx_marks_smodels", 0);
 
 	self setClientDvar("clanname", "");					// Remove clan tag
+	self setClientDvar("motd", "CodJumper");
+
+	// Disable autoaim for enemy players
+	self setClientDvar("aim_slowdown_enabled", 0);
+	self setClientDvar("aim_lockon_enabled", 0);
+
+	// Don't show enemy player names 
+	self setClientDvar("cg_enemyNameFadeIn", 0);
+	self setClientDvar("cg_enemyNameFadeOut", 0);
+
+	// Always show enemies on the map but hide compass, can see enemy positions when pressing start
+	self setClientDvar("g_compassShowEnemies", 1);
+	self setClientDvar("compassSize", 0.1);
 }
 
 initMenuOpts()
