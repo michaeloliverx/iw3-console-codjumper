@@ -130,11 +130,34 @@ initMenuOpts()
 	if(self GetEntityNumber() == 0)
 	{
 		self addOpt("main", "[HOST] menu", ::subMenu, "host_menu");
-	
 		self addMenu("host_menu", "[HOST] menu", "main");
 		self addOpt("host_menu", "Fast restart", ::restartMap);
 		self addOpt("host_menu", "Toggle jump_slowdownEnable", ::toggleJumpSlowdown);
 		self addOpt("host_menu", "Toggle Old School Mode", ::toggleOldschool);
+
+		// Map selector
+		self addOpt("main", "[HOST] Select map", ::subMenu, "host_menu_maps");
+		self addMenu("host_menu_maps", "[HOST] Select map", "main");
+		self addOpt("host_menu_maps", "Ambush", ::changeMap, "mp_convoy");
+		self addOpt("host_menu_maps", "Backlot", ::changeMap, "mp_backlot");
+		self addOpt("host_menu_maps", "Bloc", ::changeMap, "mp_bloc");
+		self addOpt("host_menu_maps", "Bog", ::changeMap, "mp_bog");
+		self addOpt("host_menu_maps", "Broadcast", ::changeMap, "mp_broadcast");
+		self addOpt("host_menu_maps", "Chinatown", ::changeMap, "mp_carentan");
+		self addOpt("host_menu_maps", "Countdown", ::changeMap, "mp_countdown");
+		self addOpt("host_menu_maps", "Crash", ::changeMap, "mp_crash");
+		self addOpt("host_menu_maps", "Creek", ::changeMap, "mp_creek");
+		self addOpt("host_menu_maps", "Crossfire", ::changeMap, "mp_crossfire");
+		self addOpt("host_menu_maps", "District", ::changeMap, "mp_citystreets");
+		self addOpt("host_menu_maps", "Downpour", ::changeMap, "mp_farm");
+		self addOpt("host_menu_maps", "Killhouse", ::changeMap, "mp_killhouse");
+		self addOpt("host_menu_maps", "Overgrown", ::changeMap, "mp_overgrown");
+		self addOpt("host_menu_maps", "Pipeline", ::changeMap, "mp_pipeline");
+		self addOpt("host_menu_maps", "Shipment", ::changeMap, "mp_shipment");
+		self addOpt("host_menu_maps", "Showdown", ::changeMap, "mp_showdown");
+		self addOpt("host_menu_maps", "Strike", ::changeMap, "mp_strike");
+		self addOpt("host_menu_maps", "Vacant", ::changeMap, "mp_vacant");
+		self addOpt("host_menu_maps", "Wet Work", ::changeMap, "mp_cargoship");
 	}
 
 	self addOpt("main", "Toggle UFO Mode", ::toggleUFO);
@@ -707,4 +730,9 @@ switchDesertEagle()
 restartMap()
 {
 	Map_Restart( false );
+}
+
+changeMap(mapname)
+{
+	Map( mapname );
 }
