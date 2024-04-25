@@ -130,8 +130,9 @@ initMenuOpts()
 	if(self GetEntityNumber() == 0)
 	{
 		self addOpt("main", "[HOST] menu", ::subMenu, "host_menu");
-
+	
 		self addMenu("host_menu", "[HOST] menu", "main");
+		self addOpt("host_menu", "Fast restart", ::restartMap);
 		self addOpt("host_menu", "Toggle jump_slowdownEnable", ::toggleJumpSlowdown);
 		self addOpt("host_menu", "Toggle Old School Mode", ::toggleOldschool);
 	}
@@ -701,4 +702,9 @@ switchDesertEagle()
 		self.cj["deserteagle_choice"] = "deserteaglegold_mp";
 
 	self setupLoadout();
+}
+
+restartMap()
+{
+	Map_Restart( false );
 }
