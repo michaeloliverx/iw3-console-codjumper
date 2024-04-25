@@ -86,6 +86,15 @@ setupPlayer()
 	self.cj["settings"] = [];
 	self.cj["deserteagle_choice"] = "deserteaglegold_mp";
 
+	// Remove unlocalized errors
+	self setClientDvars("loc_warnings","0","loc_warningsAsErrors","0","cg_errordecay","1","con_errormessagetime","0","uiscript_debug","0");
+
+	// Set team names
+	self setClientDvar("g_TeamName_Allies", "Jumpers");
+	self setClientDvar("g_TeamName_Axis", "Bots");
+	// TODO remove icons
+	
+
 	self setClientDvar("cg_overheadRankSize", 0);		// Remove overhead rank
 	self setClientDvar("cg_overheadIconSize", 0);		// Remove overhead rank icon
 	// self setClientDvar("cg_overheadNamesSize", 0);		// Remove overhead name
