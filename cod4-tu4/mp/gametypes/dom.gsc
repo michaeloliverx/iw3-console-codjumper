@@ -548,7 +548,7 @@ initBot()
 	bot = addtestclient();
 	bot.pers["isBot"] = true;
 	while (!isDefined(bot.pers["team"])) wait 0.05;
-	bot notify("menuresponse", game["menu_team"], self.team);
+	bot notify("menuresponse", game["menu_team"], "axis");
 	wait 0.5;
 	bot.weaponPrefix = "ak47_mp";
 	bot notify("menuresponse", "changeclass", "specops_mp");
