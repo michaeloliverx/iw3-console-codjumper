@@ -188,7 +188,7 @@ initMenu()
 	self.currentMenu = "main";
 	self.menuCurs = 0;
 
-	self thread watchDPAD_UP();
+	self thread watchUseButtonPressed();
 
 	for(;;)
 	{
@@ -272,18 +272,35 @@ openCJ()
 	}
 }
 
-watchDPAD_UP()
+watchUseButtonPressed()
 {
-	self endon("death");
 	self endon("disconnect");
-	self endon("game_ended");
-
-	self SetActionSlot( 1, "nightvision" );
+	self endon("killed_player");
+	self endon("joined_spectators");
 
 	for(;;)
 	{
-		waittill_any("night_vision_on", "night_vision_off");
-		self openCJ();
+		if(!self.inMenu && self UseButtonPressed())
+		{
+			catch_next = false;
+			count = 0;
+
+			for(i=0; i<=0.5; i+=0.05)
+			{
+				if(catch_next && self UseButtonPressed() && !(self isMantling()))
+				{
+					self thread openCJ();
+					wait 1;
+					break;
+				}
+				else if(!(self UseButtonPressed()))
+					catch_next = true;
+
+				wait 0.05;
+			}
+		}
+
+		wait 0.05;
 	}
 }
 
