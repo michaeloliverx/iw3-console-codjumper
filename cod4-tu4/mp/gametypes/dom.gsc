@@ -3,7 +3,7 @@
 
 init()
 {
-	level.__VERSION__ = "v0.1";
+	level.__VERSION__ = "v0.2";
 
 	level.hardcoreMode = true;				// Force hardcore mode
 
@@ -72,8 +72,9 @@ onPlayerSpawned()
 		self waittill("spawned_player");
 		self thread ammoCheck();
 		self thread setupLoadout();
-		self thread watchMelee();
-		self thread watchUse();
+		self thread watchMeleeButtonPressed();
+		self thread watchSecondaryOffhandButtonPressed();
+		self thread watchFragButtonPressed();
 		self thread initMenu();
 	}
 }
@@ -84,8 +85,6 @@ setupPlayer()
 	self.cj["saves"] = [];
 	self.cj["settings"] = [];
 	self.cj["deserteagle_choice"] = "deserteaglegold_mp";
-
-	self setClientDvar("aim_automelee_range", 0);		// Remove melee lunge
 
 	self setClientDvar("cg_overheadRankSize", 0);		// Remove overhead rank
 	self setClientDvar("cg_overheadIconSize", 0);		// Remove overhead rank icon
@@ -108,6 +107,8 @@ setupPlayer()
 	self setClientDvar("clanname", "");					// Remove clan tag
 	self setClientDvar("motd", "CodJumper");
 
+	self setClientDvar("aim_automelee_range", 0);		// Remove melee lunge
+
 	// Disable autoaim for enemy players
 	self setClientDvar("aim_slowdown_enabled", 0);
 	self setClientDvar("aim_lockon_enabled", 0);
@@ -128,9 +129,9 @@ initMenuOpts()
 	// Host submenu
 	if(self GetEntityNumber() == 0)
 	{
-		self addOpt("main", "Host menu", ::subMenu, "host_menu");
+		self addOpt("main", "[HOST] menu", ::subMenu, "host_menu");
 
-		self addMenu("host_menu", "Host menu", "main");
+		self addMenu("host_menu", "[HOST] menu", "main");
 		self addOpt("host_menu", "Toggle jump_slowdownEnable", ::toggleJumpSlowdown);
 		self addOpt("host_menu", "Toggle Old School Mode", ::toggleOldschool);
 	}
@@ -163,32 +164,10 @@ initMenu()
 	self.currentMenu = "main";
 	self.menuCurs = 0;
 
+	self thread watchDPAD_UP();
+
 	for(;;)
 	{
-		if(self secondaryOffHandButtonPressed())
-		{
-			// MENU INIT / OPEN
-			if(!isDefined(self.inMenu))
-			{
-				self freezecontrols(true);
-				self.inMenu = true;
-
-				self initMenuOpts();
-				menuOpts = self.menuAction[self.currentMenu].opt.size;
-
-				instructionsString = "Press [{+activate}] to select item\nPress [{+attack}] [{+speed_throw}] to navigate Menu\nPress [{+melee}] to go back";
-			 	self.instructionsText = self createText("default", 1.5, "TOPLEFT", "LEFT", 10, -54 ,100 ,1, (0, 0, 0) ,instructionsString);
-				self.instructionsBackground = self createRectangle("TOPLEFT", "LEFT", 5, -55, 200, 3*19, (0, 0, 0), "white", 4, (1/1.6));
-
-				self.openBox = self createRectangle("TOP", "TOPRIGHT", -160, 10, 300, 445, (0, 0, 0), "white", 1, .7);
-				self.openText = self createText("default", 1.5, "TOP", "TOPRIGHT", -160, 16, 2, 1, ( 0, 0, 1), self.menuAction[self.currentMenu].title);
-				string = "";
-				for(m = 0; m < menuOpts; m++)
-					string+= self.menuAction[self.currentMenu].opt[m]+"\n";
-				self.menuText = self createText("default", 1.5, "LEFT", "TOPRIGHT", -300, 60, 3, 1, undefined, string);
-				self.scrollBar = self createRectangle("TOP", "TOPRIGHT", -160, ((self.menuCurs*17.98)+((self.menuText.y+1)-(17.98/2))), 300, 15, (0, 0, 1), "white", 2, .7);
-			}
-		}
 		if(isDefined(self.inMenu))
 		{
 			// Menu DOWN
@@ -236,11 +215,51 @@ initMenu()
 					self.scrollBar destroy();
 					self.openText destroy();
 				}
+				// Go back
 				else
 					self subMenu(self.menuAction[self.currentMenu].parent);
 			}
 		}
 		wait .05;
+	}
+}
+
+openCJ()
+{
+	if(!isDefined(self.inMenu))
+	{
+		self freezecontrols(true);
+		self.inMenu = true;
+
+		self initMenuOpts();
+		menuOpts = self.menuAction[self.currentMenu].opt.size;
+
+		instructionsString = "Press [{+activate}] to select item\nPress [{+attack}] [{+speed_throw}] to navigate Menu\nPress [{+melee}] to go back";
+		self.instructionsText = self createText("default", 1.5, "TOPLEFT", "LEFT", 10, -54 ,100 ,1, (0, 0, 0) ,instructionsString);
+		self.instructionsBackground = self createRectangle("TOPLEFT", "LEFT", 5, -55, 200, 3*19, (0, 0, 0), "white", 4, (1/1.6));
+
+		self.openBox = self createRectangle("TOP", "TOPRIGHT", -160, 10, 300, 445, (0, 0, 0), "white", 1, .7);
+		self.openText = self createText("default", 1.5, "TOP", "TOPRIGHT", -160, 16, 2, 1, ( 0, 0, 1), self.menuAction[self.currentMenu].title);
+		string = "";
+		for(m = 0; m < menuOpts; m++)
+			string+= self.menuAction[self.currentMenu].opt[m]+"\n";
+		self.menuText = self createText("default", 1.5, "LEFT", "TOPRIGHT", -300, 60, 3, 1, undefined, string);
+		self.scrollBar = self createRectangle("TOP", "TOPRIGHT", -160, ((self.menuCurs*17.98)+((self.menuText.y+1)-(17.98/2))), 300, 15, (0, 0, 1), "white", 2, .7);
+	}
+}
+
+watchDPAD_UP()
+{
+	self endon("death");
+	self endon("disconnect");
+	self endon("game_ended");
+
+	self SetActionSlot( 1, "nightvision" );
+
+	for(;;)
+	{
+		waittill_any("night_vision_on", "night_vision_off");
+		self openCJ();
 	}
 }
 
@@ -397,7 +416,7 @@ setupLoadout()
 	}
 }
 
-watchMelee()
+watchMeleeButtonPressed()
 {
 	self endon("disconnect");
 	self endon("killed_player");
@@ -415,7 +434,7 @@ watchMelee()
 				if(catch_next && self meleeButtonPressed() && self isOnGround())
 				{
 					self thread savePos(1);
-					wait 1;
+					wait .1;
 					break;
 				}
 				else if(!(self meleeButtonPressed()) && !(self attackButtonPressed()))
@@ -429,7 +448,7 @@ watchMelee()
 	}
 }
 
-watchUse()
+watchSecondaryOffhandButtonPressed()
 {
 	self endon("disconnect");
 	self endon("killed_player");
@@ -437,24 +456,27 @@ watchUse()
 
 	for(;;)
 	{
-		if(!self.inMenu && self useButtonPressed())
+		if(!self.inMenu && self secondaryOffhandButtonPressed() && !(self isMantling()))
 		{
-			catch_next = false;
-			count = 0;
+			self loadPos(1);
+			wait .1;
+		}
+		wait 0.05;
+	}
+}
 
-			for(i=0; i<=0.5; i+=0.05)
-			{
-				if(catch_next && self useButtonPressed() && !(self isMantling()))
-				{
-					self thread loadPos(1);
-					wait 1;
-					break;
-				}
-				else if(!(self useButtonPressed()))
-					catch_next = true;
+watchFragButtonPressed()
+{
+	self endon("disconnect");
+	self endon("killed_player");
+	self endon("joined_spectators");
 
-				wait 0.05;
-			}
+	for(;;)
+	{
+		if(self FragButtonPressed())
+		{
+			self thread toggleUFO();
+			wait 0.5;
 		}
 
 		wait 0.05;
@@ -473,14 +495,8 @@ loadPos(i)
 	self freezecontrols(true);
 	wait 0.05;
 
-	if(!self isOnGround())
-		wait 0.05;
-
 	self setPlayerAngles(self.cj["save"]["ang"+i]);
 	self setOrigin(self.cj["save"]["org"+i]);
-
-	if(!self isOnGround())
-		wait 0.05;
 
 	wait 0.05;
 	self freezecontrols(false);
