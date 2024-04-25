@@ -299,8 +299,8 @@ watchUseButtonPressed()
 			{
 				if(catch_next && self UseButtonPressed() && !(self isMantling()))
 				{
-					self thread openCJ();
-					wait 1;
+					wait 0.1;
+					thread openCJ();
 					break;
 				}
 				else if(!(self UseButtonPressed()))
