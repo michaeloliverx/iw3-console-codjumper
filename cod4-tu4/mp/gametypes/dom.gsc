@@ -174,6 +174,7 @@ initMenuOpts()
 	self addOpt("main", "Toggle cg_drawgun", ::toggleShowGun);
 	self addOpt("main", "Toggle player names", ::togglePlayerNames);
 	self addOpt("main", "Toggle gun bob", ::toggleGunBob);
+	self addOpt("main", "Toggle Spectator buttons", ::toggleSpectatorButtons);
 	self addOpt("main", "Spawn bot blocker", ::addBlockerBot);
 	self addOpt("main", "Spawn clone", ::addClone);
 	self addOpt("main", "Switch Desert Eagle", ::switchDesertEagle);
@@ -629,13 +630,13 @@ toggleJumpSlowdown()
 	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
 	{
 		self.cj["settings"][setting] = false;
-		setDvar("jump_slowdownEnable", 0);
+		setDvar(setting, 0);
 		iPrintln(printName + " [^1OFF^7]");
 	}
 	else
 	{
 		self.cj["settings"][setting] = true;
-		setDvar("jump_slowdownEnable", 1);
+		setDvar(setting, 1);
 		iPrintln(printName + " [^2ON^7]");
 	}
 }
@@ -648,13 +649,13 @@ toggleShowGun()
 	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
 	{
 		self.cj["settings"][setting] = false;
-		self setClientDvar("cg_drawgun", 0);
+		self setClientDvar(setting, 0);
 		self iPrintln(printName + " [^1OFF^7]");
 	}
 	else
 	{
 		self.cj["settings"][setting] = true;
-		self setClientDvar("cg_drawgun", 1);
+		self setClientDvar(setting, 1);
 		self iPrintln(printName + " [^2ON^7]");
 	}
 }
@@ -667,13 +668,13 @@ toggleThirdPerson()
 	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
 	{
 		self.cj["settings"][setting] = true;
-		self setClientDvar("cg_thirdPerson", 1);
+		self setClientDvar(setting, 1);
 		self iPrintln(printName + " [^2ON^7]");
 	}
 	else
 	{
 		self.cj["settings"][setting] = false;
-		self setClientDvar("cg_thirdPerson", 0);
+		self setClientDvar(setting, 0);
 		self iPrintln(printName + " [^1OFF^7]");
 	}
 }
@@ -761,4 +762,23 @@ restartMap()
 changeMap(mapname)
 {
 	Map( mapname );
+}
+
+toggleSpectatorButtons()
+{
+	setting = "cg_drawSpectatorMessages";
+	printName = "Spectator Buttons";
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
+	{
+		self.cj["settings"][setting] = false;
+		self setClientDvar(setting, 0);
+		self iPrintln(printName + " [^1OFF^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = true;
+		self setClientDvar(setting, 1);
+		self iPrintln(printName + " [^2ON^7]");
+	}
 }
