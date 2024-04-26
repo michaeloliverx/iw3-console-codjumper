@@ -167,6 +167,7 @@ initMenuOpts()
 		self addOpt("host_menu_maps", "Strike", ::changeMap, "mp_strike");
 		self addOpt("host_menu_maps", "Vacant", ::changeMap, "mp_vacant");
 		self addOpt("host_menu_maps", "Wet Work", ::changeMap, "mp_cargoship");
+		self addOpt("host_menu_maps", "Winter Crash", ::changeMap, "mp_crash_snow");
 	}
 
 	self addOpt("main", "Toggle UFO Mode", ::toggleUFO);
