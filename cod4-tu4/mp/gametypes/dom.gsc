@@ -5,6 +5,10 @@ init()
 {
 	level.__VERSION__ = "v0.2";
 
+	level.bombs = [];
+	level.crates = [];
+	initGameObjects();
+
 	level.hardcoreMode = true;				// Force hardcore mode
 
 	// TEAM DEATHMATCH
@@ -75,7 +79,6 @@ onPlayerSpawned()
 		self thread watchMeleeButtonPressed();
 		self thread watchSecondaryOffhandButtonPressed();
 		self thread watchFragButtonPressed();
-		self thread watchDPAD_UP();
 		self thread initMenu();
 	}
 }
@@ -522,9 +525,14 @@ watchSecondaryOffhandButtonPressed()
 
 	for(;;)
 	{
-		if(!self.inMenu && self secondaryOffhandButtonPressed())
+		if(!self.inMenu && !self.cj["settings"]["ufo_mode"] && self secondaryOffhandButtonPressed())
 		{
-			self thread SpawnCrate();
+			self loadPos(1);
+			wait .1;
+		}
+		if(self.cj["settings"]["ufo_mode"] == true && self secondaryOffhandButtonPressed())
+		{
+			self thread spawnGameObject();
 			wait .1;
 		}
 		wait 0.05;
@@ -798,26 +806,8 @@ toggleSpectatorButtons()
 	}
 }
 
-watchDPAD_UP()
-{
-	self endon("death");
-	self endon("disconnect");
-	self endon("game_ended");
-
-	self SetActionSlot( 1, "nightvision" );
-
-	for(;;)
-	{
-		waittill_any("night_vision_on", "night_vision_off");
-		self loadPos(1);
-	}
-}
-
 initGameObjects()
 {
-	level.bombs = [];
-	level.crates = [];
-
 	ents = getentarray();
 
 	for (i = 0; i < ents.size; i++)
@@ -837,8 +827,8 @@ initGameObjects()
 		}
 	}
 
-	self iPrintLn("Found " + level.bombs.size + " bombs on this map!");
-	self iPrintLn("Found " + level.crates.size + " crates on this map!");
+	// self iPrintLn("Found " + level.bombs.size + " bombs on this map!");
+	// self iPrintLn("Found " + level.crates.size + " crates on this map!");
 
 	return true;
 }
@@ -855,26 +845,17 @@ linkScriptBrushModel(ent){
 	}
 }
 
-SpawnCrate()
+spawnGameObject()
 {
-	if (!isDefined(level.cratesInitialized) || !level.cratesInitialized)
-	{
-		level.cratesInitialized = self initGameObjects();
-		if (!level.cratesInitialized)
-			return;
-	}
-
 	ent = self.activeGameObject;
-
 	ent.origin = self.origin + (anglestoforward(self getPlayerAngles()) * 100);
-
-	// TODO: setup player angles
-	// playerAngles = self getPlayerAngles();
-	// ent rotateYaw(playerAngles[1], 0.01);
+	// TODO: fix player angles
+	playerAngles = self getPlayerAngles();
+	ent rotateYaw(playerAngles[1], 0.01);
 }
 
 setActiveGameObject(ent)
 {
 	self.activeGameObject = ent;
-	self iPrintLn("Set active. Press [{+smoke 1}] to spawn object.");
+	self iPrintLn("Set active. Press [{+smoke}] while in UFO mode to spawn object.");
 }
