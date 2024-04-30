@@ -184,29 +184,27 @@ initMenuOpts()
 		self addOpt("host_menu_maps", "Vacant", ::changeMap, "mp_vacant");
 		self addOpt("host_menu_maps", "Wet Work", ::changeMap, "mp_cargoship");
 		self addOpt("host_menu_maps", "Winter Crash", ::changeMap, "mp_crash_snow");
+	}
 
-		// Game objects
-		self addOpt("main", "[HOST] Game objects", ::subMenu, "host_game_objects");
-		self addMenu("host_game_objects", "[HOST] Game objects", "main");
+	// Game objects
+	self addOpt("main", "Game objects", ::subMenu, "menu_game_objects");
+	self addMenu("menu_game_objects", "[HOST] Game objects", "main");
 
-		for (i = 0; i < level.bombs.size; i++)
-		{
-			text = "";
-			if(isdefined(self.activeGameObject) && self.activeGameObject == level.bombs[i])
-				text += level.SELECTED_PREFIX;
-			text += "Bomb " + (i + 1);
-
-			self addOpt("host_game_objects", text, ::setActiveGameObject, level.bombs[i]);
-		}
-		for (i = 0; i < level.crates.size; i++)
-		{
-			text = "";
-			if(isdefined(self.activeGameObject) && self.activeGameObject == level.crates[i])
-				text += level.SELECTED_PREFIX;
-			text += "Crate " + (i + 1);
-
-			self addOpt("host_game_objects", text, ::setActiveGameObject, level.crates[i]);
-		}
+	for (i = 0; i < level.bombs.size; i++)
+	{
+		text = "";
+		if(isdefined(self.activeGameObject) && self.activeGameObject == level.bombs[i])
+			text += level.SELECTED_PREFIX;
+		text += "Bomb " + (i + 1);
+		self addOpt("menu_game_objects", text, ::setActiveGameObject, level.bombs[i]);
+	}
+	for (i = 0; i < level.crates.size; i++)
+	{
+		text = "";
+		if(isdefined(self.activeGameObject) && self.activeGameObject == level.crates[i])
+			text += level.SELECTED_PREFIX;
+		text += "Crate " + (i + 1);
+		self addOpt("menu_game_objects", text, ::setActiveGameObject, level.crates[i]);
 	}
 
 	// Loadout submenu
