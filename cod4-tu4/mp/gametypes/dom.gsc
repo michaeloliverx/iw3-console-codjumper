@@ -186,11 +186,21 @@ initMenuOpts()
 
 		for (i = 0; i < level.bombs.size; i++)
 		{
-			self addOpt("host_game_objects", "Bomb " + (i + 1), ::setActiveGameObject, level.bombs[i]);
+			text = "";
+			if(isdefined(self.activeGameObject) && self.activeGameObject == level.bombs[i])
+				text += level.SELECTED_PREFIX;
+			text += "Bomb " + (i + 1);
+
+			self addOpt("host_game_objects", text, ::setActiveGameObject, level.bombs[i]);
 		}
 		for (i = 0; i < level.crates.size; i++)
 		{
-			self addOpt("host_game_objects", "Crate " + (i + 1), ::setActiveGameObject, level.crates[i]);
+			text = "";
+			if(isdefined(self.activeGameObject) && self.activeGameObject == level.crates[i])
+				text += level.SELECTED_PREFIX;
+			text += "Crate " + (i + 1);
+
+			self addOpt("host_game_objects", text, ::setActiveGameObject, level.crates[i]);
 		}
 	}
 
@@ -945,6 +955,7 @@ setActiveGameObject(ent)
 {
 	self.activeGameObject = ent;
 	self iPrintLn("Set active. Press [{+smoke}] while in UFO mode to spawn object.");
+	self refreshMenu();
 }
 
 initSpeedometerHudElem()
