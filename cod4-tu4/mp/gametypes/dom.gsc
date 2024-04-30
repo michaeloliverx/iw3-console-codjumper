@@ -5,6 +5,8 @@ init()
 {
 	level.__VERSION__ = "v0.2";
 
+	level.SELECTED_PREFIX = "^2-->^7 ";
+
 	level.bombs = [];
 	level.crates = [];
 	initGameObjects();
@@ -79,8 +81,9 @@ onPlayerSpawned()
 		self thread watchMeleeButtonPressed();
 		self thread watchSecondaryOffhandButtonPressed();
 		self thread watchFragButtonPressed();
-		self thread initMenu();
 		self thread updateSpeedometerHudElem();
+		self thread watchDPAD_UP();
+		self thread initMenu();
 	}
 }
 
@@ -88,6 +91,9 @@ setupPlayer()
 {
 	self.cj = [];
 	self.cj["saves"] = [];
+	self.cj["bots"] = [];
+	self.cj["botnumber"] = 0;
+	self.cj["maxbots"] = 4;
 	self.cj["settings"] = [];
 	self.cj["settings"]["deserteagle_choice"] = "deserteaglegold_mp";
 	self.cj["settings"]["specialty_fastreload_enable"] = true;
@@ -188,6 +194,7 @@ initMenuOpts()
 		}
 	}
 
+	// Loadout submenu
 	self addOpt("main", "Loadout Menu", ::subMenu, "loadout_menu");
 	self addMenu("loadout_menu", "Loadout Menu", "main");
 	self addOpt("loadout_menu", "Switch Desert Eagle", ::switchDesertEagle);
@@ -200,7 +207,28 @@ initMenuOpts()
 	self addOpt("main", "Toggle gun bob", ::toggleGunBob);
 	self addOpt("main", "Toggle Spectator buttons", ::toggleSpectatorButtons);
 	self addOpt("main", "Toggle Speedometer", ::toggleSpeedometerHudElem);
-	self addOpt("main", "Spawn bot blocker", ::addBlockerBot);
+
+	// Bot submenu
+	self addOpt("main", "Bot Menu", ::subMenu, "bot_menu");
+	self addMenu("bot_menu", "Bot Menu", "main");
+	for (i = 0; i < self.cj["maxbots"]; i++)
+	{
+		text = "";
+		if(self.cj["botnumber"] == i)
+			text += level.SELECTED_PREFIX;
+		
+		text += "Set active bot " + (i + 1);
+		// If bot is already spawned display its origin
+		// useful to record good bot positions
+		if(isplayer(self.cj["bots"][i]))
+		{
+			origin = self.cj["bots"][i].origin;
+			origin = (int(origin[0]), int(origin[1]), int(origin[2]));
+			text += (" " + origin);
+		}
+
+		self addOpt("bot_menu", text, ::setSelectedBot, i);
+	}
 	self addOpt("main", "Spawn clone", ::addClone);
 
 }
@@ -356,6 +384,18 @@ subMenu(menu)
 		string+= self.menuAction[self.currentMenu].opt[m]+"\n";
 	self.menuText = self createText("default", 1.5, "LEFT", "TOPRIGHT", -300, 60, 3, 1, undefined, string);
 	wait .2;
+}
+
+refreshMenu()
+{
+	self.menuText destroy();
+	self initMenuOpts();
+	self.openText setText(self.menuAction[self.currentMenu].title);
+	menuOpts = self.menuAction[self.currentMenu].opt.size;
+	string = "";
+	for(m = 0; m < menuOpts; m++)
+		string+= self.menuAction[self.currentMenu].opt[m]+"\n";
+	self.menuText = self createText("default", 1.5, "LEFT", "TOPRIGHT", -300, 60, 3, 1, undefined, string);
 }
 
 addMenu(menu, title, parent)
@@ -596,12 +636,35 @@ initBot()
 	return bot;
 }
 
-addBlockerBot()
+watchDPAD_UP()
 {
-	if (!isDefined(self.bot))
+	self endon("death");
+	self endon("disconnect");
+	self endon("game_ended");
+
+	self SetActionSlot( 1, "nightvision" );
+
+	for(;;)
 	{
-		self.bot = initBot();
-		if (!isDefined(self.bot))
+		waittill_any("night_vision_on", "night_vision_off");
+		self thread spawnSelectedBot();
+	}
+}
+
+setSelectedBot(num)
+{
+	self.cj["botnumber"] = num;
+	self iPrintLn("Bot " + (num + 1) + " active. Press [{+actionslot 1}] to update position.");
+	self refreshMenu();
+}
+
+spawnSelectedBot()
+{
+
+	if(!isdefined(self.cj["bots"][self.cj["botnumber"]]))
+	{
+		self.cj["bots"][self.cj["botnumber"]] = initBot();
+		if (!isdefined(self.cj["bots"][self.cj["botnumber"]]))
 		{
 			self iPrintLn("^1Couldn't spawn a bot");
 			return;
@@ -609,13 +672,17 @@ addBlockerBot()
 	}
 
 	origin = self.origin;
+	playerAngles = self getPlayerAngles();
+
 	wait 0.5;
 	for (i = 3; i > 0; i--)
 	{
 		self iPrintLn("Bot spawns in ^2" + i);
 		wait 1;
 	}
-	self.bot setOrigin(origin);
+	self.cj["bots"][self.cj["botnumber"]] setOrigin(origin);
+	// Face the bot the same direction the player was facing
+	self.cj["bots"][self.cj["botnumber"]] setPlayerAngles((0, playerAngles[1], 0));
 }
 
 toggleOldschool()
