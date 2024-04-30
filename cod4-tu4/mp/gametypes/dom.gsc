@@ -88,7 +88,8 @@ setupPlayer()
 	self.cj = [];
 	self.cj["saves"] = [];
 	self.cj["settings"] = [];
-	self.cj["deserteagle_choice"] = "deserteaglegold_mp";
+	self.cj["settings"]["deserteagle_choice"] = "deserteaglegold_mp";
+	self.cj["settings"]["specialty_fastreload_enable"] = true;
 
 	// Remove unlocalized errors
 	self setClientDvars("loc_warnings","0","loc_warningsAsErrors","0","cg_errordecay","1","con_errormessagetime","0","uiscript_debug","0");
@@ -142,9 +143,8 @@ initMenuOpts()
 	// Host submenu
 	if(self GetEntityNumber() == 0)
 	{
-		self addOpt("main", "[HOST] menu", ::subMenu, "host_menu");
-		self addMenu("host_menu", "[HOST] menu", "main");
-		self addOpt("host_menu", "Fast restart", ::restartMap);
+		self addOpt("main", "[HOST] Global settings", ::subMenu, "host_menu");
+		self addMenu("host_menu", "[HOST] Global settings", "main");
 		self addOpt("host_menu", "Toggle jump_slowdownEnable", ::toggleJumpSlowdown);
 		self addOpt("host_menu", "Toggle Old School Mode", ::toggleOldschool);
 
@@ -187,6 +187,11 @@ initMenuOpts()
 		}
 	}
 
+	self addOpt("main", "Loadout Menu", ::subMenu, "loadout_menu");
+	self addMenu("loadout_menu", "Loadout Menu", "main");
+	self addOpt("loadout_menu", "Switch Desert Eagle", ::switchDesertEagle);
+	self addOpt("loadout_menu", "Toggle Sleight of Hand", ::toggleFastReload);
+
 	self addOpt("main", "Toggle UFO Mode", ::toggleUFO);
 	self addOpt("main", "Toggle 3rd Person", ::toggleThirdPerson);
 	self addOpt("main", "Toggle cg_drawgun", ::toggleShowGun);
@@ -195,7 +200,7 @@ initMenuOpts()
 	self addOpt("main", "Toggle Spectator buttons", ::toggleSpectatorButtons);
 	self addOpt("main", "Spawn bot blocker", ::addBlockerBot);
 	self addOpt("main", "Spawn clone", ::addClone);
-	self addOpt("main", "Switch Desert Eagle", ::switchDesertEagle);
+
 }
 
 initMenu()
@@ -351,11 +356,6 @@ subMenu(menu)
 	wait .2;
 }
 
-test()
-{
-	self iPrintln("^4MENU BASE TEST");
-}
-
 addMenu(menu, title, parent)
 {
 	if(!isDefined(self.menuAction))
@@ -444,11 +444,13 @@ ammoCheck()
 
 setupLoadout()
 {
-	
-	self clearPerks();						// Remove all perks
-	self setPerk("specialty_fastreload");	// Give Sleight of Hand
-
+	self clearPerks();
 	self takeAllWeapons();
+
+	if(self.cj["settings"]["specialty_fastreload_enable"] == true)
+	{
+		self setPerk("specialty_fastreload");	// Give Sleight of Hand
+	}
 
 	self giveWeapon("c4_mp");
 	self SetActionSlot( 2, "weapon", "c4_mp" );
@@ -456,7 +458,7 @@ setupLoadout()
 	self giveWeapon("rpg_mp");
 	self SetActionSlot( 3, "weapon", "rpg_mp" );
 
-	deserteagle_choice = self.cj["deserteagle_choice"];
+	deserteagle_choice = self.cj["settings"]["deserteagle_choice"];
 
 	self giveWeapon(deserteagle_choice);
 	wait 0.05;
@@ -769,17 +771,31 @@ addClone()
 
 switchDesertEagle()
 {
-	if(self.cj["deserteagle_choice"] == "deserteaglegold_mp")
-		self.cj["deserteagle_choice"] = "deserteagle_mp";
+	if(self.cj["settings"]["deserteagle_choice"] == "deserteaglegold_mp")
+		self.cj["settings"]["deserteagle_choice"] = "deserteagle_mp";
 	else
-		self.cj["deserteagle_choice"] = "deserteaglegold_mp";
+		self.cj["settings"]["deserteagle_choice"] = "deserteaglegold_mp";
 
 	self setupLoadout();
 }
 
-restartMap()
+toggleFastReload()
 {
-	Map_Restart( false );
+	setting = "specialty_fastreload_enable";
+	printName = "Sleight of Hand";
+
+	if (self.cj["settings"][setting] == true)
+	{
+		self.cj["settings"][setting] = false;
+		self iPrintln(printName + " [^1OFF^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = true;
+		self iPrintln(printName + " [^2ON^7]");
+	}
+
+	self setupLoadout();
 }
 
 changeMap(mapname)
