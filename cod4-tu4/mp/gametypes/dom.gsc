@@ -80,6 +80,7 @@ onPlayerSpawned()
 		self thread watchSecondaryOffhandButtonPressed();
 		self thread watchFragButtonPressed();
 		self thread initMenu();
+		self thread updateSpeedometerHudElem();
 	}
 }
 
@@ -198,6 +199,7 @@ initMenuOpts()
 	self addOpt("main", "Toggle player names", ::togglePlayerNames);
 	self addOpt("main", "Toggle gun bob", ::toggleGunBob);
 	self addOpt("main", "Toggle Spectator buttons", ::toggleSpectatorButtons);
+	self addOpt("main", "Toggle Speedometer", ::toggleSpeedometerHudElem);
 	self addOpt("main", "Spawn bot blocker", ::addBlockerBot);
 	self addOpt("main", "Spawn clone", ::addClone);
 
@@ -876,4 +878,64 @@ setActiveGameObject(ent)
 {
 	self.activeGameObject = ent;
 	self iPrintLn("Set active. Press [{+smoke}] while in UFO mode to spawn object.");
+}
+
+initSpeedometerHudElem()
+{
+	hudElem = newClientHudElem(self);
+	hudElem.horzAlign = "right";
+	hudElem.vertAlign = "bottom";
+	hudElem.alignX = "right";
+	hudElem.alignY = "bottom";
+	hudElem.x = 0;
+	hudElem.y = 0;
+	hudElem.foreground = true;
+	hudElem.font = "objective";
+	hudElem.hideWhenInMenu = true;
+	hudElem.color = (1.0, 1.0, 1.0);
+	hudElem.glowColor = ((125/255), (33/255), (20/255));
+	hudElem.glowAlpha = 0.0;
+	hudElem.fontScale = 2;
+	hudElem.archived = false;
+	hudElem.alpha = 0;
+	return hudElem;
+}
+
+updateSpeedometerHudElem()
+{
+	self endon("death");
+	self endon("disconnect");
+	self endon("game_ended");
+
+	if(!isdefined(self.speedometerHudElem))
+	{
+		self.speedometerHudElem = initSpeedometerHudElem();
+	}
+
+	for (;;)
+	{
+		xyzspeed = self getVelocity();
+		normalisedSpeed = int(sqrt(xyzspeed[0] * xyzspeed[0] + xyzspeed[1] * xyzspeed[1]));
+		self.speedometerHudElem setValue(normalisedSpeed);
+		wait .05;
+	}
+}
+
+toggleSpeedometerHudElem()
+{
+	setting = "speedometer_enabled";
+	printName = "Speedometer";
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
+	{
+		self.cj["settings"][setting] = true;
+		self.speedometerHudElem.alpha = .6;
+		self iPrintln(printName + " [^2ON^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = false;
+		self.speedometerHudElem.alpha = 0;
+		self iPrintln(printName + " [^1OFF^7]");
+	}
 }
