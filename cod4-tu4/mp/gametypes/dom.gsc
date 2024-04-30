@@ -833,6 +833,8 @@ initGameObjects()
 	return true;
 }
 
+// TODO: function fails when other models are close by
+// e.g. showdown Sabo bombs and headquarter crates
 linkScriptBrushModel(ent){
 	brushModels = getEntArray("script_brushmodel", "classname");
 	for (i = 0; i < brushModels.size; i++)
