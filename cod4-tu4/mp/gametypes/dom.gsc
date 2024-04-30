@@ -65,6 +65,11 @@ onPlayerConnect()
 		if ( isDefined( player.pers["isBot"] ) )
 			continue;
 
+		// JumpCrouch helper
+		player setClientDvar("activeaction", "vstr start");
+		player setClientDvar("start", "bind BUTTON_A vstr BUTTON_A_ACTION");
+		player setClientDvar("BUTTON_A_ACTION", "+gostand;-gostand");
+
 		player setupPlayer();
 		player thread onPlayerSpawned();
 	}
@@ -217,6 +222,7 @@ initMenuOpts()
 	self addOpt("main", "Toggle gun bob", ::toggleGunBob);
 	self addOpt("main", "Toggle Spectator buttons", ::toggleSpectatorButtons);
 	self addOpt("main", "Toggle Speedometer", ::toggleSpeedometerHudElem);
+	self addOpt("main", "Toggle Jump Crouch", ::toggleJumpCrouch);
 
 	// Bot submenu
 	self addOpt("main", "Bot Menu", ::subMenu, "bot_menu");
@@ -1014,6 +1020,25 @@ toggleSpeedometerHudElem()
 	{
 		self.cj["settings"][setting] = false;
 		self.speedometerHudElem.alpha = 0;
+		self iPrintln(printName + " [^1OFF^7]");
+	}
+}
+
+toggleJumpCrouch()
+{
+	setting = "jumpcrouch_enabled";
+	printName = "Jump Crouch";
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
+	{
+		self.cj["settings"][setting] = true;
+		self setClientDvar("BUTTON_A_ACTION", "+gostand;-gostand;wait 4;togglecrouch");
+		self iPrintln(printName + " [^2ON^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = false;
+		self setClientDvar("BUTTON_A_ACTION", "+gostand;-gostand");
 		self iPrintln(printName + " [^1OFF^7]");
 	}
 }
