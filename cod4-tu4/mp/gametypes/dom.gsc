@@ -218,15 +218,14 @@ initMenuOpts()
 			text += level.SELECTED_PREFIX;
 		
 		text += "Set active bot " + (i + 1);
-
-		// // If bot is already spawned display its origin
-		// // useful to record good bot positions
-		// if(isdefined(self.cj["bots"][self.cj["botnumber"]]))
-		// {
-		// 	origin = self.cj["bots"][self.cj["botnumber"]].origin;
-		// 	origin = (round(origin[0],0), round(origin[1],0), round(origin[2],0));
-		// 	text += (" " + origin);
-		// }
+		// If bot is already spawned display its origin
+		// useful to record good bot positions
+		if(isplayer(self.cj["bots"][i]))
+		{
+			origin = self.cj["bots"][i].origin;
+			origin = (int(origin[0]), int(origin[1]), int(origin[2]));
+			text += (" " + origin);
+		}
 
 		self addOpt("bot_menu", text, ::setSelectedBot, i);
 	}
@@ -673,6 +672,8 @@ spawnSelectedBot()
 	}
 
 	origin = self.origin;
+	playerAngles = self getPlayerAngles();
+
 	wait 0.5;
 	for (i = 3; i > 0; i--)
 	{
@@ -680,9 +681,6 @@ spawnSelectedBot()
 		wait 1;
 	}
 	self.cj["bots"][self.cj["botnumber"]] setOrigin(origin);
-
-	playerAngles = self getPlayerAngles();
-
 	// Face the bot the same direction the player was facing
 	self.cj["bots"][self.cj["botnumber"]] setPlayerAngles((0, playerAngles[1], 0));
 }
