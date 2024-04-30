@@ -5,6 +5,10 @@ init()
 {
 	level.__VERSION__ = "v0.2";
 
+	level.bombs = [];
+	level.crates = [];
+	initGameObjects();
+
 	level.hardcoreMode = true;				// Force hardcore mode
 
 	// TEAM DEATHMATCH
@@ -168,6 +172,19 @@ initMenuOpts()
 		self addOpt("host_menu_maps", "Vacant", ::changeMap, "mp_vacant");
 		self addOpt("host_menu_maps", "Wet Work", ::changeMap, "mp_cargoship");
 		self addOpt("host_menu_maps", "Winter Crash", ::changeMap, "mp_crash_snow");
+
+		// Game objects
+		self addOpt("main", "[HOST] Game objects", ::subMenu, "host_game_objects");
+		self addMenu("host_game_objects", "[HOST] Game objects", "main");
+
+		for (i = 0; i < level.bombs.size; i++)
+		{
+			self addOpt("host_game_objects", "Bomb " + (i + 1), ::setActiveGameObject, level.bombs[i]);
+		}
+		for (i = 0; i < level.crates.size; i++)
+		{
+			self addOpt("host_game_objects", "Crate " + (i + 1), ::setActiveGameObject, level.crates[i]);
+		}
 	}
 
 	self addOpt("main", "Toggle UFO Mode", ::toggleUFO);
@@ -508,9 +525,14 @@ watchSecondaryOffhandButtonPressed()
 
 	for(;;)
 	{
-		if(!self.inMenu && self secondaryOffhandButtonPressed() && !(self isMantling()))
+		if(!self.inMenu && !self.cj["settings"]["ufo_mode"] && self secondaryOffhandButtonPressed())
 		{
 			self loadPos(1);
+			wait .1;
+		}
+		if(self.cj["settings"]["ufo_mode"] == true && self secondaryOffhandButtonPressed())
+		{
+			self thread spawnGameObject();
 			wait .1;
 		}
 		wait 0.05;
@@ -782,4 +804,60 @@ toggleSpectatorButtons()
 		self setClientDvar(setting, 1);
 		self iPrintln(printName + " [^2ON^7]");
 	}
+}
+
+initGameObjects()
+{
+	ents = getentarray();
+
+	for (i = 0; i < ents.size; i++)
+	{
+		// Search and Destroy / Sabotage bombs
+		if(ents[i].classname == "script_model" && ents[i].model == "com_bomb_objective")
+		{
+			linkScriptBrushModel(ents[i]);
+			level.bombs[level.bombs.size] = ents[i];
+		}
+
+		// Headquarters crates
+		if(ents[i].classname == "script_model" && ents[i].script_gameobjectname == "hq" && ents[i].model == "com_plasticcase_beige_big")
+		{
+			linkScriptBrushModel(ents[i]);
+			level.crates[level.crates.size] = ents[i];
+		}
+	}
+
+	// self iPrintLn("Found " + level.bombs.size + " bombs on this map!");
+	// self iPrintLn("Found " + level.crates.size + " crates on this map!");
+
+	return true;
+}
+
+// TODO: function fails when other models are close by
+// e.g. showdown Sabo bombs and headquarter crates
+linkScriptBrushModel(ent){
+	brushModels = getEntArray("script_brushmodel", "classname");
+	for (i = 0; i < brushModels.size; i++)
+	{
+		if (Distance(ent.origin, brushModels[i].origin) < 100)
+		{
+			brushModels[i] LinkTo(ent);
+			break;
+		}
+	}
+}
+
+spawnGameObject()
+{
+	ent = self.activeGameObject;
+	ent.origin = self.origin + (anglestoforward(self getPlayerAngles()) * 100);
+	// TODO: fix player angles
+	playerAngles = self getPlayerAngles();
+	ent rotateYaw(playerAngles[1], 0.01);
+}
+
+setActiveGameObject(ent)
+{
+	self.activeGameObject = ent;
+	self iPrintLn("Set active. Press [{+smoke}] while in UFO mode to spawn object.");
 }
