@@ -683,11 +683,8 @@ spawnSelectedBot()
 
 	playerAngles = self getPlayerAngles();
 
-	botViewY = playerAngles[1];
-	// Make the bot look the same direction as the player
-	// Ensure the angle is normalized to the [-180, 180] range
-	botViewY = ((playerAngles[1] + 180) % 360 + 360) % 360 - 180;
-	self.cj["bots"][self.cj["botnumber"]] setPlayerAngles((0, botViewY, 0));
+	// Face the bot the same direction the player was facing
+	self.cj["bots"][self.cj["botnumber"]] setPlayerAngles((0, playerAngles[1], 0));
 }
 
 toggleOldschool()
