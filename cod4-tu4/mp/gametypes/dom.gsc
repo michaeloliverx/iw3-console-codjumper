@@ -939,7 +939,7 @@ linkScriptBrushModel(ent){
 	brushModels = getEntArray("script_brushmodel", "classname");
 	for (i = 0; i < brushModels.size; i++)
 	{
-		if (Distance(ent.origin, brushModels[i].origin) < 100)
+		if (Distance(ent.origin, brushModels[i].origin) < 80)
 		{
 			brushModels[i] LinkTo(ent);
 			break;
@@ -949,11 +949,10 @@ linkScriptBrushModel(ent){
 
 spawnGameObject()
 {
-	ent = self.activeGameObject;
-	ent.origin = self.origin + (anglestoforward(self getPlayerAngles()) * 100);
-	// TODO: fix player angles
 	playerAngles = self getPlayerAngles();
-	ent rotateYaw(playerAngles[1], 0.01);
+	ent = self.activeGameObject;
+	ent.origin = self.origin + (anglestoforward(playerAngles) * 150);
+	ent.angles = (0, playerAngles[1], 0);
 }
 
 setActiveGameObject(ent)
