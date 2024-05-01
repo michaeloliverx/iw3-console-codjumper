@@ -978,8 +978,29 @@ initSpeedometerHudElem()
 	hudElem.vertAlign = "bottom";
 	hudElem.alignX = "right";
 	hudElem.alignY = "bottom";
-	hudElem.x = 0;
-	hudElem.y = 0;
+	hudElem.x = 50;
+	hudElem.y = 30;
+	hudElem.foreground = true;
+	hudElem.font = "objective";
+	hudElem.hideWhenInMenu = true;
+	hudElem.color = (1.0, 1.0, 1.0);
+	hudElem.glowColor = ((125/255), (33/255), (20/255));
+	hudElem.glowAlpha = 0.0;
+	hudElem.fontScale = 2;
+	hudElem.archived = false;
+	hudElem.alpha = 0;
+	return hudElem;
+}
+
+initHeightMeterHudElem()
+{
+	hudElem = newClientHudElem(self);
+	hudElem.horzAlign = "right";
+	hudElem.vertAlign = "bottom";
+	hudElem.alignX = "right";
+	hudElem.alignY = "bottom";
+	hudElem.x = 50;
+	hudElem.y = 13;
 	hudElem.foreground = true;
 	hudElem.font = "objective";
 	hudElem.hideWhenInMenu = true;
@@ -1001,13 +1022,16 @@ updateSpeedometerHudElem()
 	if(!isdefined(self.speedometerHudElem))
 	{
 		self.speedometerHudElem = initSpeedometerHudElem();
+		self.heightMeterHudElem = initHeightMeterHudElem();
 	}
 
 	for (;;)
 	{
+		origin = self.origin;
 		xyzspeed = self getVelocity();
 		normalisedSpeed = int(sqrt(xyzspeed[0] * xyzspeed[0] + xyzspeed[1] * xyzspeed[1]));
 		self.speedometerHudElem setValue(normalisedSpeed);
+		self.heightMeterHudElem setValue(int(origin[2]));
 		wait .05;
 	}
 }
@@ -1021,31 +1045,14 @@ toggleSpeedometerHudElem()
 	{
 		self.cj["settings"][setting] = true;
 		self.speedometerHudElem.alpha = .6;
+		self.heightMeterHudElem.alpha = .6;
 		self iPrintln(printName + " [^2ON^7]");
 	}
 	else
 	{
 		self.cj["settings"][setting] = false;
 		self.speedometerHudElem.alpha = 0;
-		self iPrintln(printName + " [^1OFF^7]");
-	}
-}
-
-toggleJumpCrouch()
-{
-	setting = "jumpcrouch_enabled";
-	printName = "Jump Crouch";
-
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
-	{
-		self.cj["settings"][setting] = true;
-		self setClientDvar("BUTTON_A_ACTION", "+gostand;-gostand;wait 4;togglecrouch");
-		self iPrintln(printName + " [^2ON^7]");
-	}
-	else
-	{
-		self.cj["settings"][setting] = false;
-		self setClientDvar("BUTTON_A_ACTION", "+gostand;-gostand");
+		self.heightMeterHudElem.alpha = 0;
 		self iPrintln(printName + " [^1OFF^7]");
 	}
 }
