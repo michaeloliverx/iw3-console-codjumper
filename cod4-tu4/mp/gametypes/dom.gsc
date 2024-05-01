@@ -1,5 +1,6 @@
 #include common_scripts\utility;
 #include maps\mp\gametypes\_hud_util;
+#include maps\mp\gametypes\koth;
 
 init()
 {
@@ -89,6 +90,10 @@ onPlayerSpawned()
 		self thread updateSpeedometerHudElem();
 		self thread watchDPAD_UP();
 		self thread initMenu();
+
+		// cg_fov resets on death
+		if(isdefined(self.cj["settings"]["cg_fov"]))
+			self setClientDvar("cg_fov", self.cj["settings"]["cg_fov"]);
 	}
 }
 
@@ -1043,33 +1048,4 @@ toggleJumpCrouch()
 		self setClientDvar("BUTTON_A_ACTION", "+gostand;-gostand");
 		self iPrintln(printName + " [^1OFF^7]");
 	}
-}
-
-toggleFOV()
-{
-	setting = "cg_fov";
-	printName = "FOV";
-
-	currentValue = self.cj["settings"][setting];
-	if(!isdefined(currentValue))
-		currentValue = 65;
-
-	switch( currentValue )
-	{
-		case 65:
-			newValue = 70;
-			break;
-		case 70:
-			newValue = 75;
-			break;
-		case 75:
-			newValue = 80;
-			break;
-		default:
-			newValue = 65;
-			break;
-	}
-	self.cj["settings"][setting] = newValue;
-	self setClientDvar(setting, newValue);
-	self iPrintln(printName + " " + newValue);
 }
