@@ -89,6 +89,7 @@ onPlayerSpawned()
 		self thread watchFragButtonPressed();
 		self thread updateSpeedometerHudElem();
 		self thread watchDPAD_UP();
+		self thread watchUseButtonPressed();
 		self thread initMenu();
 
 		// cg_fov resets on death
@@ -197,6 +198,7 @@ initMenuOpts()
 	// Game objects
 	self addOpt("main", "Game objects", ::subMenu, "menu_game_objects");
 	self addMenu("menu_game_objects", "Game objects", "main");
+	self addOpt("menu_game_objects", "Toggle forge mode", ::toggleForgeMode);
 	self addOpt("menu_game_objects", "Rotate pitch 5", ::activeGameObjectRotatePitch);
 	self addOpt("menu_game_objects", "Rotate roll 90", ::activeGameObjectRotateRoll);
 	self addOpt("menu_game_objects", "Rotate yaw 90", ::activeGameObjectRotateYaw);
@@ -276,8 +278,6 @@ initMenu()
 
 	self.currentMenu = "main";
 	self.menuCurs = 0;
-
-	self thread watchUseButtonPressed();
 
 	for(;;)
 	{
