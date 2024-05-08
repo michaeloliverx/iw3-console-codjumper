@@ -45,3 +45,18 @@ toggleJumpCrouch()
 		self iPrintln(printName + " [^1OFF^7]");
 	}
 }
+
+activeGameObjectRotatePitch()
+{
+	self.activeGameObject rotatepitch(5, 0.1);
+}
+
+activeGameObjectRotateRoll()
+{
+	self.activeGameObject rotateroll(90, 0.1);
+}
+
+activeGameObjectRotateYaw()
+{
+	self.activeGameObject rotateyaw(90, 0.1);
+}

@@ -196,7 +196,10 @@ initMenuOpts()
 
 	// Game objects
 	self addOpt("main", "Game objects", ::subMenu, "menu_game_objects");
-	self addMenu("menu_game_objects", "[HOST] Game objects", "main");
+	self addMenu("menu_game_objects", "Game objects", "main");
+	self addOpt("menu_game_objects", "Rotate pitch 5", ::activeGameObjectRotatePitch);
+	self addOpt("menu_game_objects", "Rotate roll 90", ::activeGameObjectRotateRoll);
+	self addOpt("menu_game_objects", "Rotate yaw 90", ::activeGameObjectRotateYaw);
 
 	for (i = 0; i < level.bombs.size; i++)
 	{
