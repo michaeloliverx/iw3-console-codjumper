@@ -152,8 +152,7 @@ setupPlayer()
 	self setClientDvar("g_compassShowEnemies", 1);
 	self setClientDvar("compassSize", 0.1);
 
-	self setClientDvar("player_spectateSpeedScale", 2);		// Faster movement in spectator
-	self setClientDvar("cg_scoreboardPingText", 1);		// Faster movement in spectator
+	self setClientDvar("cg_scoreboardPingText", 1);
 
 }
 
