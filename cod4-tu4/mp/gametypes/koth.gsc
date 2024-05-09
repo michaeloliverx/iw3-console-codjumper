@@ -235,3 +235,35 @@ rpgSwitch()
 		}
 	}
 }
+
+toggle_r_zfar()
+{
+	setting = "r_zfar";
+	printName = "r_zfar";
+
+	currentValue = self.cj["settings"][setting];
+	if(!isdefined(currentValue))
+		currentValue = 0;
+
+	switch( currentValue )
+	{
+		case 0:
+			newValue = 2000;
+			break;
+		case 2000:
+			newValue = 2500;
+			break;
+		case 2500:
+			newValue = 3000;
+			break;
+		case 3000:
+			newValue = 3500;
+			break;
+		default:
+			newValue = 0;
+			break;
+	}
+	self.cj["settings"][setting] = newValue;
+	self setClientDvar(setting, newValue);
+	self iPrintln(printName + " " + newValue);
+}

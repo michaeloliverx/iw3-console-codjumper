@@ -229,7 +229,7 @@ initMenuOpts()
 	self addOpt("loadout_menu", "Toggle Sleight of Hand", ::toggleFastReload);
 	self addOpt("loadout_menu", "Toggle RPG Switch", ::toggleRPGSwitch);
 
-	self addOpt("main", "Toggle UFO Mode", ::toggleUFO);
+	// self addOpt("main", "Toggle UFO Mode", ::toggleUFO);
 	self addOpt("main", "Toggle 3rd Person", ::toggleThirdPerson);
 	self addOpt("main", "Toggle cg_drawgun", ::toggleShowGun);
 	self addOpt("main", "Toggle player names", ::togglePlayerNames);
@@ -238,6 +238,7 @@ initMenuOpts()
 	self addOpt("main", "Toggle Speedometer", ::toggleSpeedometerHudElem);
 	self addOpt("main", "Toggle Jump Crouch", ::toggleJumpCrouch);
 	self addOpt("main", "Toggle FOV", ::toggleFOV);
+	self addOpt("main", "Toggle r_zfar", ::toggle_r_zfar);
 
 	// Bot submenu
 	self addOpt("main", "Bot Menu", ::subMenu, "bot_menu");
