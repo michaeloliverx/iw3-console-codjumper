@@ -547,11 +547,11 @@ setupLoadout()
 	}
 	else if(self.pers["class"] == "CLASS_HEAVYGUNNER" || self.pers["class"] == "OFFLINE_CLASS3")
 	{
-		self giveWeapon("m60e4_mp", 6);		// Gold M60
+		self giveWeapon("m60e4_reflex_mp", 6);		// Gold M60
 	}
 	else if(self.pers["class"] == "CLASS_SNIPER" || self.pers["class"] == "OFFLINE_CLASS5")
 	{
-		self giveWeapon("dragunov_mp", 6);	// Gold Dragunov
+		self giveWeapon("remington700_mp", 5);	// Blue tiger R700
 	}
 	else
 	{
