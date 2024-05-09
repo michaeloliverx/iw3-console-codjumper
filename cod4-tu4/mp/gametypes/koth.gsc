@@ -157,12 +157,19 @@ forgeMode()
 		while (self adsbuttonpressed())
 		{
 			trace = bullettrace(self gettagorigin("j_head"), self gettagorigin("j_head") + anglestoforward(self getplayerangles()) * 1000000, true, self);
+			ent = trace["entity"];
 			while (self adsbuttonpressed())
 			{
-				// for players/bots
-				trace["entity"] setorigin(self gettagorigin("j_head") + anglestoforward(self getplayerangles()) * 150);
-				// for game objects
-				trace["entity"].origin = self gettagorigin("j_head") + anglestoforward(self getplayerangles()) * 150;
+				origin = self gettagorigin("j_head") + anglestoforward(self getplayerangles()) * 150;
+				// Only pickup bots, bombs and crates
+				if ( isplayer(ent) && isdefined(ent.pers["isBot"]) )
+				{
+					ent setorigin(origin);
+				}
+				if ( isdefined(ent.model) && (ent.model == "com_bomb_objective" || ent.model == "com_plasticcase_beige_big") )
+				{
+					ent.origin = origin;
+				}
 				wait 0.05;
 			}
 		}
