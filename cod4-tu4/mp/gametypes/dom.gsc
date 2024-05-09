@@ -108,6 +108,8 @@ setupPlayer()
 	self.cj["settings"] = [];
 	self.cj["settings"]["deserteagle_choice"] = "deserteaglegold_mp";
 	self.cj["settings"]["specialty_fastreload_enable"] = true;
+	self.cj["settings"]["rpg_switch_enabled"] = false;
+	self.cj["settings"]["rpg_switched"] = false;
 
 	// Remove unlocalized errors
 	self setClientDvars("loc_warnings","0","loc_warningsAsErrors","0","cg_errordecay","1","con_errormessagetime","0","uiscript_debug","0");
@@ -225,6 +227,7 @@ initMenuOpts()
 	self addMenu("loadout_menu", "Loadout Menu", "main");
 	self addOpt("loadout_menu", "Switch Desert Eagle", ::switchDesertEagle);
 	self addOpt("loadout_menu", "Toggle Sleight of Hand", ::toggleFastReload);
+	self addOpt("loadout_menu", "Toggle RPG Switch", ::toggleRPGSwitch);
 
 	self addOpt("main", "Toggle UFO Mode", ::toggleUFO);
 	self addOpt("main", "Toggle 3rd Person", ::toggleThirdPerson);
@@ -630,6 +633,7 @@ watchFragButtonPressed()
 savePos(i)
 {
 	wait 0.05;
+	self.cj["settings"]["rpg_switched"] = false;
 	self.cj["save"]["org"+i] = self.origin;
 	self.cj["save"]["ang"+i] = self getPlayerAngles();
 }
@@ -641,6 +645,13 @@ loadPos(i)
 
 	self setPlayerAngles(self.cj["save"]["ang"+i]);
 	self setOrigin(self.cj["save"]["org"+i]);
+
+	//pull out rpg on load if RPG switch is enabled
+	if(self.cj["settings"]["rpg_switch_enabled"] && self.cj["settings"]["rpg_switched"])
+	{
+		self switchToWeapon("rpg_mp");
+		self.cj["settings"]["rpg_switched"] = false;
+	}
 
 	wait 0.05;
 	self freezecontrols(false);
@@ -969,90 +980,4 @@ setActiveGameObject(ent)
 	self.activeGameObject = ent;
 	self iPrintLn("Set active. Press [{+smoke}] while in UFO mode to spawn object.");
 	self refreshMenu();
-}
-
-initSpeedometerHudElem()
-{
-	hudElem = newClientHudElem(self);
-	hudElem.horzAlign = "right";
-	hudElem.vertAlign = "bottom";
-	hudElem.alignX = "right";
-	hudElem.alignY = "bottom";
-	hudElem.x = 50;
-	hudElem.y = 30;
-	hudElem.foreground = true;
-	hudElem.font = "objective";
-	hudElem.hideWhenInMenu = true;
-	hudElem.color = (1.0, 1.0, 1.0);
-	hudElem.glowColor = ((125/255), (33/255), (20/255));
-	hudElem.glowAlpha = 0.0;
-	hudElem.fontScale = 2;
-	hudElem.archived = false;
-	hudElem.alpha = 0;
-	return hudElem;
-}
-
-initHeightMeterHudElem()
-{
-	hudElem = newClientHudElem(self);
-	hudElem.horzAlign = "right";
-	hudElem.vertAlign = "bottom";
-	hudElem.alignX = "right";
-	hudElem.alignY = "bottom";
-	hudElem.x = 50;
-	hudElem.y = 13;
-	hudElem.foreground = true;
-	hudElem.font = "objective";
-	hudElem.hideWhenInMenu = true;
-	hudElem.color = (1.0, 1.0, 1.0);
-	hudElem.glowColor = ((125/255), (33/255), (20/255));
-	hudElem.glowAlpha = 0.0;
-	hudElem.fontScale = 2;
-	hudElem.archived = false;
-	hudElem.alpha = 0;
-	return hudElem;
-}
-
-updateSpeedometerHudElem()
-{
-	self endon("death");
-	self endon("disconnect");
-	self endon("game_ended");
-
-	if(!isdefined(self.speedometerHudElem))
-	{
-		self.speedometerHudElem = initSpeedometerHudElem();
-		self.heightMeterHudElem = initHeightMeterHudElem();
-	}
-
-	for (;;)
-	{
-		origin = self.origin;
-		xyzspeed = self getVelocity();
-		normalisedSpeed = int(sqrt(xyzspeed[0] * xyzspeed[0] + xyzspeed[1] * xyzspeed[1]));
-		self.speedometerHudElem setValue(normalisedSpeed);
-		self.heightMeterHudElem setValue(int(origin[2]));
-		wait .05;
-	}
-}
-
-toggleSpeedometerHudElem()
-{
-	setting = "speedometer_enabled";
-	printName = "Speedometer";
-
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
-	{
-		self.cj["settings"][setting] = true;
-		self.speedometerHudElem.alpha = .6;
-		self.heightMeterHudElem.alpha = .6;
-		self iPrintln(printName + " [^2ON^7]");
-	}
-	else
-	{
-		self.cj["settings"][setting] = false;
-		self.speedometerHudElem.alpha = 0;
-		self.heightMeterHudElem.alpha = 0;
-		self iPrintln(printName + " [^1OFF^7]");
-	}
 }

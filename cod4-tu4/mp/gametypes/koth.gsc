@@ -1,3 +1,89 @@
+initSpeedometerHudElem()
+{
+	hudElem = newClientHudElem(self);
+	hudElem.horzAlign = "right";
+	hudElem.vertAlign = "bottom";
+	hudElem.alignX = "right";
+	hudElem.alignY = "bottom";
+	hudElem.x = 50;
+	hudElem.y = 30;
+	hudElem.foreground = true;
+	hudElem.font = "objective";
+	hudElem.hideWhenInMenu = true;
+	hudElem.color = (1.0, 1.0, 1.0);
+	hudElem.glowColor = ((125/255), (33/255), (20/255));
+	hudElem.glowAlpha = 0.0;
+	hudElem.fontScale = 2;
+	hudElem.archived = false;
+	hudElem.alpha = 0;
+	return hudElem;
+}
+
+initHeightMeterHudElem()
+{
+	hudElem = newClientHudElem(self);
+	hudElem.horzAlign = "right";
+	hudElem.vertAlign = "bottom";
+	hudElem.alignX = "right";
+	hudElem.alignY = "bottom";
+	hudElem.x = 50;
+	hudElem.y = 13;
+	hudElem.foreground = true;
+	hudElem.font = "objective";
+	hudElem.hideWhenInMenu = true;
+	hudElem.color = (1.0, 1.0, 1.0);
+	hudElem.glowColor = ((125/255), (33/255), (20/255));
+	hudElem.glowAlpha = 0.0;
+	hudElem.fontScale = 2;
+	hudElem.archived = false;
+	hudElem.alpha = 0;
+	return hudElem;
+}
+
+updateSpeedometerHudElem()
+{
+	self endon("death");
+	self endon("disconnect");
+	self endon("game_ended");
+
+	if(!isdefined(self.speedometerHudElem))
+	{
+		self.speedometerHudElem = initSpeedometerHudElem();
+		self.heightMeterHudElem = initHeightMeterHudElem();
+	}
+
+	for (;;)
+	{
+		origin = self.origin;
+		xyzspeed = self getVelocity();
+		normalisedSpeed = int(sqrt(xyzspeed[0] * xyzspeed[0] + xyzspeed[1] * xyzspeed[1]));
+		self.speedometerHudElem setValue(normalisedSpeed);
+		self.heightMeterHudElem setValue(int(origin[2]));
+		wait .05;
+	}
+}
+
+toggleSpeedometerHudElem()
+{
+	setting = "speedometer_enabled";
+	printName = "Speedometer";
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
+	{
+		self.cj["settings"][setting] = true;
+		self.speedometerHudElem.alpha = .6;
+		self.heightMeterHudElem.alpha = .6;
+		self iPrintln(printName + " [^2ON^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = false;
+		self.speedometerHudElem.alpha = 0;
+		self.heightMeterHudElem.alpha = 0;
+		self iPrintln(printName + " [^1OFF^7]");
+	}
+}
+
 toggleFOV()
 {
 	setting = "cg_fov";
@@ -61,7 +147,8 @@ activeGameObjectRotateYaw()
 	self.activeGameObject rotateyaw(90, 0.1);
 }
 
-forgeMode() {
+forgeMode()
+{
 	self endon("death");
 	self endon("disconnect");
 	self endon("stop_forge");
@@ -83,7 +170,8 @@ forgeMode() {
 	}
 }
 
-toggleForgeMode() {
+toggleForgeMode()
+{
 	setting = "forge_mode";
 	printName = "Forge Mode";
 
@@ -99,5 +187,51 @@ toggleForgeMode() {
 		self.cj["settings"][setting] = false;
 		self notify("stop_forge");
 		self iPrintln(printName + " [^1OFF^7]");
+	}
+}
+
+toggleRPGSwitch()
+{
+	setting = "rpg_switch_enabled";
+	printName = "RPG Switch";
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
+	{
+		self.cj["settings"][setting] = true;
+		self thread rpgSwitch();
+		self iPrintln(printName + " [^2ON^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = false;
+		self notify("stop_rpg_switch");
+		self iPrintln(printName + " [^1OFF^7]");
+	}
+}
+
+rpgSwitch()
+{
+	self endon("disconnect");
+	self endon("death");
+	self endon("stop_rpg_switch");
+
+	while(self.cj["settings"]["rpg_switch_enabled"])
+	{
+		self waittill("weapon_fired");
+		weapon = self getCurrentWeapon();
+		if (weapon == "rpg_mp")
+		{
+			self.cj["settings"]["rpg_switched"] = true;
+
+			if(self hasWeapon("deserteagle_mp"))
+				self switchToWeapon("deserteagle_mp");
+			else if(self hasWeapon("deserteaglegold_mp"))
+				self switchToWeapon("deserteaglegold_mp");
+			else
+				self switchToWeapon("beretta_mp");
+
+			wait 0.4;
+			self SetWeaponAmmoClip(weapon, 1);
+		}
 	}
 }
