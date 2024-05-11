@@ -91,11 +91,14 @@ onPlayerSpawned()
 		self thread watchDPAD_UP();
 		self thread watchUseButtonPressed();
 		self thread initMenu();
-
-		// cg_fov resets on death
-		if(isdefined(self.cj["settings"]["cg_fov"]))
-			self setClientDvar("cg_fov", self.cj["settings"]["cg_fov"]);
+		self resetFOV();
 	}
+}
+
+resetFOV()
+{
+	if(isdefined(self.cj["settings"]["cg_fov"]))
+		self setClientDvar("cg_fov", self.cj["settings"]["cg_fov"]);
 }
 
 setupPlayer()
@@ -827,6 +830,8 @@ toggleUFO()
 		self.cj["settings"][setting] = true;
 		self allowSpectateTeam("freelook", true);
 		self.sessionstate = "spectator";
+		wait 0.1;
+		self resetFOV();
 		self iPrintln(printName + " [^2ON^7]");
 	}
 	else
@@ -834,6 +839,8 @@ toggleUFO()
 		self.cj["settings"][setting] = false;
 		self allowSpectateTeam("freelook", false);
 		self.sessionstate = "playing";
+		wait 0.1;
+		self resetFOV();
 		self iPrintln(printName + " [^1OFF^7]");
 	}
 }
