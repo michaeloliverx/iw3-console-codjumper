@@ -274,3 +274,41 @@ toggle_r_zfar()
 	self setClientDvar(setting, newValue);
 	self iPrintln(printName + " " + newValue);
 }
+
+toggle_r_fog()
+{
+	setting = "r_fog";
+	printName = "Fog";
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
+	{
+		self.cj["settings"][setting] = false;
+		self setClientDvar(setting, 0);
+		self iPrintln(printName + " [^1OFF^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = true;
+		self setClientDvar(setting, 1);
+		self iPrintln(printName + " [^2ON^7]");
+	}
+}
+
+toggle_r_dof_enable()
+{
+	setting = "r_dof_enable";
+	printName = "Depth of field";
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
+	{
+		self.cj["settings"][setting] = false;
+		self setClientDvar(setting, 0);
+		self iPrintln(printName + " [^1OFF^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = true;
+		self setClientDvar(setting, 1);
+		self iPrintln(printName + " [^2ON^7]");
+	}
+}

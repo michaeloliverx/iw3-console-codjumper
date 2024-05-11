@@ -231,19 +231,20 @@ initMenuOpts()
 	self addOpt("main", "Loadout Menu", ::subMenu, "loadout_menu");
 	self addMenu("loadout_menu", "Loadout Menu", "main");
 	self addOpt("loadout_menu", "Switch Desert Eagle", ::switchDesertEagle);
-	self addOpt("loadout_menu", "Toggle Sleight of Hand", ::toggleFastReload);
-	self addOpt("loadout_menu", "Toggle RPG Switch", ::toggleRPGSwitch);
+	self addOpt("loadout_menu", "Sleight of Hand", ::toggleFastReload);
+	self addOpt("loadout_menu", "RPG Switch", ::toggleRPGSwitch);
 
-	// self addOpt("main", "Toggle UFO Mode", ::toggleUFO);
-	self addOpt("main", "Toggle 3rd Person", ::toggleThirdPerson);
-	self addOpt("main", "Toggle cg_drawgun", ::toggleShowGun);
-	self addOpt("main", "Toggle player names", ::togglePlayerNames);
-	self addOpt("main", "Toggle gun bob", ::toggleGunBob);
-	self addOpt("main", "Toggle Spectator buttons", ::toggleSpectatorButtons);
-	self addOpt("main", "Toggle Speedometer", ::toggleSpeedometerHudElem);
-	self addOpt("main", "Toggle Jump Crouch", ::toggleJumpCrouch);
-	self addOpt("main", "Toggle FOV", ::toggleFOV);
-	self addOpt("main", "Toggle r_zfar", ::toggle_r_zfar);
+	self addOpt("main", "3rd Person", ::toggleThirdPerson);
+	self addOpt("main", "cg_drawgun", ::toggleShowGun);
+	self addOpt("main", "Player names", ::togglePlayerNames);
+	self addOpt("main", "Gun bob", ::toggleGunBob);
+	self addOpt("main", "Spectator buttons", ::toggleSpectatorButtons);
+	self addOpt("main", "Speedometer", ::toggleSpeedometerHudElem);
+	self addOpt("main", "Jump Crouch", ::toggleJumpCrouch);
+	self addOpt("main", "FOV", ::toggleFOV);
+	self addOpt("main", "r_zfar", ::toggle_r_zfar);
+	self addOpt("main", "Fog", ::toggle_r_fog);
+	self addOpt("main", "Depth of field", ::toggle_r_dof_enable);
 
 	// Bot submenu
 	self addOpt("main", "Bot Menu", ::subMenu, "bot_menu");
@@ -984,6 +985,6 @@ spawnGameObject()
 setActiveGameObject(ent)
 {
 	self.activeGameObject = ent;
-	self iPrintLn("Set active. Press [{+smoke}] while in UFO mode to spawn object.");
+	self iPrintLn("Press [{+smoke}] while in UFO mode to spawn object.");
 	self refreshMenu();
 }
