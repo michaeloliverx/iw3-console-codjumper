@@ -132,19 +132,19 @@ toggleJumpCrouch()
 	}
 }
 
-activeGameObjectRotatePitch()
+activeGameObjectRotatePitch(angle)
 {
-	self.activeGameObject rotatepitch(5, 0.1);
+	self.activeGameObject rotatepitch(angle, 0.1);
 }
 
-activeGameObjectRotateRoll()
+activeGameObjectRotateRoll(angle)
 {
-	self.activeGameObject rotateroll(90, 0.1);
+	self.activeGameObject rotateroll(angle, 0.1);
 }
 
-activeGameObjectRotateYaw()
+activeGameObjectRotateYaw(angle)
 {
-	self.activeGameObject rotateyaw(90, 0.1);
+	self.activeGameObject rotateyaw(angle, 0.1);
 }
 
 forgeMode()

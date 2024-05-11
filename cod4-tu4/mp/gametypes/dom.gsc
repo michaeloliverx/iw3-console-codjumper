@@ -201,9 +201,14 @@ initMenuOpts()
 	self addOpt("main", "Game objects", ::subMenu, "menu_game_objects");
 	self addMenu("menu_game_objects", "Game objects", "main");
 	self addOpt("menu_game_objects", "Toggle forge mode", ::toggleForgeMode);
-	self addOpt("menu_game_objects", "Rotate pitch 5", ::activeGameObjectRotatePitch);
-	self addOpt("menu_game_objects", "Rotate roll 90", ::activeGameObjectRotateRoll);
-	self addOpt("menu_game_objects", "Rotate yaw 90", ::activeGameObjectRotateYaw);
+	self addOpt("menu_game_objects", "Pitch +1", ::activeGameObjectRotatePitch, 1);
+	self addOpt("menu_game_objects", "Pitch +5", ::activeGameObjectRotatePitch, 5);
+	self addOpt("menu_game_objects", "Pitch -1", ::activeGameObjectRotatePitch, -1);
+	self addOpt("menu_game_objects", "Pitch -5", ::activeGameObjectRotatePitch, -5);
+	self addOpt("menu_game_objects", "Roll +45", ::activeGameObjectRotateRoll, 45);
+	self addOpt("menu_game_objects", "Roll +90", ::activeGameObjectRotateRoll, 90);
+	self addOpt("menu_game_objects", "Yaw +45", ::activeGameObjectRotateYaw, 45);
+	self addOpt("menu_game_objects", "Yaw +90", ::activeGameObjectRotateYaw, 90);
 
 	for (i = 0; i < level.bombs.size; i++)
 	{
