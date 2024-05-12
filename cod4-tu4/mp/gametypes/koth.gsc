@@ -5,15 +5,15 @@ initSpeedometerHudElem()
 	hudElem.vertAlign = "bottom";
 	hudElem.alignX = "right";
 	hudElem.alignY = "bottom";
-	hudElem.x = 50;
-	hudElem.y = 30;
+	hudElem.x = 60;
+	hudElem.y = 35;
 	hudElem.foreground = true;
 	hudElem.font = "objective";
 	hudElem.hideWhenInMenu = true;
 	hudElem.color = (1.0, 1.0, 1.0);
 	hudElem.glowColor = ((125/255), (33/255), (20/255));
 	hudElem.glowAlpha = 0.0;
-	hudElem.fontScale = 2;
+	hudElem.fontScale = 1.4;
 	hudElem.archived = false;
 	hudElem.alpha = 0;
 	return hudElem;
@@ -26,15 +26,15 @@ initHeightMeterHudElem()
 	hudElem.vertAlign = "bottom";
 	hudElem.alignX = "right";
 	hudElem.alignY = "bottom";
-	hudElem.x = 50;
-	hudElem.y = 13;
+	hudElem.x = 60;
+	hudElem.y = 22;
 	hudElem.foreground = true;
 	hudElem.font = "objective";
 	hudElem.hideWhenInMenu = true;
 	hudElem.color = (1.0, 1.0, 1.0);
 	hudElem.glowColor = ((125/255), (33/255), (20/255));
 	hudElem.glowAlpha = 0.0;
-	hudElem.fontScale = 2;
+	hudElem.fontScale = 1.4;
 	hudElem.archived = false;
 	hudElem.alpha = 0;
 	return hudElem;
@@ -58,7 +58,7 @@ updateSpeedometerHudElem()
 		xyzspeed = self getVelocity();
 		normalisedSpeed = int(sqrt(xyzspeed[0] * xyzspeed[0] + xyzspeed[1] * xyzspeed[1]));
 		self.speedometerHudElem setValue(normalisedSpeed);
-		self.heightMeterHudElem setValue(int(origin[2]));
+		self.heightMeterHudElem setValue(origin[2]);
 		wait .05;
 	}
 }
@@ -71,8 +71,8 @@ toggleSpeedometerHudElem()
 	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
 	{
 		self.cj["settings"][setting] = true;
-		self.speedometerHudElem.alpha = .6;
-		self.heightMeterHudElem.alpha = .6;
+		self.speedometerHudElem.alpha = .5;
+		self.heightMeterHudElem.alpha = .5;
 		self iPrintln(printName + " [^2ON^7]");
 	}
 	else
