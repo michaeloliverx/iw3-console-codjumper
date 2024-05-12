@@ -242,7 +242,7 @@ initMenuOpts()
 	self addOpt("main", "Player names", ::togglePlayerNames);
 	self addOpt("main", "Gun bob", ::toggleGunBob);
 	self addOpt("main", "Spectator buttons", ::toggleSpectatorButtons);
-	self addOpt("main", "Speedometer", ::toggleSpeedometerHudElem);
+	self addOpt("main", "Speed + Height meter", ::toggleSpeedometerHudElem);
 	self addOpt("main", "Jump Crouch", ::toggleJumpCrouch);
 	self addOpt("main", "FOV", ::toggleFOV);
 	self addOpt("main", "r_zfar", ::toggle_r_zfar);
