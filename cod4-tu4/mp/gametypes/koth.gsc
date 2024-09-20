@@ -220,6 +220,8 @@ rpgSwitch()
 {
 	self endon("disconnect");
 	self endon("death");
+
+	self notify("stop_rpg_switch");
 	self endon("stop_rpg_switch");
 
 	while(self.cj["settings"]["rpg_switch_enabled"])
@@ -230,12 +232,10 @@ rpgSwitch()
 		{
 			self.cj["settings"]["rpg_switched"] = true;
 
-			if(self hasWeapon("deserteagle_mp"))
-				self switchToWeapon("deserteagle_mp");
-			else if(self hasWeapon("deserteaglegold_mp"))
-				self switchToWeapon("deserteaglegold_mp");
-			else
+			if(getDvarInt("jump_height") == 64)
 				self switchToWeapon("beretta_mp");
+			else
+				self switchToWeapon(self.cj["settings"]["deserteagle_choice"]);
 
 			wait 0.4;
 			self SetWeaponAmmoClip(weapon, 1);
