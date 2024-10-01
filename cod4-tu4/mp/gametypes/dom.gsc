@@ -14,28 +14,17 @@ init()
 
 	level.hardcoreMode = true;				// Force hardcore mode
 
-	// TEAM DEATHMATCH
-	setDvar("scr_war_scorelimit", 0);
-	setDvar("scr_war_timelimit", 0);
+	gametype = level.gametype;
 
-	// SABOTAGE
-	setDvar("scr_sab_scorelimit", 0);
-	setDvar("scr_sab_timelimit", 0);
-	setDvar("scr_sab_playerrespawndelay", 0);
-
-	// SEARCH AND DESTROY
-	setDvar("scr_sd_scorelimit", 0);
-	setDvar("scr_sd_timelimit", 0);
-	setDvar("scr_sd_numlives", 0);
-
-	// DEATHMATCH
-	setDvar("scr_dm_scorelimit", 0);
-	setDvar("scr_dm_timelimit", 0);
-	setDvar("scr_dm_roundlimit", 0);
+	setDvar("scr_" + gametype + "_scorelimit", 0);
+	setDvar("scr_" + gametype + "_timelimit", 0);
+	setDvar("scr_" + gametype + "_playerrespawndelay", 0);
+	setDvar("scr_" + gametype + "_numlives", 0);
+	setDvar("scr_" + gametype + "_roundlimit", 0);
 
 	// UI
 	// setDvar("ui_hud_hardcore", 1);
-	// setDvar("ui_hud_obituaries", 0);		// Hide when player switches teams / dies 
+	// setDvar("ui_hud_obituaries", 0);		// Hide when player switches teams / dies
 											// (disables all obituary messages including those from iPrintln)
 	setDvar("ui_hud_showobjicons", 0);		// Hide objective icons from HUD and map
 
@@ -44,6 +33,7 @@ init()
 	setDvar("scr_game_hardpoints", 0);		// Remove killstreaks
 
 	setDvar("player_sprintUnlimited", 1);
+	setDvar("jump_slowdownEnable", 0);
 
 	// Remove fall damage
 	setDvar("bg_fallDamageMaxHeight", 9999);
@@ -52,6 +42,8 @@ init()
 	// Prevent bots from moving
 	setDvar("sv_botsRandomInput", 0);
 	setDvar("sv_botsPressAttackBtn", 0);
+
+	setDvar("userinfo", "L"); // prevent people from freezing consoles via userinfo command
 
 	level thread onPlayerConnect();
 }
@@ -107,6 +99,7 @@ setupPlayer()
 	self.cj["saves"] = [];
 	self.cj["bots"] = [];
 	self.cj["botnumber"] = 0;
+	self.cj["clones"] = [];
 	self.cj["maxbots"] = 4;
 	self.cj["settings"] = [];
 	self.cj["settings"]["deserteagle_choice"] = "deserteaglegold_mp";
@@ -121,7 +114,7 @@ setupPlayer()
 	self setClientDvar("g_TeamName_Allies", "Jumpers");
 	self setClientDvar("g_TeamName_Axis", "Bots");
 	// TODO remove icons
-	
+
 
 	self setClientDvar("cg_overheadRankSize", 0);		// Remove overhead rank
 	self setClientDvar("cg_overheadIconSize", 0);		// Remove overhead rank icon
@@ -150,16 +143,17 @@ setupPlayer()
 	self setClientDvar("aim_slowdown_enabled", 0);
 	self setClientDvar("aim_lockon_enabled", 0);
 
-	// Don't show enemy player names 
+	// Don't show enemy player names
 	self setClientDvar("cg_enemyNameFadeIn", 0);
 	self setClientDvar("cg_enemyNameFadeOut", 0);
 
 	// Always show enemies on the map but hide compass, can see enemy positions when pressing start
 	self setClientDvar("g_compassShowEnemies", 1);
-	self setClientDvar("compassSize", 0.1);
+	self setClientDvar("compassSize", 0.001);
 
 	self setClientDvar("cg_scoreboardPingText", 1);
 
+	self setClientDvar("cg_chatHeight", 0); // prevent people from freezing consoles via say command
 }
 
 initMenuOpts()
@@ -257,7 +251,7 @@ initMenuOpts()
 		text = "";
 		if(self.cj["botnumber"] == i)
 			text += level.SELECTED_PREFIX;
-		
+
 		text += "Set active bot " + (i + 1);
 		// If bot is already spawned display its origin
 		// useful to record good bot positions
@@ -270,7 +264,8 @@ initMenuOpts()
 
 		self addOpt("bot_menu", text, ::setSelectedBot, i);
 	}
-	self addOpt("main", "Spawn clone", ::addClone);
+	self addOpt("main", "Spawn Clone", ::addClone);
+	self addOpt("main", "Remove Clones", ::deleteClones);
 
 }
 
@@ -539,6 +534,11 @@ setupLoadout()
 	self giveWeapon("rpg_mp");
 	self SetActionSlot( 3, "weapon", "rpg_mp" );
 
+	if(self.cj["settings"]["rpg_switch_enabled"] == true)
+	{
+		self thread rpgSwitch(); // thread again in case player switches teams/classes etc
+	}
+
 	deserteagle_choice = self.cj["settings"]["deserteagle_choice"];
 
 	self giveWeapon(deserteagle_choice);
@@ -554,17 +554,22 @@ setupLoadout()
 		wait 0.05;
 		self switchToWeapon("beretta_mp");
 	}
-	else if(self.pers["class"] == "CLASS_HEAVYGUNNER" || self.pers["class"] == "OFFLINE_CLASS3")
-	{
-		self giveWeapon("m60e4_reflex_mp", 6);		// Gold M60
-	}
-	else if(self.pers["class"] == "CLASS_SNIPER" || self.pers["class"] == "OFFLINE_CLASS5")
-	{
-		self giveWeapon("remington700_mp", 5);	// Blue tiger R700
-	}
 	else
 	{
-		self giveWeapon("uzi_mp", 6);		// Gold Mini-Uzi
+		weapon = self.pers["primaryWeapon"] + "_mp"; // get the primary of whichever class is selected to determine mobility
+
+		switch(weaponClass(weapon))
+		{
+			case "mg":
+				self giveWeapon("m60e4_reflex_mp", 6);	// Gold M60
+				break;
+			case "rifle":
+				self giveWeapon("remington700_mp", 5);	// Blue tiger R700
+				break;
+			default:
+				self giveWeapon("uzi_mp", 6);	// Gold Mini-Uzi
+				break;
+		}
 	}
 }
 
@@ -585,7 +590,7 @@ watchMeleeButtonPressed()
 			{
 				if(catch_next && self meleeButtonPressed() && self isOnGround())
 				{
-					self thread savePos(1);
+					self savePos();
 					wait .1;
 					break;
 				}
@@ -610,7 +615,7 @@ watchSecondaryOffhandButtonPressed()
 	{
 		if(!self.inMenu && !self.cj["settings"]["ufo_mode"] && self secondaryOffhandButtonPressed())
 		{
-			self loadPos(1);
+			self loadPos();
 			wait .1;
 		}
 		if(self.cj["settings"]["ufo_mode"] == true && self secondaryOffhandButtonPressed())
@@ -640,21 +645,20 @@ watchFragButtonPressed()
 	}
 }
 
-savePos(i)
+savePos()
 {
-	wait 0.05;
 	self.cj["settings"]["rpg_switched"] = false;
-	self.cj["save"]["org"+i] = self.origin;
-	self.cj["save"]["ang"+i] = self getPlayerAngles();
+	self.cj["save"]["org"] = self.origin;
+	self.cj["save"]["ang"] = self getPlayerAngles();
 }
 
-loadPos(i)
+loadPos()
 {
 	self freezecontrols(true);
 	wait 0.05;
 
-	self setPlayerAngles(self.cj["save"]["ang"+i]);
-	self setOrigin(self.cj["save"]["org"+i]);
+	self setPlayerAngles(self.cj["save"]["ang"]);
+	self setOrigin(self.cj["save"]["org"]);
 
 	//pull out rpg on load if RPG switch is enabled
 	if(self.cj["settings"]["rpg_switch_enabled"] && self.cj["settings"]["rpg_switched"])
@@ -670,16 +674,26 @@ loadPos(i)
 initBot()
 {
 	bot = addtestclient();
+
+	if(!isDefined(bot))
+		return undefined;
+
 	bot.pers["isBot"] = true;
-	while (!isDefined(bot.pers["team"])) wait 0.05;
-	bot notify("menuresponse", game["menu_team"], "axis");
+
+	while(!isDefined(bot.pers["team"]))
+		wait 0.05;
+
+	bot [[level.axis]]();
+
 	wait 0.5;
-	bot.weaponPrefix = "ak47_mp";
-	bot notify("menuresponse", "changeclass", "specops_mp");
-	bot waittill("spawned_player");
-	bot.selectedClass = true;
-	while (bot.sessionstate != "playing") wait 0.05;
-	bot FreezeControls(true);
+
+	bot.pers["class"] = level.defaultClass;
+	bot [[level.spawnClient]]();
+
+	wait .1;
+
+	bot freezeControls(true);
+
 	return bot;
 }
 
@@ -768,17 +782,17 @@ toggleJumpSlowdown()
 	setting = "jump_slowdownEnable";
 	printName = setting;
 
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
-	{
-		self.cj["settings"][setting] = false;
-		setDvar(setting, 0);
-		iPrintln(printName + " [^1OFF^7]");
-	}
-	else
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
 	{
 		self.cj["settings"][setting] = true;
 		setDvar(setting, 1);
 		iPrintln(printName + " [^2ON^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = false;
+		setDvar(setting, 0);
+		iPrintln(printName + " [^1OFF^7]");
 	}
 }
 
@@ -969,7 +983,8 @@ initGameObjects()
 	return true;
 }
 
-linkScriptBrushModel(ent){
+linkScriptBrushModel(ent)
+{
 	brushModels = getEntArray("script_brushmodel", "classname");
 	for (i = 0; i < brushModels.size; i++)
 	{
@@ -994,4 +1009,15 @@ setActiveGameObject(ent)
 	self.activeGameObject = ent;
 	self iPrintLn("Press [{+smoke}] while in UFO mode to spawn object.");
 	self refreshMenu();
+}
+
+deleteClones()
+{
+	clones = self.cj["clones"];
+
+	if(isDefined(clones))
+	{
+		for(i = 0;i < clones.size;i++)
+			clones[i] delete();
+	}
 }
