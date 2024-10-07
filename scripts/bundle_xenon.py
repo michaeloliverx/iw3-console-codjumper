@@ -1,7 +1,6 @@
 from pathlib import Path
 import zlib
 import io
-from pprint import pprint
 from dataclasses import dataclass
 import re
 import subprocess
@@ -9,6 +8,7 @@ from collections.abc import Iterable
 
 
 REPO_ROOT_DIR = Path(__file__).parent.parent
+BUILD_DIR = REPO_ROOT_DIR / "build"
 XBOX_PATCH_MP_FF = REPO_ROOT_DIR / "resources" / "cod4_tu4_xbox_patch_mp.ff"
 MOD_DIR = REPO_ROOT_DIR / "mod"
 
@@ -50,13 +50,8 @@ def extract_zone_from_ff(ff: bytes):
     return zlib.decompress(zone_data)
 
 
-def find_ff_name(ff: bytes):
-    name = ""
-    start = 0x138
-    while ff[start] != 0:
-        name += chr(ff[start])
-        start += 1
-    return name
+def inject_zone_into_ff(zone: bytes, ff: bytes):
+    return ff
 
 
 @dataclass
@@ -137,16 +132,13 @@ def replace_version_with_commit(input: str) -> str:
 
 
 def main() -> None:
-    patch_data = Path(XBOX_PATCH_MP_FF).read_bytes()
-    zone = extract_zone_from_ff(patch_data)
+    fastfile = Path(XBOX_PATCH_MP_FF).read_bytes()
+    zone = extract_zone_from_ff(fastfile)
     zone_files = get_zone_files(zone, [".cfg", ".gsc"])
     # for x in zone_files:
     #     print(x.name, x.maxsize, "\n", x.raw, "\n\n")
 
     zone_filename_to_file = {x.name: x for x in zone_files}
-
-    # dump zone to local dir
-    Path("inner.zone").write_bytes(zone)
 
     mod_filenames = get_mod_filenames(MOD_DIR)
     # pprint(mod_filenames)
@@ -173,7 +165,10 @@ def main() -> None:
         )
         zone = zone[: zone_file.raw_start] + bytes_to_insert + zone[zone_file.raw_end :]
 
-    Path("built.zone").write_bytes(zone)
+    built_fastfile = inject_zone_into_ff(zone, fastfile)
+
+    (Path(BUILD_DIR) / "built.zone").write_bytes(zone)
+    (Path(BUILD_DIR) / "patch_mp.ff").write_bytes(built_fastfile)
 
 
 if __name__ == "__main__":
