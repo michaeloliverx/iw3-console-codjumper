@@ -4,7 +4,7 @@
 
 init()
 {
-	level.__VERSION__ = "v0.6";
+	level.__VERSION__ = "__VERSION__";
 
 	level.SELECTED_PREFIX = "^2-->^7 ";
 
