@@ -1,3 +1,3 @@
-.PHONY: build-xenon
-build-xenon:
-	python scripts/bundle_xenon.py
+.PHONY: build
+build:
+	python scripts/build_fastfile_xenon.py
