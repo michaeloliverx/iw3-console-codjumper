@@ -4,7 +4,7 @@
 
 init()
 {
-	level.__VERSION__ = "__VERSION__";
+	level.VERSION = "__VERSION__";
 
 	level.SELECTED_PREFIX = "^2-->^7 ";
 
@@ -158,7 +158,7 @@ setupPlayer()
 
 initMenuOpts()
 {
-	self addMenu("main", "CodJumper " + level.__VERSION__, undefined);
+	self addMenu("main", "CodJumper " + level.VERSION, undefined);
 
 	// Host submenu
 	if(self GetEntityNumber() == 0)
