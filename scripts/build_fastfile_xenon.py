@@ -50,8 +50,40 @@ def extract_zone_from_ff(ff: bytes):
     return zlib.decompress(zone_data)
 
 
-def inject_zone_into_ff(zone: bytes, ff: bytes):
-    return ff
+def inject_zone_into_ff(ff: bytes, uncompressed_zone: bytes):
+    """
+    Compress and inject the uncompressed zone data back into the IWff file.
+
+    Args:
+        ff: The raw bytes of the IWff file.
+        uncompressed_zone: The uncompressed zone data to inject.
+
+    Returns:
+        Modified IWff file bytes with the compressed zone data.
+    """
+    start_offset = ff.find(b"IWffs100") + 16384
+    block_size = 0x200000
+
+    # Compress the zone data using zlib
+    compressed_zone_data = zlib.compress(uncompressed_zone, level=7)
+
+    # Create a mutable bytearray from the IWff file bytes
+    ms = io.BytesIO(ff)
+
+    # Move to the correct position where the zone data should start
+    ms.seek(start_offset)
+
+    # Replace the old data with the new compressed zone data, following the block structure
+    zone_data_offset = 0
+    while zone_data_offset < len(compressed_zone_data):
+        block = compressed_zone_data[zone_data_offset : zone_data_offset + block_size]
+        # Write the compressed block back into the file
+        ms.write(block)
+        # Skip 8192 bytes, like in the original function
+        ms.seek(ms.tell() + 8192)
+        zone_data_offset += block_size
+
+    return ms.getvalue()
 
 
 @dataclass
@@ -135,14 +167,9 @@ def main() -> None:
     fastfile = Path(XBOX_PATCH_MP_FF).read_bytes()
     zone = extract_zone_from_ff(fastfile)
     zone_files = get_zone_files(zone, [".cfg", ".gsc"])
-    # for x in zone_files:
-    #     print(x.name, x.maxsize, "\n", x.raw, "\n\n")
-
     zone_filename_to_file = {x.name: x for x in zone_files}
 
     mod_filenames = get_mod_filenames(MOD_DIR)
-    # pprint(mod_filenames)
-
     for filename, path in mod_filenames.items():
         zone_file = zone_filename_to_file.get(filename)
         if not zone_file:
@@ -150,7 +177,6 @@ def main() -> None:
             continue
 
         mod_file_contents = path.read_text()
-
         if len(mod_file_contents) > zone_file.maxsize:
             raise Exception(
                 f"Cannot overwrite file with bigger file size. {filename=} {zone_file.maxsize=}"
@@ -165,10 +191,10 @@ def main() -> None:
         )
         zone = zone[: zone_file.raw_start] + bytes_to_insert + zone[zone_file.raw_end :]
 
-    built_fastfile = inject_zone_into_ff(zone, fastfile)
+    built_fastfile = inject_zone_into_ff(fastfile, zone)
 
-    (Path(BUILD_DIR) / "built.zone").write_bytes(zone)
-    (Path(BUILD_DIR) / "patch_mp.ff").write_bytes(built_fastfile)
+    BUILD_DIR.mkdir(exist_ok=True)
+    (BUILD_DIR / "patch_mp.ff").write_bytes(built_fastfile)
 
 
 if __name__ == "__main__":
