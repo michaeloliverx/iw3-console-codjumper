@@ -5,7 +5,11 @@ from dataclasses import dataclass
 import re
 import subprocess
 from collections.abc import Iterable
+import logging
 
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
+log = logging.getLogger(__name__)
 
 REPO_ROOT_DIR = Path(__file__).parent.parent
 BUILD_DIR = REPO_ROOT_DIR / "build"
@@ -145,25 +149,31 @@ def get_zone_files(zone: bytes, file_extensions: Iterable[str]):
     return zone_files
 
 
-def replace_version_with_commit(input: str) -> str:
-    # Get the current git commit hash
-    # TODO: get tag version or fallback to commit hash
-    commit_hash = (
-        subprocess.check_output(["git", "rev-parse", "HEAD"]).strip().decode("utf-8")
-    )[:7]
-
-    content_str = input
-
-    updated_content_str = re.sub(
-        r'level\.VERSION\s*=\s*"__VERSION__"',
-        f'level.VERSION = "{commit_hash}"',
-        content_str,
+def get_version() -> str:
+    """Returns the version string for the current commit of the source code."""
+    current_version = (
+        subprocess.check_output(["git", "describe", "--tags", "--dirty", "--always"])
+        .strip()
+        .decode("utf-8")
     )
-
-    return updated_content_str
+    # git symbolic-ref --quiet --short HEAD
+    current_branch = (
+        subprocess.check_output(["git", "symbolic-ref", "--quiet", "--short", "HEAD"])
+        .strip()
+        .decode("utf-8")
+    )
+    if current_version != "main":
+        current_version += f"-{current_branch}"
+    return current_version
 
 
 def main() -> None:
+    log.info("Building fastfile for Xbox 360")
+
+    version = get_version()
+
+    log.info(f"Version: {version}")
+
     fastfile = Path(XBOX_PATCH_MP_FF).read_bytes()
     zone = extract_zone_from_ff(fastfile)
     zone_files = get_zone_files(zone, [".cfg", ".gsc"])
@@ -173,7 +183,7 @@ def main() -> None:
     for filename, path in mod_filenames.items():
         zone_file = zone_filename_to_file.get(filename)
         if not zone_file:
-            print(f'Filename "{filename}" not found in zone, ignoring.')
+            log.info(f'Filename "{filename}" not found in zone, ignoring.')
             continue
 
         mod_file_contents = path.read_text()
@@ -182,7 +192,12 @@ def main() -> None:
                 f"Cannot overwrite file with bigger file size. {filename=} {zone_file.maxsize=}"
             )
 
-        mod_file_contents = replace_version_with_commit(mod_file_contents)
+        mod_file_contents = re.sub(
+            r'level\.VERSION\s*=\s*"__VERSION__"',
+            f'level.VERSION = "{version}"',
+            mod_file_contents,
+        )
+
         mod_file_bytes = mod_file_contents.encode()
 
         # replace zone version with our version, fill leftover space with null bytes
