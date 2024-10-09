@@ -1,3 +1,4 @@
+import contextlib
 from pathlib import Path
 import zlib
 import io
@@ -6,6 +7,7 @@ import re
 import subprocess
 from collections.abc import Iterable
 import logging
+import shutil
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
@@ -13,7 +15,8 @@ log = logging.getLogger(__name__)
 
 REPO_ROOT_DIR = Path(__file__).parent.parent
 BUILD_DIR = REPO_ROOT_DIR / "build"
-XBOX_PATCH_MP_FF = REPO_ROOT_DIR / "resources" / "cod4_tu4_xbox_patch_mp.ff"
+XENON_BUILD_FF = BUILD_DIR / "xenon" / "patch_mp.ff"
+XENON_PATCH_MP_FF = REPO_ROOT_DIR / "resources" / "cod4_tu4_xbox_patch_mp.ff"
 MOD_DIR = REPO_ROOT_DIR / "mod"
 
 BLOCK_SIZE = 0x200000
@@ -152,32 +155,40 @@ def get_dword(data: bytes, offset: int) -> int:
     return int.from_bytes(data[offset : offset + 4], byteorder="big")
 
 
-def get_version() -> str:
+def get_git_version() -> str:
     """Returns the version string for the current commit of the source code."""
     current_version = (
         subprocess.check_output(["git", "describe", "--tags", "--dirty", "--always"])
         .strip()
         .decode("utf-8")
     )
-    # git symbolic-ref --quiet --short HEAD
-    current_branch = (
-        subprocess.check_output(["git", "symbolic-ref", "--quiet", "--short", "HEAD"])
-        .strip()
-        .decode("utf-8")
-    )
-    if current_version != "main":
-        current_version += f"-{current_branch}"
+    with contextlib.suppress(subprocess.CalledProcessError):
+        current_branch = (
+            subprocess.check_output(
+                ["git", "symbolic-ref", "--quiet", "--short", "HEAD"]
+            )
+            .strip()
+            .decode("utf-8")
+        )
+        if current_version != "main":
+            current_version += f"-{current_branch}"
     return current_version
+
+
+def prepare_build_directory():
+    shutil.rmtree(BUILD_DIR, ignore_errors=True)
+    BUILD_DIR.mkdir(parents=True, exist_ok=True)
+    XENON_BUILD_FF.parent.mkdir(parents=True, exist_ok=True)
 
 
 def main() -> None:
     log.info("Building fastfile for Xbox 360")
 
-    version = get_version()
+    version = get_git_version()
 
     log.info(f"Version: {version}")
 
-    fastfile = Path(XBOX_PATCH_MP_FF).read_bytes()
+    fastfile = Path(XENON_PATCH_MP_FF).read_bytes()
     zone = extract_zone_from_ff(fastfile)
     zone_files = get_zone_files(zone, [".cfg", ".gsc"])
     zone_filename_to_file = {x.name: x for x in zone_files}
@@ -210,9 +221,14 @@ def main() -> None:
         zone = zone[: zone_file.raw_start] + bytes_to_insert + zone[zone_file.raw_end :]
 
     built_fastfile = inject_zone_into_ff(fastfile, zone)
-
-    BUILD_DIR.mkdir(exist_ok=True)
-    (BUILD_DIR / "patch_mp.ff").write_bytes(built_fastfile)
+    prepare_build_directory()
+    XENON_BUILD_FF.write_bytes(built_fastfile)
+    shutil.make_archive(
+        str(BUILD_DIR / f"cj-iw3-xbox360-{version}"),
+        "zip",
+        root_dir=XENON_BUILD_FF.parent,
+        base_dir="patch_mp.ff",
+    )
 
 
 if __name__ == "__main__":
