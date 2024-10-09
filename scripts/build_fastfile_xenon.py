@@ -16,6 +16,9 @@ BUILD_DIR = REPO_ROOT_DIR / "build"
 XBOX_PATCH_MP_FF = REPO_ROOT_DIR / "resources" / "cod4_tu4_xbox_patch_mp.ff"
 MOD_DIR = REPO_ROOT_DIR / "mod"
 
+BLOCK_SIZE = 0x200000
+MAGIC = b"IWffs100"
+
 
 def get_mod_filenames(directory: Path):
     items: dict[str, Path] = {}
@@ -36,8 +39,7 @@ def extract_zone_from_ff(ff: bytes):
     Returns:
         Decompressed zone data as bytes.
     """
-    start_offset = ff.find(b"IWffs100") + 16384
-    block_size = 0x200000
+    start_offset = ff.find(MAGIC) + 16384
 
     ms = io.BytesIO(ff)
     ms.seek(start_offset)
@@ -45,7 +47,7 @@ def extract_zone_from_ff(ff: bytes):
     zone_data = bytearray()
 
     while True:
-        block = ms.read(block_size)
+        block = ms.read(BLOCK_SIZE)
         if not block:
             break
         zone_data.extend(block)
@@ -65,8 +67,8 @@ def inject_zone_into_ff(ff: bytes, uncompressed_zone: bytes):
     Returns:
         Modified IWff file bytes with the compressed zone data.
     """
-    start_offset = ff.find(b"IWffs100") + 16384
-    block_size = 0x200000
+    start_offset = ff.find(MAGIC) + 16384
+    block_size = BLOCK_SIZE
 
     # Compress the zone data using zlib
     compressed_zone_data = zlib.compress(uncompressed_zone, level=7)
