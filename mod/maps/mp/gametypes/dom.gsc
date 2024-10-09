@@ -195,17 +195,8 @@ initMenuOpts()
 	}
 
 	// Game objects
-	self addOpt("main", "Game objects", ::subMenu, "menu_game_objects");
-	self addMenu("menu_game_objects", "Game objects", "main");
-	self addOpt("menu_game_objects", "Toggle forge mode", ::toggleForgeMode);
-	self addOpt("menu_game_objects", "Pitch +1", ::activeGameObjectRotatePitch, 1);
-	self addOpt("menu_game_objects", "Pitch +5", ::activeGameObjectRotatePitch, 5);
-	self addOpt("menu_game_objects", "Pitch -1", ::activeGameObjectRotatePitch, -1);
-	self addOpt("menu_game_objects", "Pitch -5", ::activeGameObjectRotatePitch, -5);
-	self addOpt("menu_game_objects", "Roll +45", ::activeGameObjectRotateRoll, 45);
-	self addOpt("menu_game_objects", "Roll +90", ::activeGameObjectRotateRoll, 90);
-	self addOpt("menu_game_objects", "Yaw +45", ::activeGameObjectRotateYaw, 45);
-	self addOpt("menu_game_objects", "Yaw +90", ::activeGameObjectRotateYaw, 90);
+	self addOpt("main", "Game objects select", ::subMenu, "menu_game_objects_select");
+	self addMenu("menu_game_objects_select", "Game objects select", "main");
 
 	for (i = 0; i < level.bombs.size; i++)
 	{
@@ -213,7 +204,7 @@ initMenuOpts()
 		if(isdefined(self.activeGameObject) && self.activeGameObject == level.bombs[i])
 			text += level.SELECTED_PREFIX;
 		text += "Bomb " + (i + 1);
-		self addOpt("menu_game_objects", text, ::setActiveGameObject, level.bombs[i]);
+		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.bombs[i]);
 	}
 	for (i = 0; i < level.crates.size; i++)
 	{
@@ -221,16 +212,36 @@ initMenuOpts()
 		if(isdefined(self.activeGameObject) && self.activeGameObject == level.crates[i])
 			text += level.SELECTED_PREFIX;
 		text += "Crate " + (i + 1);
-		self addOpt("menu_game_objects", text, ::setActiveGameObject, level.crates[i]);
+		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.crates[i]);
 	}
+
+	self addOpt("main", "Game objects move", ::subMenu, "menu_game_objects_move");
+	self addMenu("menu_game_objects_move", "Game objects move", "main");
+
+	self addOpt("menu_game_objects_move", "Toggle forge mode", ::toggleForgeMode);
+	self addOpt("menu_game_objects_move", "Pitch +1", ::activeGameObjectRotatePitch, 1);
+	self addOpt("menu_game_objects_move", "Pitch +5", ::activeGameObjectRotatePitch, 5);
+	self addOpt("menu_game_objects_move", "Pitch -1", ::activeGameObjectRotatePitch, -1);
+	self addOpt("menu_game_objects_move", "Pitch -5", ::activeGameObjectRotatePitch, -5);
+
+	self addOpt("menu_game_objects_move", "Roll +1", ::activeGameObjectRotateRoll, 1);
+	self addOpt("menu_game_objects_move", "Roll +5", ::activeGameObjectRotateRoll, 5);
+	self addOpt("menu_game_objects_move", "Roll -1", ::activeGameObjectRotateRoll, -1);
+	self addOpt("menu_game_objects_move", "Roll -5", ::activeGameObjectRotateRoll, -5);
+
+	self addOpt("menu_game_objects_move", "Yaw +1", ::activeGameObjectRotateYaw, 1);
+	self addOpt("menu_game_objects_move", "Yaw +5", ::activeGameObjectRotateYaw, 5);
+	self addOpt("menu_game_objects_move", "Yaw -1", ::activeGameObjectRotateYaw, -1);
+	self addOpt("menu_game_objects_move", "Yaw -5", ::activeGameObjectRotateYaw, -5);
+
+	self addOpt("menu_game_objects_move", "Z +1", ::activeGameObjectMoveOriginZ, 1);
+	self addOpt("menu_game_objects_move", "Z +5", ::activeGameObjectMoveOriginZ, 5);
+	self addOpt("menu_game_objects_move", "Z -1", ::activeGameObjectMoveOriginZ, -1);
+	self addOpt("menu_game_objects_move", "Z -5", ::activeGameObjectMoveOriginZ, -5);
 
 	// Loadout submenu
 	self addOpt("main", "Loadout Menu", ::subMenu, "loadout_menu");
 	self addMenu("loadout_menu", "Loadout Menu", "main");
-	self addOpt("loadout_menu", "Switch Desert Eagle", ::switchDesertEagle);
-	self addOpt("loadout_menu", "Sleight of Hand", ::toggleFastReload);
-	self addOpt("loadout_menu", "RPG Switch", ::toggleRPGSwitch);
-
 	self addOpt("main", "3rd Person", ::toggleThirdPerson);
 	self addOpt("main", "cg_drawgun", ::toggleShowGun);
 	self addOpt("main", "Player names", ::togglePlayerNames);

@@ -134,17 +134,30 @@ toggleJumpCrouch()
 
 activeGameObjectRotatePitch(angle)
 {
-	self.activeGameObject rotatepitch(angle, 0.1);
-}
-
-activeGameObjectRotateRoll(angle)
-{
-	self.activeGameObject rotateroll(angle, 0.1);
+	self.activeGameObject rotatepitch(angle, 0.05);
+	wait 0.1;
+	self iprintln("pitch: " + self.activeGameObject.angles[0]);
 }
 
 activeGameObjectRotateYaw(angle)
 {
-	self.activeGameObject rotateyaw(angle, 0.1);
+	self.activeGameObject rotateyaw(angle, 0.05);
+	wait 0.1;
+	self iprintln("yaw: " + self.activeGameObject.angles[1]);
+}
+
+activeGameObjectRotateRoll(angle)
+{
+	self.activeGameObject rotateroll(angle, 0.05);
+	wait 0.1;
+	self iprintln("roll: " + self.activeGameObject.angles[2]);
+}
+
+activeGameObjectMoveOriginZ(z)
+{
+	self.activeGameObject movez(z, 0.05);
+	wait 0.1;
+	self iprintln("z: " + self.activeGameObject.origin[2]);
 }
 
 forgeMode()
