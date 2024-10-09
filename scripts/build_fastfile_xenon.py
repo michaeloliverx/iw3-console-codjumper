@@ -122,10 +122,7 @@ def get_zone_files(zone: bytes, file_extensions: Iterable[str]):
                 filename = zone[name_start : end_index + len(file_ext) - 1].decode(
                     "utf-8"
                 )
-                # filesize is a dword - 4 bytes
-                filesize = int.from_bytes(
-                    zone[filesize_start : filesize_start + 4], byteorder="big"
-                )
+                filesize = get_dword(zone, filesize_start)
                 raw_start = name_start + len(filename) + 1
                 raw_end = raw_start + filesize
 
@@ -147,6 +144,10 @@ def get_zone_files(zone: bytes, file_extensions: Iterable[str]):
             break
 
     return zone_files
+
+
+def get_dword(data: bytes, offset: int) -> int:
+    return int.from_bytes(data[offset : offset + 4], byteorder="big")
 
 
 def get_version() -> str:
