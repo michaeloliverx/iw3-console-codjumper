@@ -58,9 +58,10 @@ onPlayerConnect()
 		if ( isDefined( player.pers["isBot"] ) )
 			continue;
 
-		// JumpCrouch helper
-		player setClientDvar("activeaction", "vstr start");
-		player setClientDvar("start", "bind BUTTON_A vstr BUTTON_A_ACTION");
+		// JumpCrouch / binds helper
+		player setClientDvar("activeaction", "vstr VSTR_LEAN_DISABLED;");
+		player setClientDvar("VSTR_LEAN_ENABLED", "bind BUTTON_A vstr BUTTON_A_ACTION;bind DPAD_DOWN +actionslot 3; bind DPAD_LEFT +leanleft; bind DPAD_RIGHT +leanright");
+		player setClientDvar("VSTR_LEAN_DISABLED", "bind BUTTON_A vstr BUTTON_A_ACTION;bind DPAD_DOWN +actionslot 2; bind DPAD_LEFT +actionslot 3; bind DPAD_RIGHT +actionslot 4");
 		player setClientDvar("BUTTON_A_ACTION", "+gostand;-gostand");
 
 		player setupPlayer();
@@ -269,6 +270,8 @@ initMenuOpts()
 	self addOpt("main", "Spectator buttons", ::toggleSpectatorButtons);
 	self addOpt("main", "Speed + Height meter", ::toggleSpeedometerHudElem);
 	self addOpt("main", "Jump Crouch", ::toggleJumpCrouch);
+	self addOpt("main", "Lean ON", ::enableLeanBinds);
+	self addOpt("main", "Lean OFF", ::disableLeanBinds);
 	self addOpt("main", "FOV", ::toggleFOV);
 	self addOpt("main", "r_zfar", ::toggle_r_zfar);
 	self addOpt("main", "Fog", ::toggle_r_fog);
@@ -563,9 +566,6 @@ setupLoadout()
 	{
 		self setPerk("specialty_fastreload");	// Give Sleight of Hand
 	}
-
-	self giveWeapon("c4_mp");
-	self SetActionSlot( 2, "weapon", "c4_mp" );
 
 	self giveWeapon("rpg_mp");
 	self SetActionSlot( 3, "weapon", "rpg_mp" );
