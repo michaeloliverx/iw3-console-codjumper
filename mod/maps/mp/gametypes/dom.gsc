@@ -242,6 +242,10 @@ initMenuOpts()
 	// Loadout submenu
 	self addOpt("main", "Loadout Menu", ::subMenu, "loadout_menu");
 	self addMenu("loadout_menu", "Loadout Menu", "main");
+	self addOpt("loadout_menu", "Switch Desert Eagle", ::switchDesertEagle);
+	self addOpt("loadout_menu", "Sleight of Hand", ::toggleFastReload);
+	self addOpt("loadout_menu", "RPG Switch", ::toggleRPGSwitch);
+
 	self addOpt("main", "3rd Person", ::toggleThirdPerson);
 	self addOpt("main", "cg_drawgun", ::toggleShowGun);
 	self addOpt("main", "Player names", ::togglePlayerNames);
