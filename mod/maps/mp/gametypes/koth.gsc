@@ -375,6 +375,7 @@ resetAllGameObjects()
 
 show_hide_by_script_gameobjectname(script_gameobjectname)
 {
+	hidden = false;
 	ents = getentarray();
 	for (i = 0; i < ents.size; i++)
 	{
@@ -391,9 +392,20 @@ show_hide_by_script_gameobjectname(script_gameobjectname)
 				ents[i] hide();
 				ents[i] notsolid();
 				ents[i].hidden = true;
+				hidden = true;
 			}
 		}
 	}
+
+	action = "shown";
+	if(hidden)
+		action = "hidden";
+
+	type = script_gameobjectname;
+	if(type == "bombzone")
+		type = "sd";
+
+	iprintln(type + " " + action);
 }
 
 initGameObjects()
