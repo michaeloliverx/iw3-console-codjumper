@@ -358,3 +358,17 @@ toggle_look_straight_down()
 		self iPrintln(printName + " [^1OFF^7]");
 	}
 }
+
+resetAllGameObjects()
+{
+	for (i = 0; i < level.bombs.size; i++)
+	{
+		level.bombs[i].origin = level.bombs[i].startOrigin;
+		level.bombs[i].angles = level.bombs[i].startAngles;
+	}
+	for (i = 0; i < level.crates.size; i++)
+	{
+		level.crates[i].origin = level.crates[i].startOrigin;
+		level.crates[i].angles = level.crates[i].startAngles;
+	}
+}

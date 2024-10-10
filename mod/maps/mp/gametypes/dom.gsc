@@ -164,8 +164,10 @@ initMenuOpts()
 {
 	self addMenu("main", "CodJumper " + level.VERSION, undefined);
 
+	is_host = self GetEntityNumber() == 0;
+
 	// Host submenu
-	if(self GetEntityNumber() == 0)
+	if(is_host)
 	{
 		self addOpt("main", "Global settings", ::subMenu, "host_menu");
 		self addMenu("host_menu", "Global settings", "main");
@@ -244,6 +246,9 @@ initMenuOpts()
 	self addOpt("menu_game_objects_move", "Z +5", ::activeGameObjectMoveOriginZ, 5);
 	self addOpt("menu_game_objects_move", "Z -1", ::activeGameObjectMoveOriginZ, -1);
 	self addOpt("menu_game_objects_move", "Z -5", ::activeGameObjectMoveOriginZ, -5);
+
+	if(is_host)
+		self addOpt("forge_menu", "Reset All", ::resetAllGameObjects);
 
 	// Loadout submenu
 	self addOpt("main", "Loadout Menu", ::subMenu, "loadout_menu");
@@ -992,6 +997,8 @@ initGameObjects()
 		if(ents[i].classname == "script_model" && ents[i].model == "com_bomb_objective")
 		{
 			linkScriptBrushModel(ents[i]);
+			ents[i].startOrigin = ents[i].origin;
+			ents[i].startAngles = ents[i].angles;
 			level.bombs[level.bombs.size] = ents[i];
 		}
 
@@ -999,6 +1006,8 @@ initGameObjects()
 		if(ents[i].classname == "script_model" && ents[i].script_gameobjectname == "hq" && ents[i].model == "com_plasticcase_beige_big")
 		{
 			linkScriptBrushModel(ents[i]);
+			ents[i].startOrigin = ents[i].origin;
+			ents[i].startAngles = ents[i].angles;
 			level.crates[level.crates.size] = ents[i];
 		}
 	}
