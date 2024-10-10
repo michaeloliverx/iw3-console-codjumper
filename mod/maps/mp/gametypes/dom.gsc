@@ -5,6 +5,7 @@
 init()
 {
 	level.VERSION = "__VERSION__";
+	level.THEME_COLOR = (0, 0, 1);
 
 	level.SELECTED_PREFIX = "^2-->^7 ";
 
@@ -401,12 +402,12 @@ openCJ()
 		self.instructionsBackground = self createRectangle("TOPLEFT", "LEFT", 5, -55, 200, 3*19, (0, 0, 0), "white", 4, (1/1.6));
 
 		self.openBox = self createRectangle("TOP", "TOPRIGHT", -160, 10, 300, 445, (0, 0, 0), "white", 1, .7);
-		self.openText = self createText("default", 1.5, "TOP", "TOPRIGHT", -160, 16, 2, 1, ( 0, 0, 1), self.menuAction[self.currentMenu].title);
+		self.openText = self createText("default", 1.5, "TOP", "TOPRIGHT", -160, 16, 2, 1, level.THEME_COLOR, self.menuAction[self.currentMenu].title);
 		string = "";
 		for(m = 0; m < menuOpts; m++)
 			string+= self.menuAction[self.currentMenu].opt[m]+"\n";
 		self.menuText = self createText("default", 1.5, "LEFT", "TOPRIGHT", -300, 60, 3, 1, undefined, string);
-		self.scrollBar = self createRectangle("TOP", "TOPRIGHT", -160, ((self.menuCurs*17.98)+((self.menuText.y+1)-(17.98/2))), 300, 15, (0, 0, 1), "white", 2, .7);
+		self.scrollBar = self createRectangle("TOP", "TOPRIGHT", -160, ((self.menuCurs*17.98)+((self.menuText.y+1)-(17.98/2))), 300, 15, level.THEME_COLOR, "white", 2, .7);
 	}
 }
 
