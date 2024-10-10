@@ -198,9 +198,12 @@ initMenuOpts()
 		self addOpt("host_menu_maps", "Winter Crash", ::changeMap, "mp_crash_snow");
 	}
 
-	// Game objects
-	self addOpt("main", "Game objects select", ::subMenu, "menu_game_objects_select");
-	self addMenu("menu_game_objects_select", "Game objects select", "main");
+	self addOpt("main", "Forge Menu", ::subMenu, "forge_menu");
+
+	self addMenu("forge_menu", "Forge Menu", "main");
+	self addOpt("forge_menu", "Toggle forge mode", ::toggleForgeMode);
+	self addOpt("forge_menu", "Select Object", ::subMenu, "menu_game_objects_select");
+	self addMenu("menu_game_objects_select", "Select Object", "forge_menu");
 
 	for (i = 0; i < level.bombs.size; i++)
 	{
@@ -219,10 +222,9 @@ initMenuOpts()
 		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.crates[i]);
 	}
 
-	self addOpt("main", "Game objects move", ::subMenu, "menu_game_objects_move");
-	self addMenu("menu_game_objects_move", "Game objects move", "main");
+	self addOpt("forge_menu", "Move Object", ::subMenu, "menu_game_objects_move");
+	self addMenu("menu_game_objects_move", "Move Object", "forge_menu");
 
-	self addOpt("menu_game_objects_move", "Toggle forge mode", ::toggleForgeMode);
 	self addOpt("menu_game_objects_move", "Pitch +1", ::activeGameObjectRotatePitch, 1);
 	self addOpt("menu_game_objects_move", "Pitch +5", ::activeGameObjectRotatePitch, 5);
 	self addOpt("menu_game_objects_move", "Pitch -1", ::activeGameObjectRotatePitch, -1);
