@@ -3809,8 +3809,10 @@ Callback_StartGameType()
 		game["teamScores"]["allies"] = 0;
 		game["teamScores"]["axis"] = 0;
 		
-		if ( !level.splitscreen )
-			level.prematchPeriod = maps\mp\gametypes\_tweakables::getTweakableValue( "game", "graceperiod" ); // TODO rename to prematch and update files to match
+		// [CJ] Remove countdown timer
+		// if ( !level.splitscreen )
+		// 	level.prematchPeriod = maps\mp\gametypes\_tweakables::getTweakableValue( "game", "graceperiod" ); // TODO rename to prematch and update files to match
+		level.prematchPeriod = 0;
 	}
 
 	if(!isdefined(game["timepassed"]))
