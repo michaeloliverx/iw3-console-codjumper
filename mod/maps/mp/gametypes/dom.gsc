@@ -200,12 +200,12 @@ initMenuOpts()
 		self addOpt("host_menu_maps", "Winter Crash", ::changeMap, "mp_crash_snow");
 	}
 
-	self addOpt("main", "Forge Menu", ::subMenu, "forge_menu");
+	self addOpt("main", "Game Objects Menu", ::subMenu, "menu_game_objects");
 
-	self addMenu("forge_menu", "Forge Menu", "main");
-	self addOpt("forge_menu", "Toggle forge mode", ::toggleForgeMode);
-	self addOpt("forge_menu", "Select Object", ::subMenu, "menu_game_objects_select");
-	self addMenu("menu_game_objects_select", "Select Object", "forge_menu");
+	self addMenu("menu_game_objects", "Game Objects Menu", "main");
+	self addOpt("menu_game_objects", "Toggle forge mode", ::toggleForgeMode);
+	self addOpt("menu_game_objects", "Select Object", ::subMenu, "menu_game_objects_select");
+	self addMenu("menu_game_objects_select", "Select Object", "menu_game_objects");
 
 	for (i = 0; i < level.bombs.size; i++)
 	{
@@ -224,8 +224,8 @@ initMenuOpts()
 		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.crates[i]);
 	}
 
-	self addOpt("forge_menu", "Move Object", ::subMenu, "menu_game_objects_move");
-	self addMenu("menu_game_objects_move", "Move Object", "forge_menu");
+	self addOpt("menu_game_objects", "Move Object", ::subMenu, "menu_game_objects_move");
+	self addMenu("menu_game_objects_move", "Move Object", "menu_game_objects");
 
 	self addOpt("menu_game_objects_move", "Pitch +1", ::activeGameObjectRotatePitch, 1);
 	self addOpt("menu_game_objects_move", "Pitch +5", ::activeGameObjectRotatePitch, 5);
@@ -249,10 +249,10 @@ initMenuOpts()
 
 	if(is_host)
 	{
-		self addOpt("forge_menu", "Reset All", ::resetAllGameObjects);
-		self addOpt("forge_menu", "Show/Hide HQ", ::show_hide_by_script_gameobjectname, "hq");
-		self addOpt("forge_menu", "Show/Hide Sab", ::show_hide_by_script_gameobjectname, "sab");
-		self addOpt("forge_menu", "Show/Hide SD", ::show_hide_by_script_gameobjectname, "bombzone");
+		self addOpt("menu_game_objects", "Reset All", ::resetAllGameObjects);
+		self addOpt("menu_game_objects", "Show/Hide HQ", ::show_hide_by_script_gameobjectname, "hq");
+		self addOpt("menu_game_objects", "Show/Hide Sab", ::show_hide_by_script_gameobjectname, "sab");
+		self addOpt("menu_game_objects", "Show/Hide SD", ::show_hide_by_script_gameobjectname, "bombzone");
 	}
 
 	// Loadout submenu
