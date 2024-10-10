@@ -164,8 +164,10 @@ initMenuOpts()
 {
 	self addMenu("main", "CodJumper " + level.VERSION, undefined);
 
+	is_host = self GetEntityNumber() == 0;
+
 	// Host submenu
-	if(self GetEntityNumber() == 0)
+	if(is_host)
 	{
 		self addOpt("main", "Global settings", ::subMenu, "host_menu");
 		self addMenu("host_menu", "Global settings", "main");
@@ -198,9 +200,12 @@ initMenuOpts()
 		self addOpt("host_menu_maps", "Winter Crash", ::changeMap, "mp_crash_snow");
 	}
 
-	// Game objects
-	self addOpt("main", "Game objects select", ::subMenu, "menu_game_objects_select");
-	self addMenu("menu_game_objects_select", "Game objects select", "main");
+	self addOpt("main", "Game Objects Menu", ::subMenu, "menu_game_objects");
+
+	self addMenu("menu_game_objects", "Game Objects Menu", "main");
+	self addOpt("menu_game_objects", "Toggle forge mode", ::toggleForgeMode);
+	self addOpt("menu_game_objects", "Select Object", ::subMenu, "menu_game_objects_select");
+	self addMenu("menu_game_objects_select", "Select Object", "menu_game_objects");
 
 	for (i = 0; i < level.bombs.size; i++)
 	{
@@ -219,10 +224,9 @@ initMenuOpts()
 		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.crates[i]);
 	}
 
-	self addOpt("main", "Game objects move", ::subMenu, "menu_game_objects_move");
-	self addMenu("menu_game_objects_move", "Game objects move", "main");
+	self addOpt("menu_game_objects", "Move Object", ::subMenu, "menu_game_objects_move");
+	self addMenu("menu_game_objects_move", "Move Object", "menu_game_objects");
 
-	self addOpt("menu_game_objects_move", "Toggle forge mode", ::toggleForgeMode);
 	self addOpt("menu_game_objects_move", "Pitch +1", ::activeGameObjectRotatePitch, 1);
 	self addOpt("menu_game_objects_move", "Pitch +5", ::activeGameObjectRotatePitch, 5);
 	self addOpt("menu_game_objects_move", "Pitch -1", ::activeGameObjectRotatePitch, -1);
@@ -242,6 +246,14 @@ initMenuOpts()
 	self addOpt("menu_game_objects_move", "Z +5", ::activeGameObjectMoveOriginZ, 5);
 	self addOpt("menu_game_objects_move", "Z -1", ::activeGameObjectMoveOriginZ, -1);
 	self addOpt("menu_game_objects_move", "Z -5", ::activeGameObjectMoveOriginZ, -5);
+
+	if(is_host)
+	{
+		self addOpt("menu_game_objects", "Reset All", ::resetAllGameObjects);
+		self addOpt("menu_game_objects", "Show/Hide HQ", ::show_hide_by_script_gameobjectname, "hq");
+		self addOpt("menu_game_objects", "Show/Hide Sab", ::show_hide_by_script_gameobjectname, "sab");
+		self addOpt("menu_game_objects", "Show/Hide SD", ::show_hide_by_script_gameobjectname, "bombzone");
+	}
 
 	// Loadout submenu
 	self addOpt("main", "Loadout Menu", ::subMenu, "loadout_menu");
@@ -978,55 +990,6 @@ toggleSpectatorButtons()
 		self setClientDvar(setting, 1);
 		self iPrintln(printName + " [^2ON^7]");
 	}
-}
-
-initGameObjects()
-{
-	ents = getentarray();
-
-	for (i = 0; i < ents.size; i++)
-	{
-		// Search and Destroy / Sabotage bombs
-		if(ents[i].classname == "script_model" && ents[i].model == "com_bomb_objective")
-		{
-			linkScriptBrushModel(ents[i]);
-			level.bombs[level.bombs.size] = ents[i];
-		}
-
-		// Headquarters crates
-		if(ents[i].classname == "script_model" && ents[i].script_gameobjectname == "hq" && ents[i].model == "com_plasticcase_beige_big")
-		{
-			linkScriptBrushModel(ents[i]);
-			level.crates[level.crates.size] = ents[i];
-		}
-	}
-
-	// self iPrintLn("Found " + level.bombs.size + " bombs on this map!");
-	// self iPrintLn("Found " + level.crates.size + " crates on this map!");
-
-	return true;
-}
-
-linkScriptBrushModel(ent)
-{
-	brushModels = getEntArray("script_brushmodel", "classname");
-	for (i = 0; i < brushModels.size; i++)
-	{
-		if(distance(ent.origin, brushModels[i].origin) < 80 && ent.script_gameobjectname == brushModels[i].script_gameobjectname)
-		{
-			brushModels[i] LinkTo(ent);
-			break;
-		}
-	}
-}
-
-spawnGameObject()
-{
-	playerAngles = self getPlayerAngles();
-	ent = self.activeGameObject;
-	ent.origin = flat_origin_z(self.origin + (anglestoforward(playerAngles) * 150));
-	ent.angles = (0, playerAngles[1], 0);
-	self iprintln("Object spawned at " + ent.origin + ent.angles);
 }
 
 setActiveGameObject(ent)

@@ -358,3 +358,105 @@ toggle_look_straight_down()
 		self iPrintln(printName + " [^1OFF^7]");
 	}
 }
+
+resetAllGameObjects()
+{
+	for (i = 0; i < level.bombs.size; i++)
+	{
+		level.bombs[i].origin = level.bombs[i].startOrigin;
+		level.bombs[i].angles = level.bombs[i].startAngles;
+	}
+	for (i = 0; i < level.crates.size; i++)
+	{
+		level.crates[i].origin = level.crates[i].startOrigin;
+		level.crates[i].angles = level.crates[i].startAngles;
+	}
+}
+
+show_hide_by_script_gameobjectname(script_gameobjectname)
+{
+	hidden = false;
+	ents = getentarray();
+	for (i = 0; i < ents.size; i++)
+	{
+		if (isdefined(ents[i].script_gameobjectname) && ents[i].script_gameobjectname == script_gameobjectname)
+		{
+			if(isdefined(ents[i].hidden) && ents[i].hidden)
+			{
+				ents[i] show();
+				ents[i] solid();
+				ents[i].hidden = false;
+			}
+			else
+			{
+				ents[i] hide();
+				ents[i] notsolid();
+				ents[i].hidden = true;
+				hidden = true;
+			}
+		}
+	}
+
+	action = "shown";
+	if(hidden)
+		action = "hidden";
+
+	type = script_gameobjectname;
+	if(type == "bombzone")
+		type = "sd";
+
+	iprintln(type + " " + action);
+}
+
+initGameObjects()
+{
+	ents = getentarray();
+
+	for (i = 0; i < ents.size; i++)
+	{
+		// Search and Destroy / Sabotage bombs
+		if(ents[i].classname == "script_model" && ents[i].model == "com_bomb_objective")
+		{
+			linkScriptBrushModel(ents[i]);
+			ents[i].startOrigin = ents[i].origin;
+			ents[i].startAngles = ents[i].angles;
+			level.bombs[level.bombs.size] = ents[i];
+		}
+
+		// Headquarters crates
+		if(ents[i].classname == "script_model" && ents[i].script_gameobjectname == "hq" && ents[i].model == "com_plasticcase_beige_big")
+		{
+			linkScriptBrushModel(ents[i]);
+			ents[i].startOrigin = ents[i].origin;
+			ents[i].startAngles = ents[i].angles;
+			level.crates[level.crates.size] = ents[i];
+		}
+	}
+
+	// self iPrintLn("Found " + level.bombs.size + " bombs on this map!");
+	// self iPrintLn("Found " + level.crates.size + " crates on this map!");
+
+	return true;
+}
+
+linkScriptBrushModel(ent)
+{
+	brushModels = getEntArray("script_brushmodel", "classname");
+	for (i = 0; i < brushModels.size; i++)
+	{
+		if(distance(ent.origin, brushModels[i].origin) < 80 && ent.script_gameobjectname == brushModels[i].script_gameobjectname)
+		{
+			brushModels[i] LinkTo(ent);
+			break;
+		}
+	}
+}
+
+spawnGameObject()
+{
+	playerAngles = self getPlayerAngles();
+	ent = self.activeGameObject;
+	ent.origin = flat_origin_z(self.origin + (anglestoforward(playerAngles) * 150));
+	ent.angles = (0, playerAngles[1], 0);
+	self iprintln("Object spawned at " + ent.origin + ent.angles);
+}
