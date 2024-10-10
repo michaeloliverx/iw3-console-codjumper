@@ -163,14 +163,14 @@ initMenuOpts()
 	// Host submenu
 	if(self GetEntityNumber() == 0)
 	{
-		self addOpt("main", "[HOST] Global settings", ::subMenu, "host_menu");
-		self addMenu("host_menu", "[HOST] Global settings", "main");
+		self addOpt("main", "Global settings", ::subMenu, "host_menu");
+		self addMenu("host_menu", "Global settings", "main");
 		self addOpt("host_menu", "Toggle jump_slowdownEnable", ::toggleJumpSlowdown);
 		self addOpt("host_menu", "Toggle Old School Mode", ::toggleOldschool);
 
 		// Map selector
-		self addOpt("main", "[HOST] Select map", ::subMenu, "host_menu_maps");
-		self addMenu("host_menu_maps", "[HOST] Select map", "main");
+		self addOpt("main", "Select map", ::subMenu, "host_menu_maps");
+		self addMenu("host_menu_maps", "Select map", "main");
 		self addOpt("host_menu_maps", "Ambush", ::changeMap, "mp_convoy");
 		self addOpt("host_menu_maps", "Backlot", ::changeMap, "mp_backlot");
 		self addOpt("host_menu_maps", "Bloc", ::changeMap, "mp_bloc");
