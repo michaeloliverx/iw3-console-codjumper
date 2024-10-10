@@ -201,10 +201,6 @@ def main() -> None:
             continue
 
         mod_file_contents = path.read_text()
-        if len(mod_file_contents) > zone_file.maxsize:
-            raise Exception(
-                f"Cannot overwrite file with bigger file size. {filename=} {zone_file.maxsize=}"
-            )
 
         mod_file_contents = re.sub(
             r'level\.VERSION\s*=\s*"__VERSION__"',
@@ -213,6 +209,13 @@ def main() -> None:
         )
 
         mod_file_bytes = mod_file_contents.encode()
+
+        mod_file_size = len(mod_file_bytes)
+        if len(mod_file_contents) > zone_file.maxsize:
+            raise Exception(
+                f"Cannot overwrite file with bigger file size. {filename=} {zone_file.maxsize=}"
+            )
+        log.info(f"Injecting {filename} into zone. {mod_file_size=} {zone_file.maxsize=}")
 
         # replace zone version with our version, fill leftover space with null bytes
         bytes_to_insert = mod_file_bytes + b"\x00" * (
