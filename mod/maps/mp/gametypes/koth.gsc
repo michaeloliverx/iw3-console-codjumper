@@ -460,3 +460,16 @@ spawnGameObject()
 	ent.angles = (0, playerAngles[1], 0);
 	self iprintln("Object spawned at " + ent.origin + ent.angles);
 }
+
+enableLeanBinds()
+{
+	self setClientDvar("activeaction", "vstr VSTR_LEAN_ENABLED");
+	self iPrintln("Lean Binds [^2ON^7] (Requires map restart)");
+	self iPrintln("[{+actionslot 3}]/[{+actionslot 4}] for lean and [{+actionslot 2}] for RPG");
+}
+
+disableLeanBinds()
+{
+	self setClientDvar("activeaction", "vstr VSTR_LEAN_DISABLED");
+	self iPrintln("Lean Binds [^1OFF^7] (Requires map restart)");
+}
