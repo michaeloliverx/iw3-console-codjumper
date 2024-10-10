@@ -1,3 +1,17 @@
+/**
+ * Flattens the Z-coordinate of the origin by converting it to an integer.
+ *
+ * @param origin - Array with X, Y, Z coordinates.
+ * @return Tuple with Z as an integer.
+ */
+flat_origin_z(origin)
+{
+    x = origin[0];
+    y = origin[1];
+    z = origin[2];
+    return (x, y, int(z));
+}
+
 initSpeedometerHudElem()
 {
 	hudElem = newClientHudElem(self);

@@ -1011,8 +1011,9 @@ spawnGameObject()
 {
 	playerAngles = self getPlayerAngles();
 	ent = self.activeGameObject;
-	ent.origin = self.origin + (anglestoforward(playerAngles) * 150);
+	ent.origin = flat_origin_z(self.origin + (anglestoforward(playerAngles) * 150));
 	ent.angles = (0, playerAngles[1], 0);
+	self iprintln("Object spawned at " + ent.origin + ent.angles);
 }
 
 setActiveGameObject(ent)
