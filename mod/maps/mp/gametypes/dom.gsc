@@ -159,6 +159,8 @@ setupPlayer()
 	// look straight up
 	self setclientdvar("player_view_pitch_up", 89.9);
 
+	// Remove glow color applied to the mode and map name strings on the connect screen
+	self setClientDvar("ui_ConnectScreenTextGlowColor", 0);
 }
 
 initMenuOpts()
