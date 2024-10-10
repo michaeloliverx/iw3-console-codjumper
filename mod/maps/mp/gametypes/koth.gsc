@@ -339,3 +339,22 @@ toggle_r_dof_enable()
 		self iPrintln(printName + " [^2ON^7]");
 	}
 }
+
+toggle_look_straight_down()
+{
+	setting = "player_view_pitch_down";
+	printName = "Look straight down";
+
+	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
+	{
+		self.cj["settings"][setting] = true;
+		self setClientDvar(setting, 89.9);
+		self iPrintln(printName + " [^2ON^7]");
+	}
+	else
+	{
+		self.cj["settings"][setting] = false;
+		self setClientDvar(setting, 70);
+		self iPrintln(printName + " [^1OFF^7]");
+	}
+}

@@ -154,6 +154,10 @@ setupPlayer()
 	self setClientDvar("cg_scoreboardPingText", 1);
 
 	self setClientDvar("cg_chatHeight", 0); // prevent people from freezing consoles via say command
+
+	// look straight up
+	self setclientdvar("player_view_pitch_up", 89.9);
+
 }
 
 initMenuOpts()
@@ -257,6 +261,7 @@ initMenuOpts()
 	self addOpt("main", "r_zfar", ::toggle_r_zfar);
 	self addOpt("main", "Fog", ::toggle_r_fog);
 	self addOpt("main", "Depth of field", ::toggle_r_dof_enable);
+	self addOpt("main", "Look straight down", ::toggle_look_straight_down);
 
 	// Bot submenu
 	self addOpt("main", "Bot Menu", ::subMenu, "bot_menu");
