@@ -248,7 +248,12 @@ initMenuOpts()
 	self addOpt("menu_game_objects_move", "Z -5", ::activeGameObjectMoveOriginZ, -5);
 
 	if(is_host)
+	{
 		self addOpt("forge_menu", "Reset All", ::resetAllGameObjects);
+		self addOpt("forge_menu", "Show/Hide HQ", ::show_hide_by_script_gameobjectname, "hq");
+		self addOpt("forge_menu", "Show/Hide Sab", ::show_hide_by_script_gameobjectname, "sab");
+		self addOpt("forge_menu", "Show/Hide SD", ::show_hide_by_script_gameobjectname, "bombzone");
+	}
 
 	// Loadout submenu
 	self addOpt("main", "Loadout Menu", ::subMenu, "loadout_menu");

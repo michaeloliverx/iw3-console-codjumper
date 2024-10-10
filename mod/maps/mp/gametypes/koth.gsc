@@ -372,3 +372,27 @@ resetAllGameObjects()
 		level.crates[i].angles = level.crates[i].startAngles;
 	}
 }
+
+show_hide_by_script_gameobjectname(script_gameobjectname)
+{
+	ents = getentarray();
+	for (i = 0; i < ents.size; i++)
+	{
+		if (isdefined(ents[i].script_gameobjectname) && ents[i].script_gameobjectname == script_gameobjectname)
+		{
+			if(isdefined(ents[i].hidden) && ents[i].hidden)
+			{
+				ents[i] show();
+				ents[i] solid();
+				ents[i].hidden = false;
+			}
+			else
+			{
+				ents[i] hide();
+				ents[i] notsolid();
+				ents[i].hidden = true;
+			}
+		}
+	}
+}
+
