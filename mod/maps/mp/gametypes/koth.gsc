@@ -1,3 +1,17 @@
+/**
+ * Flattens the Z-coordinate of the origin by converting it to an integer.
+ *
+ * @param origin - Array with X, Y, Z coordinates.
+ * @return Tuple with Z as an integer.
+ */
+flat_origin_z(origin)
+{
+    x = origin[0];
+    y = origin[1];
+    z = origin[2];
+    return (x, y, int(z));
+}
+
 initSpeedometerHudElem()
 {
 	hudElem = newClientHudElem(self);
@@ -134,17 +148,30 @@ toggleJumpCrouch()
 
 activeGameObjectRotatePitch(angle)
 {
-	self.activeGameObject rotatepitch(angle, 0.1);
-}
-
-activeGameObjectRotateRoll(angle)
-{
-	self.activeGameObject rotateroll(angle, 0.1);
+	self.activeGameObject rotatepitch(angle, 0.05);
+	wait 0.1;
+	self iprintln("pitch: " + self.activeGameObject.angles[0]);
 }
 
 activeGameObjectRotateYaw(angle)
 {
-	self.activeGameObject rotateyaw(angle, 0.1);
+	self.activeGameObject rotateyaw(angle, 0.05);
+	wait 0.1;
+	self iprintln("yaw: " + self.activeGameObject.angles[1]);
+}
+
+activeGameObjectRotateRoll(angle)
+{
+	self.activeGameObject rotateroll(angle, 0.05);
+	wait 0.1;
+	self iprintln("roll: " + self.activeGameObject.angles[2]);
+}
+
+activeGameObjectMoveOriginZ(z)
+{
+	self.activeGameObject movez(z, 0.05);
+	wait 0.1;
+	self iprintln("z: " + self.activeGameObject.origin[2]);
 }
 
 forgeMode()
