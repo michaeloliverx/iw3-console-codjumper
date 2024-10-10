@@ -279,8 +279,12 @@ initMenuOpts()
 
 		self addOpt("bot_menu", text, ::setSelectedBot, i);
 	}
-	self addOpt("main", "Spawn Clone", ::addClone);
-	self addOpt("main", "Remove Clones", ::deleteClones);
+
+	// Clone submenu
+	self addOpt("main", "Clone Menu", ::subMenu, "clone_menu");
+	self addMenu("clone_menu", "Clone Menu", "main");
+	self addOpt("clone_menu", "Spawn Clone", ::addClone);
+	self addOpt("clone_menu", "Remove Clones", ::deleteClones);
 
 }
 
