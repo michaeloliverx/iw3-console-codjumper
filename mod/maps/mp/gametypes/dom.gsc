@@ -992,59 +992,6 @@ toggleSpectatorButtons()
 	}
 }
 
-initGameObjects()
-{
-	ents = getentarray();
-
-	for (i = 0; i < ents.size; i++)
-	{
-		// Search and Destroy / Sabotage bombs
-		if(ents[i].classname == "script_model" && ents[i].model == "com_bomb_objective")
-		{
-			linkScriptBrushModel(ents[i]);
-			ents[i].startOrigin = ents[i].origin;
-			ents[i].startAngles = ents[i].angles;
-			level.bombs[level.bombs.size] = ents[i];
-		}
-
-		// Headquarters crates
-		if(ents[i].classname == "script_model" && ents[i].script_gameobjectname == "hq" && ents[i].model == "com_plasticcase_beige_big")
-		{
-			linkScriptBrushModel(ents[i]);
-			ents[i].startOrigin = ents[i].origin;
-			ents[i].startAngles = ents[i].angles;
-			level.crates[level.crates.size] = ents[i];
-		}
-	}
-
-	// self iPrintLn("Found " + level.bombs.size + " bombs on this map!");
-	// self iPrintLn("Found " + level.crates.size + " crates on this map!");
-
-	return true;
-}
-
-linkScriptBrushModel(ent)
-{
-	brushModels = getEntArray("script_brushmodel", "classname");
-	for (i = 0; i < brushModels.size; i++)
-	{
-		if(distance(ent.origin, brushModels[i].origin) < 80 && ent.script_gameobjectname == brushModels[i].script_gameobjectname)
-		{
-			brushModels[i] LinkTo(ent);
-			break;
-		}
-	}
-}
-
-spawnGameObject()
-{
-	playerAngles = self getPlayerAngles();
-	ent = self.activeGameObject;
-	ent.origin = flat_origin_z(self.origin + (anglestoforward(playerAngles) * 150));
-	ent.angles = (0, playerAngles[1], 0);
-	self iprintln("Object spawned at " + ent.origin + ent.angles);
-}
-
 setActiveGameObject(ent)
 {
 	self.activeGameObject = ent;
