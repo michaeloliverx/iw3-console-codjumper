@@ -473,3 +473,10 @@ disableLeanBinds()
 	self setClientDvar("activeaction", "vstr VSTR_LEAN_DISABLED");
 	self iPrintln("Lean Binds [^1OFF^7] (Requires map restart)");
 }
+
+kickAllBots()
+{
+	for ( i = 0; i < level.players.size; i++ )
+		if ( isdefined(level.players[i].pers["isBot"]) )
+			kick(level.players[i] getEntityNumber());
+}

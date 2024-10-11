@@ -306,6 +306,8 @@ initMenuOpts()
 		self addOpt("bot_menu", text, ::setSelectedBot, i);
 	}
 	self addOpt("bot_menu", "Spawn Floating Bot", ::spawnFloatingBot);
+	if(is_host)
+		self addOpt("bot_menu", "Kick All Bots", ::kickAllBots);
 
 	// Clone submenu
 	self addOpt("main", "Clone Menu", ::subMenu, "clone_menu");
