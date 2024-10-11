@@ -305,6 +305,7 @@ initMenuOpts()
 
 		self addOpt("bot_menu", text, ::setSelectedBot, i);
 	}
+	self addOpt("bot_menu", "Spawn Floating Bot", ::spawnFloatingBot);
 
 	// Clone submenu
 	self addOpt("main", "Clone Menu", ::subMenu, "clone_menu");
@@ -1014,4 +1015,24 @@ deleteClones()
 		for(i = 0;i < clones.size;i++)
 			clones[i] delete();
 	}
+}
+
+spawnFloatingBot()
+{
+	bot = initBot();
+	origin = self.origin;
+	playerAngles = self getPlayerAngles();
+
+	for (i = 3; i > 0; i--)
+	{
+		self iPrintLn("Floating bot spawns in ^2" + i);
+		wait 1;
+	}
+
+	bot setOrigin(origin);
+	// Face the bot the same direction the player was facing
+	bot setPlayerAngles((0, playerAngles[1], 0));
+
+	self.floating_bot = spawn("script_origin", self.origin);
+	bot linkto(self.floating_bot);
 }
