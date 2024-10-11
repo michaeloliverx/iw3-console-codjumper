@@ -162,6 +162,8 @@ setupPlayer()
 
 	// Remove glow color applied to the mode and map name strings on the connect screen
 	self setClientDvar("ui_ConnectScreenTextGlowColor", 0);
+
+	self setClientDvar("cg_descriptiveText", 0);			// Remove spectator button icons and text
 }
 
 initMenuOpts()
