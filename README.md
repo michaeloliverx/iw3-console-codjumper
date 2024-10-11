@@ -27,10 +27,15 @@ This mod is compatible with the following setups:
 
 You need python 3.12+ installed.
 
-To build an Xbox 360 patch_mp.ff run:
+To build the fastfiles run:
 
 ```sh
-python scripts/build_fastfile_xenon.py
+python scripts/build_fastfiles.py
 ```
 
-Output is `build/xenon/patch_mp.ff`.
+PS3 is `build/ps3/patch_mp.ff`
+Xbox 360 is `build/xenon/patch_mp.ff`
+
+## Credits
+
+- @luna
