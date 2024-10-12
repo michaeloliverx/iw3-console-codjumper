@@ -23,10 +23,6 @@ init()
 	setDvar("scr_" + gametype + "_numlives", 0);
 	setDvar("scr_" + gametype + "_roundlimit", 0);
 
-	// UI
-	// setDvar("ui_hud_hardcore", 1);
-	// setDvar("ui_hud_obituaries", 0);		// Hide when player switches teams / dies
-											// (disables all obituary messages including those from iPrintln)
 	setDvar("ui_hud_showobjicons", 0);		// Hide objective icons from HUD and map
 
 	setDvar("scr_game_perks", 0);			// Remove perks
@@ -110,17 +106,12 @@ setupPlayer()
 	self.cj["settings"]["rpg_switched"] = false;
 
 	// Remove unlocalized errors
-	self setClientDvars("loc_warnings","0","loc_warningsAsErrors","0","cg_errordecay","1","con_errormessagetime","0","uiscript_debug","0");
+	self setClientDvars("loc_warnings", 0, "loc_warningsAsErrors", 0, "cg_errordecay", 1, "con_errormessagetime", 0, "uiscript_debug", 0);
 
 	// Set team names
-	self setClientDvar("g_TeamName_Allies", "Jumpers");
-	self setClientDvar("g_TeamName_Axis", "Bots");
-	// TODO remove icons
+	self setClientDvars("g_TeamName_Allies", "Jumpers", "g_TeamName_Axis", "Bots");
 
-
-	self setClientDvar("cg_overheadRankSize", 0);		// Remove overhead rank
-	self setClientDvar("cg_overheadIconSize", 0);		// Remove overhead rank icon
-	// self setClientDvar("cg_overheadNamesSize", 0);		// Remove overhead name
+	self setClientDvars("cg_overheadRankSize", 0, "cg_overheadIconSize", 0);		// Remove overhead rank and icon
 
 	self setClientDvar("nightVisionDisableEffects", 1);	// Remove nightvision fx
 
@@ -131,10 +122,7 @@ setupPlayer()
 	self setClientDvar("waypointOffscreenPointerHeight", 0.1);
 
 	// Disable FX
-	self setClientDvar("fx_enable", 0);
-	self setClientDvar("fx_marks", 0);
-	self setClientDvar("fx_marks_ents", 0);
-	self setClientDvar("fx_marks_smodels", 0);
+	self setClientDvars("fx_enable", 0, "fx_marks", 0, "fx_marks_ents", 0, "fx_marks_smodels", 0);
 
 	self setClientDvar("clanname", "");					// Remove clan tag
 	self setClientDvar("motd", "CodJumper");
@@ -142,16 +130,13 @@ setupPlayer()
 	self setClientDvar("aim_automelee_range", 0);		// Remove melee lunge
 
 	// Disable autoaim for enemy players
-	self setClientDvar("aim_slowdown_enabled", 0);
-	self setClientDvar("aim_lockon_enabled", 0);
+	self setClientDvars("aim_slowdown_enabled", 0, "aim_lockon_enabled", 0);
 
 	// Don't show enemy player names
-	self setClientDvar("cg_enemyNameFadeIn", 0);
-	self setClientDvar("cg_enemyNameFadeOut", 0);
+	self setClientDvars("cg_enemyNameFadeIn", 0, "cg_enemyNameFadeOut", 0);
 
 	// Always show enemies on the map but hide compass, can see enemy positions when pressing start
-	self setClientDvar("g_compassShowEnemies", 1);
-	self setClientDvar("compassSize", 0.001);
+	self setClientDvars("g_compassShowEnemies", 1, "compassSize", 0.001);
 
 	self setClientDvar("cg_scoreboardPingText", 1);
 
@@ -181,30 +166,33 @@ initMenuOpts()
 		self addOpt("host_menu", "Toggle jump_slowdownEnable", ::toggleJumpSlowdown);
 		self addOpt("host_menu", "Toggle Old School Mode", ::toggleOldschool);
 
-		// Map selector
-		self addOpt("main", "Select map", ::subMenu, "host_menu_maps");
-		self addMenu("host_menu_maps", "Select map", "main");
-		self addOpt("host_menu_maps", "Ambush", ::changeMap, "mp_convoy");
-		self addOpt("host_menu_maps", "Backlot", ::changeMap, "mp_backlot");
-		self addOpt("host_menu_maps", "Bloc", ::changeMap, "mp_bloc");
-		self addOpt("host_menu_maps", "Bog", ::changeMap, "mp_bog");
-		self addOpt("host_menu_maps", "Broadcast", ::changeMap, "mp_broadcast");
-		self addOpt("host_menu_maps", "Chinatown", ::changeMap, "mp_carentan");
-		self addOpt("host_menu_maps", "Countdown", ::changeMap, "mp_countdown");
-		self addOpt("host_menu_maps", "Crash", ::changeMap, "mp_crash");
-		self addOpt("host_menu_maps", "Creek", ::changeMap, "mp_creek");
-		self addOpt("host_menu_maps", "Crossfire", ::changeMap, "mp_crossfire");
-		self addOpt("host_menu_maps", "District", ::changeMap, "mp_citystreets");
-		self addOpt("host_menu_maps", "Downpour", ::changeMap, "mp_farm");
-		self addOpt("host_menu_maps", "Killhouse", ::changeMap, "mp_killhouse");
-		self addOpt("host_menu_maps", "Overgrown", ::changeMap, "mp_overgrown");
-		self addOpt("host_menu_maps", "Pipeline", ::changeMap, "mp_pipeline");
-		self addOpt("host_menu_maps", "Shipment", ::changeMap, "mp_shipment");
-		self addOpt("host_menu_maps", "Showdown", ::changeMap, "mp_showdown");
-		self addOpt("host_menu_maps", "Strike", ::changeMap, "mp_strike");
-		self addOpt("host_menu_maps", "Vacant", ::changeMap, "mp_vacant");
-		self addOpt("host_menu_maps", "Wet Work", ::changeMap, "mp_cargoship");
-		self addOpt("host_menu_maps", "Winter Crash", ::changeMap, "mp_crash_snow");
+		if(getDvarInt("ui_allow_teamchange") == 1)
+		{
+			// Map selector
+			self addOpt("main", "Select map", ::subMenu, "host_menu_maps");
+			self addMenu("host_menu_maps", "Select map", "main");
+			self addOpt("host_menu_maps", "Ambush", ::changeMap, "mp_convoy");
+			self addOpt("host_menu_maps", "Backlot", ::changeMap, "mp_backlot");
+			self addOpt("host_menu_maps", "Bloc", ::changeMap, "mp_bloc");
+			self addOpt("host_menu_maps", "Bog", ::changeMap, "mp_bog");
+			self addOpt("host_menu_maps", "Broadcast", ::changeMap, "mp_broadcast");
+			self addOpt("host_menu_maps", "Chinatown", ::changeMap, "mp_carentan");
+			self addOpt("host_menu_maps", "Countdown", ::changeMap, "mp_countdown");
+			self addOpt("host_menu_maps", "Crash", ::changeMap, "mp_crash");
+			self addOpt("host_menu_maps", "Creek", ::changeMap, "mp_creek");
+			self addOpt("host_menu_maps", "Crossfire", ::changeMap, "mp_crossfire");
+			self addOpt("host_menu_maps", "District", ::changeMap, "mp_citystreets");
+			self addOpt("host_menu_maps", "Downpour", ::changeMap, "mp_farm");
+			self addOpt("host_menu_maps", "Killhouse", ::changeMap, "mp_killhouse");
+			self addOpt("host_menu_maps", "Overgrown", ::changeMap, "mp_overgrown");
+			self addOpt("host_menu_maps", "Pipeline", ::changeMap, "mp_pipeline");
+			self addOpt("host_menu_maps", "Shipment", ::changeMap, "mp_shipment");
+			self addOpt("host_menu_maps", "Showdown", ::changeMap, "mp_showdown");
+			self addOpt("host_menu_maps", "Strike", ::changeMap, "mp_strike");
+			self addOpt("host_menu_maps", "Vacant", ::changeMap, "mp_vacant");
+			self addOpt("host_menu_maps", "Wet Work", ::changeMap, "mp_cargoship");
+			self addOpt("host_menu_maps", "Winter Crash", ::changeMap, "mp_crash_snow");
+		}
 	}
 
 	self addOpt("main", "Game Objects Menu", ::subMenu, "menu_game_objects");
@@ -322,12 +310,6 @@ initMenu()
 	self endon("death");
 	self endon("disconnect");
 
-	// Wait until the countdown period is over so player controls aren't unfrozen when menu is open
-	if ( level.inPrematchPeriod )
-	{
-		level waittill("prematch_over");
-	}
-
 	level.SCROLL_TIME_SECONDS = 0.15;
 
 	self.inMenu = undefined;
@@ -339,25 +321,20 @@ initMenu()
 	{
 		if(isDefined(self.inMenu))
 		{
-			// Menu DOWN
-			if(self attackButtonPressed())
+			// Menu UP/DOWN
+			if(self attackButtonPressed() || self adsButtonPressed())
 			{
-				self.menuCurs++;
-				if(self.menuCurs > self.menuAction[self.currentMenu].opt.size-1)
-					self.menuCurs = 0;
-				self.scrollBar moveOverTime(level.SCROLL_TIME_SECONDS);
-				self.scrollBar.y = ((self.menuCurs*17.98)+((self.menuText.y+1)-(17.98/2)));
-				wait level.SCROLL_TIME_SECONDS;
-			}
+				self.menuCurs += self attackButtonPressed();
+				self.menuCurs -= self adsButtonPressed();
 
-			// Menu UP
-			if(self adsButtonPressed())
-			{
-				self.menuCurs--;
-				if(self.menuCurs < 0)
-					self.menuCurs = self.menuAction[self.currentMenu].opt.size-1;
+				if(self.menuCurs > self.menuAction[self.currentMenu].opt.size - 1)
+					self.menuCurs = 0;
+				else if(self.menuCurs < 0)
+					self.menuCurs = self.menuAction[self.currentMenu].opt.size - 1;
+
 				self.scrollBar moveOverTime(level.SCROLL_TIME_SECONDS);
-				self.scrollBar.y = ((self.menuCurs*17.98)+((self.menuText.y+1)-(17.98/2)));
+				self.scrollBar.y = ((self.menuCurs * 17.98) + ((self.menuText.y + 1) - (17.98 / 2)));
+
 				wait level.SCROLL_TIME_SECONDS;
 			}
 
@@ -420,15 +397,13 @@ openCJ()
 watchUseButtonPressed()
 {
 	self endon("disconnect");
-	self endon("killed_player");
-	self endon("joined_spectators");
+	self endon("death");
 
 	for(;;)
 	{
 		if(!self.inMenu && self UseButtonPressed())
 		{
 			catch_next = false;
-			count = 0;
 
 			for(i=0; i<=0.5; i+=0.05)
 			{
@@ -455,16 +430,9 @@ subMenu(menu)
 	self.currentMenu = menu;
 	self.scrollBar moveOverTime(.2);
 	self.scrollBar.y = ((self.menuCurs*17.98)+((self.menuText.y+1)-(17.98/2)));
-	self.menuText destroy();
-	self initMenuOpts();
-	self.openText setText(self.menuAction[self.currentMenu].title);
-	menuOpts = self.menuAction[self.currentMenu].opt.size;
 
-	wait .2;
-	string = "";
-	for(m = 0; m < menuOpts; m++)
-		string+= self.menuAction[self.currentMenu].opt[m]+"\n";
-	self.menuText = self createText("default", 1.5, "LEFT", "TOPRIGHT", -300, 60, 3, 1, undefined, string);
+	self refreshMenu();
+
 	wait .2;
 }
 
@@ -517,26 +485,17 @@ createRectangle(align, relative, x, y, width, height, color, shader, sort, alpha
 {
 	boxElem = newClientHudElem(self);
 	boxElem.elemType = "bar";
-	if(!level.splitScreen)
-	{
-		boxElem.x = -2;
-		boxElem.y = -2;
-	}
-	boxElem.width = width;
-	boxElem.height = height;
-	boxElem.align = align;
-	boxElem.relative = relative;
-	boxElem.xOffset = 0;
-	boxElem.yOffset = 0;
+
 	boxElem.children = [];
 	boxElem.sort = sort;
 	boxElem.color = color;
 	boxElem.alpha = alpha;
 	boxElem setParent(level.uiParent);
 	boxElem setShader(shader, width, height);
-	boxElem.hidden = false;
 	boxElem setPoint(align, relative, x, y);
+
 	self thread destroyOnDeath(boxElem);
+
 	return boxElem;
 }
 
@@ -553,12 +512,12 @@ ammoCheck()
 {
 	self endon("death");
 	self endon("disconnect");
-	self endon("game_ended");
+	level endon("game_ended");
 
 	for (;;)
 	{
 		currentWeapon = self getCurrentWeapon();
-		if (!self isMantling() && !self isOnLadder() && self getAmmoCount(currentWeapon) <= weaponClipSize(currentWeapon))
+		if (!self isMantling() && !self isOnLadder())
 		{
 			self giveMaxAmmo(currentWeapon);
 		}
@@ -621,15 +580,13 @@ setupLoadout()
 watchMeleeButtonPressed()
 {
 	self endon("disconnect");
-	self endon("killed_player");
-	self endon("joined_spectators");
+	self endon("death");
 
 	for(;;)
 	{
 		if(!self.inMenu && self meleeButtonPressed())
 		{
 			catch_next = false;
-			count = 0;
 
 			for(i=0; i<0.5; i+=0.05)
 			{
@@ -653,8 +610,7 @@ watchMeleeButtonPressed()
 watchSecondaryOffhandButtonPressed()
 {
 	self endon("disconnect");
-	self endon("killed_player");
-	self endon("joined_spectators");
+	self endon("death");
 
 	for(;;)
 	{
@@ -675,8 +631,7 @@ watchSecondaryOffhandButtonPressed()
 watchFragButtonPressed()
 {
 	self endon("disconnect");
-	self endon("killed_player");
-	self endon("joined_spectators");
+	self endon("death");
 
 	for(;;)
 	{
@@ -746,7 +701,7 @@ watchDPAD_UP()
 {
 	self endon("death");
 	self endon("disconnect");
-	self endon("game_ended");
+	level endon("game_ended");
 
 	self SetActionSlot( 1, "nightvision" );
 
@@ -766,7 +721,6 @@ setSelectedBot(num)
 
 spawnSelectedBot()
 {
-
 	if(!isdefined(self.cj["bots"][self.cj["botnumber"]]))
 	{
 		self.cj["bots"][self.cj["botnumber"]] = initBot();
@@ -1012,11 +966,8 @@ deleteClones()
 {
 	clones = self.cj["clones"];
 
-	if(isDefined(clones))
-	{
-		for(i = 0;i < clones.size;i++)
-			clones[i] delete();
-	}
+	for(i = 0;i < clones.size;i++)
+		clones[i] delete();
 }
 
 spawnFloatingBot()
