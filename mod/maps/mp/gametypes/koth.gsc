@@ -58,7 +58,7 @@ updateSpeedometerHudElem()
 {
 	self endon("death");
 	self endon("disconnect");
-	self endon("game_ended");
+	level endon("game_ended");
 
 	if(!isdefined(self.speedometerHudElem))
 	{
