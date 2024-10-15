@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstddef>
 #include <cassert>
+#include <vector>
 #include "detour.h"
 
 extern "C"
@@ -17,8 +18,7 @@ extern "C"
         void *pApiThreadStartup,
         PTHREAD_START_ROUTINE pStartAddress,
         void *pParameter,
-        uint32_t creationFlags
-    );
+        uint32_t creationFlags);
 }
 
 void *ResolveFunction(const std::string &moduleName, uint32_t ordinal)
@@ -117,6 +117,9 @@ xfunction_t *(*HudElem_GetMethod)(const char **pName) = reinterpret_cast<xfuncti
 xfunction_t *(*Helicopter_GetMethod)(const char **pName) = reinterpret_cast<xfunction_t *(*)(const char **pName)>(0x82265C68);
 xfunction_t *(*BuiltIn_GetMethod)(const char **pName, int *type) = reinterpret_cast<xfunction_t *(*)(const char **pName, int *type)>(0x82256E20);
 
+std::vector<int> originalBrushContents;
+bool brushesInitialized = false;
+
 void RemoveBrushCollisions(int heightLimit)
 {
     // cm.numBrushes
@@ -128,6 +131,19 @@ void RemoveBrushCollisions(int heightLimit)
     uintptr_t cm_brushesOffset = 0x82A232D0;
     cbrush_t **cm_brushesArrayPtr = reinterpret_cast<cbrush_t **>(cm_brushesOffset);
     cbrush_t *cm_brushesFirst = *cm_brushesArrayPtr;
+
+    // First time the function runs, store original .contents
+    if (!brushesInitialized)
+    {
+        originalBrushContents.resize(cm_numBrushes);
+        for (int i = 0; i < cm_numBrushes; i++)
+        {
+            cbrush_t &brush = *(cm_brushesFirst + i);
+            originalBrushContents[i] = brush.contents;
+        }
+        brushesInitialized = true;
+    }
+
     for (int i = 0; i < cm_numBrushes; i++)
     {
         cbrush_t &brush = *(cm_brushesFirst + i);
@@ -137,10 +153,34 @@ void RemoveBrushCollisions(int heightLimit)
     }
 }
 
+void RestoreBrushCollisions()
+{
+    // cm.numBrushes
+    uintptr_t cm_numBrushesOffset = 0x82A232CC;
+    unsigned __int16 *cm_numBrushesPtr = reinterpret_cast<unsigned __int16 *>(cm_numBrushesOffset);
+    unsigned __int16 cm_numBrushes = *cm_numBrushesPtr;
+
+    // cm.brushes
+    uintptr_t cm_brushesOffset = 0x82A232D0;
+    cbrush_t **cm_brushesArrayPtr = reinterpret_cast<cbrush_t **>(cm_brushesOffset);
+    cbrush_t *cm_brushesFirst = *cm_brushesArrayPtr;
+
+    for (int i = 0; i < cm_numBrushes; i++)
+    {
+        cbrush_t &brush = *(cm_brushesFirst + i);
+        brush.contents = originalBrushContents[i];
+    }
+}
+
 void GScr_RemoveBrushCollisionsOverHeight(scr_entref_t entref)
 {
     int heightLimit = Scr_GetInt(0);
     RemoveBrushCollisions(heightLimit);
+}
+
+void GScr_RestoreBrushCollisions(scr_entref_t entref)
+{
+    RestoreBrushCollisions();
 }
 
 Detour Scr_GetMethodDetour;
@@ -169,6 +209,9 @@ xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
 
     if (std::strcmp(*pName, "removebrushcollisionsoverheight") == 0)
         return reinterpret_cast<xfunction_t *>(&GScr_RemoveBrushCollisionsOverHeight);
+
+    if (std::strcmp(*pName, "restorebrushcollisions") == 0)
+        return reinterpret_cast<xfunction_t *>(&GScr_RestoreBrushCollisions);
 
     return result;
 }
