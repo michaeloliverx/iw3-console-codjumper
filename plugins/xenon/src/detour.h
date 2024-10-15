@@ -87,8 +87,7 @@ public:
     //
     Detour(
         _Inout_ void *HookSource,
-        _In_ const void *HookTarget
-    )
+        _In_ const void *HookTarget)
         : HookSource(HookSource),
           HookTarget(HookTarget),
           TrampolineAddress(NULL),
@@ -113,8 +112,7 @@ public:
         _Out_ void *Destination,
         _In_ const void *BranchTarget,
         _In_ bool Linked = true,
-        _In_ bool PreserveRegister = false
-    )
+        _In_ bool PreserveRegister = false)
     {
         return Detour::WriteFarBranchEx(Destination, BranchTarget, Linked, PreserveRegister);
     }
@@ -137,8 +135,7 @@ public:
         _In_ bool PreserveRegister = false,
         _In_ UINT32 BranchOptions = POWERPC_BRANCH_OPTIONS_ALWAYS,
         _In_ BYTE ConditionRegisterBit = 0,
-        _In_ BYTE RegisterIndex = 0
-    )
+        _In_ BYTE RegisterIndex = 0)
     {
         const UINT32 BranchFarAsm[] = {
             POWERPC_LIS(RegisterIndex, POWERPC_HI((UINT32)BranchTarget)),                // lis   %rX, BranchTarget@hi
@@ -173,8 +170,7 @@ public:
     //
     static SIZE_T RelocateBranch(
         _Out_ UINT32 *Destination,
-        _In_ const UINT32 *Source
-    )
+        _In_ const UINT32 *Source)
     {
         const auto Instruction = *Source;
         const auto InstructionAddress = (UINT32)Source;
@@ -259,8 +255,7 @@ public:
     //
     static SIZE_T CopyInstruction(
         _Out_ UINT32 *Destination,
-        _In_ const UINT32 *Source
-    )
+        _In_ const UINT32 *Source)
     {
         const auto Instruction = *Source;
         const auto InstructionAddress = (UINT32)Source;
@@ -335,7 +330,7 @@ public:
         return false;
     }
 
-    template<typename T>
+    template <typename T>
     T GetOriginal() const
     {
         return T(this->TrampolineAddress);
