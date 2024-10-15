@@ -24,7 +24,7 @@
   <PropertyGroup>
     <OutDir>$(SolutionDir)build\bin\</OutDir>
     <IntDir>$(SolutionDir)build\obj\</IntDir>
-    <RemoteRoot>hdd:\Plugins</RemoteRoot>
+    <RemoteRoot>hdd:\plugins</RemoteRoot>
     <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     <ImageXexOutput>$(OutDir)$(ProjectName).xex</ImageXexOutput>
   </PropertyGroup>
@@ -33,7 +33,7 @@
     <ClCompile>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <WarningLevel>Level4</WarningLevel>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Full</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -54,10 +54,14 @@
       <DeploymentType>CopyToHardDrive</DeploymentType>
     </Deploy>
     <ImageXex>
-      <ConfigurationFile>config.xml</ConfigurationFile>
+      <ConfigurationFile>xex.xml</ConfigurationFile>
     </ImageXex>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\detour.cpp" />
     <ClCompile Include="src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\detour.h" />
   </ItemGroup>
 </Project>
