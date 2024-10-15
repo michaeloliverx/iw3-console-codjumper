@@ -109,6 +109,35 @@ struct scr_entref_t
 
 typedef void (*xfunction_t)(scr_entref_t);
 
+/* 8925 */
+union DvarValue
+{
+    bool enabled;
+    int integer;
+    unsigned int unsignedInt;
+    float value;
+    float vector[4];
+    const char *string;
+    unsigned __int8 color[4];
+};
+
+/* 8928 */
+struct dvar_s
+{
+    const char *name;
+    const char *description;
+    unsigned __int16 flags;
+    unsigned __int8 type;
+    bool modified;
+    DvarValue current;
+    DvarValue latched;
+    DvarValue reset;
+    // DvarLimits domain;
+    // dvar_s *hashNext;
+};
+
+void (*CG_GameMessage)(int localClientNum, const char *msg) = reinterpret_cast<void (*)(int localClientNum, const char *msg)>(0x8230AAF0);
+dvar_s *(*Dvar_FindMalleableVar)(const char *dvarName) = reinterpret_cast<dvar_s *(*)(const char *dvarName)>(0x821D4C10);
 int (*Scr_GetInt)(unsigned int index) = reinterpret_cast<int (*)(unsigned int index)>(0x8220FD10);
 xfunction_t *(*Scr_GetMethod)(const char **pName, int *type) = reinterpret_cast<xfunction_t *(*)(const char **pName, int *type)>(0x822570E0);
 xfunction_t *(*Player_GetMethod)(const char **pName) = reinterpret_cast<xfunction_t *(*)(const char **pName)>(0x8227E098);
@@ -118,7 +147,7 @@ xfunction_t *(*Helicopter_GetMethod)(const char **pName) = reinterpret_cast<xfun
 xfunction_t *(*BuiltIn_GetMethod)(const char **pName, int *type) = reinterpret_cast<xfunction_t *(*)(const char **pName, int *type)>(0x82256E20);
 
 std::vector<int> originalBrushContents;
-bool brushesInitialized = false;
+std::string lastMapName;
 
 void RemoveBrushCollisions(int heightLimit)
 {
@@ -132,16 +161,17 @@ void RemoveBrushCollisions(int heightLimit)
     cbrush_t **cm_brushesArrayPtr = reinterpret_cast<cbrush_t **>(cm_brushesOffset);
     cbrush_t *cm_brushesFirst = *cm_brushesArrayPtr;
 
-    // First time the function runs, store original .contents
-    if (!brushesInitialized)
+    dvar_s *mapname = Dvar_FindMalleableVar("mapname");
+    if (lastMapName !=  mapname->current.string)
     {
+        originalBrushContents.clear();
         originalBrushContents.resize(cm_numBrushes);
         for (int i = 0; i < cm_numBrushes; i++)
         {
             cbrush_t &brush = *(cm_brushesFirst + i);
             originalBrushContents[i] = brush.contents;
         }
-        brushesInitialized = true;
+        lastMapName = mapname->current.string;
     }
 
     for (int i = 0; i < cm_numBrushes; i++)
