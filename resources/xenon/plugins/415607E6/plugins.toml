@@ -1,0 +1,9 @@
+title_name = "Call of Duty 4: Modern Warfare"
+title_id = "415607E6"
+
+[[plugin]]
+    author = "mo"
+    name = "CodJumper"
+    file = "codjumper.xex"
+    hash = "E410EEE968933B12"
+    is_enabled = true

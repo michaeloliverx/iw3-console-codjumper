@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|Xbox 360">
+      <Configuration>Release</Configuration>
+      <Platform>Xbox 360</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{9B1700C7-D20C-4489-A47E-60D639F18F89}</ProjectGuid>
+    <Keyword>Xbox360Proj</Keyword>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>2010-01</PlatformToolset>
+    <BuildLogFile>$(IntDir)$(ProjectName)\BuildLog.txt</BuildLogFile>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup>
+    <OutDir>$(SolutionDir)build\bin\</OutDir>
+    <IntDir>$(SolutionDir)build\obj\</IntDir>
+    <RemoteRoot>hdd:\plugins</RemoteRoot>
+    <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    <ImageXexOutput>$(OutDir)$(ProjectName).xex</ImageXexOutput>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Full</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <PreprocessorDefinitions>NDEBUG;_XBOX</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <ObjectFileName>$(IntDir)$(ProjectName)\%(RelativeDir)</ObjectFileName>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(IntDir)$(ProjectName)\$(ProjectName).pdb</ProgramDatabaseFile>
+      <OptimizeReferences>true</OptimizeReferences>
+      <SetChecksum>true</SetChecksum>
+      <AdditionalOptions>/DLL /ENTRY:"_DllMainCRTStartup" /ALIGN:128,4096 %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <Deploy>
+      <DeploymentType>CopyToHardDrive</DeploymentType>
+    </Deploy>
+    <ImageXex>
+      <ConfigurationFile>xex.xml</ConfigurationFile>
+    </ImageXex>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\detour.cpp" />
+    <ClCompile Include="src\main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\detour.h" />
+  </ItemGroup>
+</Project>
