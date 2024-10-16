@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 from dataclasses import dataclass
+from enum import StrEnum
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Iterable
@@ -26,6 +27,11 @@ XENON_BUILD_FF = f"{BUILD_DIR}/xenon/patch_mp.ff"
 PS3_BUILD_FF = f"{BUILD_DIR}/ps3/patch_mp.ff"
 
 RAW_FILES_ALLOWED = (".cfg", ".gsc")
+
+
+class Platform(StrEnum):
+    PS3 = "ps3"
+    XENON = "xenon"
 
 
 @dataclass
@@ -162,6 +168,13 @@ def main() -> None:
         action="store_true",
         help="Minifies the GSC scripts before packing.",
     )
+    parser.add_argument(
+        "--platforms",
+        type=str,
+        nargs="+",
+        choices=["ps3", "xenon"],
+        help="Platform(s) to build files for.",
+    )
     args = parser.parse_args()
 
     log.info("Building fastfiles")
@@ -181,43 +194,45 @@ def main() -> None:
             relative_path = file.relative_to(MOD_DIR)
             mod_files[str(relative_path)] = file
 
-    log.info("Generating PS3 fastfile")
-    ps3_ff = Path(CLEAN_PS3_FF).read_bytes()
-    ps3_zone = ps3.decompress_ff(ps3_ff)
-    ps3_zone_modified = replace_zone_files(
-        ps3_zone, mod_files, version, args.minify_gsc
-    )
-    ps3_ff_recompressed = ps3.recompress_ff(ps3_zone_modified)
-    log.debug(
-        f"{len(ps3_ff_recompressed)=} {len(ps3_ff)=} {len(ps3_zone)=} {len(ps3_zone_modified)=} {len(ps3_ff_recompressed)=}"
-    )
-    Path(PS3_BUILD_FF).parent.mkdir(parents=True, exist_ok=True)
-    Path(PS3_BUILD_FF).write_bytes(ps3_ff_recompressed)
-    shutil.make_archive(
-        f"{BUILD_DIR}/cj-iw3-ps3-{version}",
-        "zip",
-        root_dir=Path(PS3_BUILD_FF).parent,
-        base_dir="patch_mp.ff",
-    )
+    if Platform.PS3 in args.platforms:
+        log.info("Generating PS3 fastfile")
+        ps3_ff = Path(CLEAN_PS3_FF).read_bytes()
+        ps3_zone = ps3.decompress_ff(ps3_ff)
+        ps3_zone_modified = replace_zone_files(
+            ps3_zone, mod_files, version, args.minify_gsc
+        )
+        ps3_ff_recompressed = ps3.recompress_ff(ps3_zone_modified)
+        log.debug(
+            f"{len(ps3_ff_recompressed)=} {len(ps3_ff)=} {len(ps3_zone)=} {len(ps3_zone_modified)=} {len(ps3_ff_recompressed)=}"
+        )
+        Path(PS3_BUILD_FF).parent.mkdir(parents=True, exist_ok=True)
+        Path(PS3_BUILD_FF).write_bytes(ps3_ff_recompressed)
+        shutil.make_archive(
+            f"{BUILD_DIR}/cj-iw3-ps3-{version}",
+            "zip",
+            root_dir=Path(PS3_BUILD_FF).parent,
+            base_dir="patch_mp.ff",
+        )
 
-    log.info("Generating Xbox 360 fastfile")
-    xenon_ff = Path(CLEAN_XENON_FF).read_bytes()
-    xenon_zone = xenon.decompress_ff(xenon_ff)
-    xenon_zone_modified = replace_zone_files(
-        xenon_zone, mod_files, version, args.minify_gsc
-    )
-    xexon_ff_recompressed = xenon.recompress_ff(xenon_ff, xenon_zone_modified)
-    log.debug(
-        f"{len(xexon_ff_recompressed)=} {len(xenon_ff)=} {len(xenon_zone)=} {len(xenon_zone_modified)=} {len(xexon_ff_recompressed)=}"
-    )
-    Path(XENON_BUILD_FF).parent.mkdir(parents=True, exist_ok=True)
-    Path(XENON_BUILD_FF).write_bytes(xexon_ff_recompressed)
-    shutil.make_archive(
-        f"{BUILD_DIR}/cj-iw3-xenon-{version}",
-        "zip",
-        root_dir=Path(XENON_BUILD_FF).parent,
-        base_dir="patch_mp.ff",
-    )
+    if Platform.XENON in args.platforms:
+        log.info("Generating Xbox 360 fastfile")
+        xenon_ff = Path(CLEAN_XENON_FF).read_bytes()
+        xenon_zone = xenon.decompress_ff(xenon_ff)
+        xenon_zone_modified = replace_zone_files(
+            xenon_zone, mod_files, version, args.minify_gsc
+        )
+        xexon_ff_recompressed = xenon.recompress_ff(xenon_ff, xenon_zone_modified)
+        log.debug(
+            f"{len(xexon_ff_recompressed)=} {len(xenon_ff)=} {len(xenon_zone)=} {len(xenon_zone_modified)=} {len(xexon_ff_recompressed)=}"
+        )
+        Path(XENON_BUILD_FF).parent.mkdir(parents=True, exist_ok=True)
+        Path(XENON_BUILD_FF).write_bytes(xexon_ff_recompressed)
+        shutil.make_archive(
+            f"{BUILD_DIR}/cj-iw3-xenon-{version}",
+            "zip",
+            root_dir=Path(XENON_BUILD_FF).parent,
+            base_dir="patch_mp.ff",
+        )
 
     log.info("Success!")
 
