@@ -1,3 +1,4 @@
+import argparse
 import contextlib
 import logging
 import re
@@ -5,9 +6,11 @@ import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Iterable
 
 from fflib import ps3, xenon
+from lib.minifier import minify_source
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
@@ -83,7 +86,9 @@ def get_zone_files(zone: bytes, file_extensions: Iterable[str]):
     return zone_files
 
 
-def replace_zone_files(zone: bytes, mod_files: dict[str, Path], version: str) -> bytes:
+def replace_zone_files(
+    zone: bytes, mod_files: dict[str, Path], version: str, minify_gsc: bool
+) -> bytes:
     zone_files = get_zone_files(zone, RAW_FILES_ALLOWED)
     zone_filename_to_file = {x.name: x for x in zone_files}
 
@@ -101,6 +106,14 @@ def replace_zone_files(zone: bytes, mod_files: dict[str, Path], version: str) ->
             mod_file_contents,
             count=1,
         )
+
+        if minify_gsc and filename.endswith(".gsc"):
+            log.info(f"Minifying {filename}")
+            size_before = len(mod_file_contents)
+            mod_file_contents = minify_source(mod_file_contents, SimpleNamespace())
+            size_after = len(mod_file_contents)
+            saving = size_before - size_after
+            log.info(f"Minified {filename}. {size_before=} {size_after=} {saving=}")
 
         mod_file_bytes = mod_file_contents.encode()
 
@@ -143,6 +156,14 @@ def get_git_version() -> str:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Build CodJumper mod fastfiles")
+    parser.add_argument(
+        "--minify-gsc",
+        action="store_true",
+        help="Minifies the GSC scripts before packing.",
+    )
+    args = parser.parse_args()
+
     log.info("Building fastfiles")
 
     log.info("Preparing build directory")
@@ -163,7 +184,9 @@ def main() -> None:
     log.info("Generating PS3 fastfile")
     ps3_ff = Path(CLEAN_PS3_FF).read_bytes()
     ps3_zone = ps3.decompress_ff(ps3_ff)
-    ps3_zone_modified = replace_zone_files(ps3_zone, mod_files, version)
+    ps3_zone_modified = replace_zone_files(
+        ps3_zone, mod_files, version, args.minify_gsc
+    )
     ps3_ff_recompressed = ps3.recompress_ff(ps3_zone_modified)
     log.debug(
         f"{len(ps3_ff_recompressed)=} {len(ps3_ff)=} {len(ps3_zone)=} {len(ps3_zone_modified)=} {len(ps3_ff_recompressed)=}"
@@ -180,7 +203,9 @@ def main() -> None:
     log.info("Generating Xbox 360 fastfile")
     xenon_ff = Path(CLEAN_XENON_FF).read_bytes()
     xenon_zone = xenon.decompress_ff(xenon_ff)
-    xenon_zone_modified = replace_zone_files(xenon_zone, mod_files, version)
+    xenon_zone_modified = replace_zone_files(
+        xenon_zone, mod_files, version, args.minify_gsc
+    )
     xexon_ff_recompressed = xenon.recompress_ff(xenon_ff, xenon_zone_modified)
     log.debug(
         f"{len(xexon_ff_recompressed)=} {len(xenon_ff)=} {len(xenon_zone)=} {len(xenon_zone_modified)=} {len(xexon_ff_recompressed)=}"
