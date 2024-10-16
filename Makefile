@@ -1,6 +1,6 @@
-.PHONY: build
-build:
-	python scripts/build_fastfiles.py
+.PHONY: build-fastfiles
+build-fastfiles:
+	python scripts/build_fastfiles.py --minify-gsc
 
 .PHONY: format
 format:
