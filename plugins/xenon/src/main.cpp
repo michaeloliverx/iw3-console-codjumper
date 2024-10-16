@@ -185,6 +185,9 @@ void RemoveBrushCollisions(int heightLimit)
 
 void RestoreBrushCollisions()
 {
+    if(lastMapName == "")
+        return;
+
     // cm.numBrushes
     uintptr_t cm_numBrushesOffset = 0x82A232CC;
     unsigned __int16 *cm_numBrushesPtr = reinterpret_cast<unsigned __int16 *>(cm_numBrushesOffset);
