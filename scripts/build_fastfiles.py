@@ -125,9 +125,13 @@ def replace_zone_files(
             count=1,
         )
 
-        if cj_enhanced and filename.endswith(".gsc"):
+        if filename.endswith(".gsc"):
             preprocessor = pcpp.Preprocessor()
-            preprocessor.define("CJ_ENHANCED 1")
+            if cj_enhanced:
+                preprocessor.define("CJ_ENHANCED 1")
+            else:
+                preprocessor.define("CJ_ENHANCED 0")
+
             preprocessor.line_directive = None  # Remove line directives
 
             # Ignore include not found errors
