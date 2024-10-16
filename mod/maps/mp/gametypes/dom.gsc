@@ -154,7 +154,7 @@ setupPlayer()
 
 initMenuOpts()
 {
-	self addMenu("main", "CodJumper " + level.VERSION, undefined);
+	self addMenu("main", "CodJumper: Extended " + level.VERSION, undefined);
 
 	is_host = self GetEntityNumber() == 0;
 
@@ -303,6 +303,43 @@ initMenuOpts()
 	self addOpt("clone_menu", "Spawn Clone", ::addClone);
 	self addOpt("clone_menu", "Remove Clones", ::deleteClones);
 
+	#if CJ_ENHANCED
+		// Enhanced submenu
+		if(is_host)
+		{
+			self addOpt("main", "Enhanced Menu", ::subMenu, "enhanced_menu");	// Add to main menu
+
+			self addMenu("enhanced_menu", "Enhanced Menu", "main");
+
+			self addOpt("enhanced_menu", "Barrier Menu", ::subMenu, "barrier_menu");
+			self addMenu("barrier_menu", "Barrier Menu", "enhanced_menu");
+
+			self addOpt("barrier_menu", "Remove All Barriers", ::removeBarriersOverHeight, 0);
+			self addOpt("barrier_menu", "Remove Barriers > 100 Height", ::removeBarriersOverHeight, 100);
+			self addOpt("barrier_menu", "Remove Barriers > 500 Height", ::removeBarriersOverHeight, 500);
+			self addOpt("barrier_menu", "Remove Barriers > 1000 Height", ::removeBarriersOverHeight, 1000);
+			self addOpt("barrier_menu", "Remove Barriers > 1500 Height", ::removeBarriersOverHeight, 1500);
+			self addOpt("barrier_menu", "Restore Barriers", ::restoreBarriers);
+		}
+	#endif
+}
+
+// NOTE: Currently all custom GSC functions require self
+
+removeBarriersOverHeight(height)
+{
+	self restorebrushcollisions();
+	self removebrushcollisionsoverheight(height);
+	if(height == 0)
+		iprintln("Barriers removed");
+	else
+		iprintln("Barriers above " + height + " height removed");
+}
+
+restoreBarriers()
+{
+	self restorebrushcollisions();
+	iprintln("Barriers restored");
 }
 
 initMenu()
