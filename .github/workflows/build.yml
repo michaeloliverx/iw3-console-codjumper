@@ -28,7 +28,7 @@ jobs:
 
       - name: Build fastfiles
         run: |
-          make build
+          make build-fastfiles
 
       - name: Upload fastfiles to release
         uses: softprops/action-gh-release@v2
