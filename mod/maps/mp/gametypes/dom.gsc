@@ -4,7 +4,15 @@
 
 init()
 {
+	// Replaced by the build script
 	level.VERSION = "__VERSION__";
+
+	#if CJ_ENHANCED
+		level.MOD_NAME = "CodJumper: Enhanced";
+	#else
+		level.MOD_NAME = "CodJumper";
+	#endif
+
 	level.THEME_COLOR = (0, 0, 1);
 
 	level.SELECTED_PREFIX = "^2-->^7 ";
@@ -154,7 +162,7 @@ setupPlayer()
 
 initMenuOpts()
 {
-	self addMenu("main", "CodJumper: Extended " + level.VERSION, undefined);
+	self addMenu("main", level.MOD_NAME + level.VERSION, undefined);
 
 	is_host = self GetEntityNumber() == 0;
 
