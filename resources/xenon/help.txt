@@ -1,0 +1,9 @@
+Xbox 360 JTAG / RGH
+- Copy the patch_mp.ff file to your cod4 game directory.
+- Copy the codjumper.xex file to your console and set as a dashlaunch plugin.
+
+
+Xenia
+- Copy the patch_mp.ff file to your cod4 game directory.
+- Copy the `plugins` directory to your Xenia directory.
+- Change `allow_plugins` to `true` in your `xenia-canary.config.toml` file.
