@@ -257,18 +257,29 @@ def main() -> None:
         xenon_zone_modified = replace_zone_files(
             xenon_zone, mod_files, version, args.minify_gsc, args.enhanced
         )
-        xexon_ff_recompressed = xenon.recompress_ff(xenon_ff, xenon_zone_modified)
+        xenon_ff_recompressed = xenon.recompress_ff(xenon_ff, xenon_zone_modified)
         log.debug(
-            f"{len(xexon_ff_recompressed)=} {len(xenon_ff)=} {len(xenon_zone)=} {len(xenon_zone_modified)=} {len(xexon_ff_recompressed)=}"
+            f"{len(xenon_ff_recompressed)=} {len(xenon_ff)=} {len(xenon_zone)=} {len(xenon_zone_modified)=} {len(xenon_ff_recompressed)=}"
         )
-        Path(XENON_BUILD_FF).parent.mkdir(parents=True, exist_ok=True)
-        Path(XENON_BUILD_FF).write_bytes(xexon_ff_recompressed)
-        shutil.make_archive(
-            f"{BUILD_DIR}/cj-iw3-xenon-{version}",
-            "zip",
-            root_dir=Path(XENON_BUILD_FF).parent,
-            base_dir="patch_mp.ff",
-        )
+        if args.enhanced:
+            output_dir = f"{BUILD_DIR}/xenon-enhanced"
+            shutil.copytree("resources/xenon", output_dir)
+            Path(f"{output_dir}/patch_mp.ff").write_bytes(xenon_ff_recompressed)
+            input("Build the xenon plugin and copy xex to build/xenon-enhanced directory then press Enter to continue...")
+            shutil.make_archive(
+                f"{BUILD_DIR}/cj-enhanced-iw3-xenon-{version}",
+                "zip",
+                root_dir=output_dir
+            )
+        else:
+            Path(XENON_BUILD_FF).parent.mkdir(parents=True, exist_ok=True)
+            Path(XENON_BUILD_FF).write_bytes(xenon_ff_recompressed)
+            shutil.make_archive(
+                f"{BUILD_DIR}/cj-iw3-xenon-{version}",
+                "zip",
+                root_dir=Path(XENON_BUILD_FF).parent,
+                base_dir="patch_mp.ff",
+            )
 
     log.info("Success!")
 
