@@ -25,7 +25,6 @@
 
 /* 9096 */
 struct EntHandle
-
 {
     unsigned __int16 number;
     unsigned __int16 infoIndex;
