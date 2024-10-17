@@ -168,25 +168,15 @@ Detour SV_ClientThinkDetour;
 // TODO: maybe recreate the original and call it in the hook
 void SV_ClientThinkHook(client_t *cl, usercmd_s *cmd)
 {
-    // XNotifyQueueUI(0, 0, XNOTIFY_SYSTEM, L"CodJumper - by mo", nullptr);
-
-    int v3;           // r4
-    const char *v4;   // r3
-    usercmd_s *v5;    // r11
-    usercmd_s *v6;    // r9
-    int v7;           // ctr
-    int v8;           // r8
-    int v9;           // r5
-    int v10;          // r7
-    unsigned int v11; // r11
-
+    // Check if the client is a bot
     if (cl->header.state && cl->header.netchan.remoteAddress.type == NA_BOT)
     {
-        // Remove the bot's movement done in SV_BotUserMove
+        // Reset bot's movement and actions set in SV_BotUserMove
         cmd->forwardmove = 0;
         cmd->rightmove = 0;
         cmd->buttons = 0;
 
+        // Handle bot jump
         if (BOT_JUMP)
         {
             cmd->buttons = KEY_MASK_JUMP;
@@ -194,31 +184,23 @@ void SV_ClientThinkHook(client_t *cl, usercmd_s *cmd)
         }
     }
 
-    v3 = cmd->serverTime;
-    if (v3 - svsHeader->time <= 20000)
+    // Now do the original function logic
+    if (cmd->serverTime - svsHeader->time <= 20000)
     {
-        v5 = cmd;
-        v6 = &cl->lastUsercmd;
-        v7 = 8;
-        do
-        {
-            v8 = v5->serverTime;
-            v5 = (usercmd_s *)((char *)v5 + 4);
-            v6->serverTime = v8;
-            v6 = (usercmd_s *)((char *)v6 + 4);
-            --v7;
-        } while (v7);
+        memcpy(&cl->lastUsercmd, cmd, sizeof(usercmd_s));
+
         if (cl->header.state == 4)
         {
-            G_SetLastServerTime(cl - svsHeader->clients, cmd->serverTime);
-            ClientThink(cl->gentity->s.clientNum);
+            int clientIndex = cl - svsHeader->clients;
+            G_SetLastServerTime(clientIndex, cmd->serverTime);
+            ClientThink(clientIndex);
         }
     }
-    // else
-    // {
-    //     v4 = va("Invalid command time %i from client %s, current server time is %i", v3, cl->name, svs.time);
-    //     Com_PrintError(CON_CHANNEL_SERVER, v4);
-    // }
+    else
+    {
+        char msg = va("Invalid command time %i from client %s, current server time is %i", cmd->serverTime, cl->name, svsHeader->time);
+        Com_PrintError(CON_CHANNEL_SERVER, &msg);
+    }
 }
 
 Detour Scr_GetMethodDetour;
