@@ -333,9 +333,9 @@ initMenuOpts()
 
 			// Bot Action submenu
 			self addMenu("bot_action_menu", "Bot Action Menu", "enhanced_menu");
-			self addOpt("bot_action_menu", "Start auto mantle", ::startAutoMantle);
-			self addOpt("bot_action_menu", "Stop auto mantle", ::stopAutoMantle);
-
+			self addOpt("bot_action_menu", "Auto Mantle ON/OFF", ::toggleAutoMantle);
+			self addOpt("bot_action_menu", "Trigger Distance UP", ::modifyTriggerDistance, 10);
+			self addOpt("bot_action_menu", "Trigger Distance DOWN", ::modifyTriggerDistance, -10);
 		}
 	#endif
 }
@@ -695,6 +695,8 @@ loadPos()
 	self setPlayerAngles(self.cj["save"]["ang"]);
 	self setOrigin(self.cj["save"]["org"]);
 
+	self notify("position_loaded");
+
 	//pull out rpg on load if RPG switch is enabled
 	if(self.cj["settings"]["rpg_switch_enabled"] && self.cj["settings"]["rpg_switched"])
 	{
@@ -782,6 +784,7 @@ spawnSelectedBot()
 	self.cj["bots"][self.cj["botnumber"]] setOrigin(origin);
 	// Face the bot the same direction the player was facing
 	self.cj["bots"][self.cj["botnumber"]] setPlayerAngles((0, playerAngles[1], 0));
+	self.cj["bots"][self.cj["botnumber"]] savePos();	// Save the bot's position for auto mantle
 }
 
 toggleOldschool()
@@ -1028,3 +1031,96 @@ spawnFloatingBot()
 	self.floating_bot = spawn("script_origin", self.origin);
 	bot linkto(self.floating_bot);
 }
+
+#if CJ_ENHANCED
+// NOTE: Currently all custom GSC functions require self
+
+removeBarriersOverHeight(height)
+{
+	self restorebrushcollisions();
+	self removebrushcollisionsoverheight(height);
+	if(height == 0)
+		iprintln("Barriers removed");
+	else
+		iprintln("Barriers above " + height + " height removed");
+}
+
+restoreBarriers()
+{
+	self restorebrushcollisions();
+	iprintln("Barriers restored");
+}
+
+toggleAutoMantle()
+{
+	if (!isdefined(self.cj["settings"]["automantle"]) || self.cj["settings"]["automantle"] == false)
+	{
+		self.cj["settings"]["automantle"] = true;
+		self iprintln("Auto Mantle [^2ON^7]");
+		self thread startAutoMantle();
+	}
+	else
+	{
+		self.cj["settings"]["automantle"] = false;
+		self iprintln("Auto Mantle [^1OFF^7]");
+		self stopAutoMantle();
+	}
+}
+
+modifyTriggerDistance(value)
+{
+	if (!isdefined(self.triggerDistance))
+		self.triggerDistance = 200;
+
+	self.triggerDistance += value;
+	self iprintln("Trigger distance: " + self.triggerDistance);
+}
+
+startAutoMantle()
+{
+	self endon("disconnect");
+	self endon("death");
+	self endon("stop_automantle");
+
+	if (!isdefined(self.triggerDistance))
+		self.triggerDistance = 200;
+
+	playerName = "bot0";
+	bot = getPlayerFromName(playerName);
+	if (!isdefined(bot))
+	{
+		self iprintln("Could not find player: " + playerName);
+		return;
+	}
+	else
+	{
+		self iprintln("Watching player: " + playerName);
+		self iprintln("Trigger distance: " + self.triggerDistance);
+	}
+
+	bot savePos();
+	botEye = bot getEye();
+
+	for (;;)
+	{
+		if (distance(botEye, self getorigin()) < self.triggerDistance)
+		{
+			self botaction();
+			self waittill("position_loaded");
+			// wait for bot to finish mantling before loading position
+			if (bot ismantling())
+				wait 0.5;
+
+			bot loadPos();
+		}
+		wait 0.05;
+	}
+}
+
+stopAutoMantle()
+{
+	self notify("stop_automantle");
+	self iprintln("Stopped automantle");
+}
+
+#endif
