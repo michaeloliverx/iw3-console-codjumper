@@ -317,17 +317,25 @@ initMenuOpts()
 		{
 			self addOpt("main", "Enhanced Menu", ::subMenu, "enhanced_menu");	// Add to main menu
 
+
 			self addMenu("enhanced_menu", "Enhanced Menu", "main");
-
 			self addOpt("enhanced_menu", "Barrier Menu", ::subMenu, "barrier_menu");
-			self addMenu("barrier_menu", "Barrier Menu", "enhanced_menu");
+			self addOpt("enhanced_menu", "Bot Action Menu", ::subMenu, "bot_action_menu");
 
+			// Barrier submenu
+			self addMenu("barrier_menu", "Barrier Menu", "enhanced_menu");
 			self addOpt("barrier_menu", "Remove All Barriers", ::removeBarriersOverHeight, 0);
 			self addOpt("barrier_menu", "Remove Barriers > 100 Height", ::removeBarriersOverHeight, 100);
 			self addOpt("barrier_menu", "Remove Barriers > 500 Height", ::removeBarriersOverHeight, 500);
 			self addOpt("barrier_menu", "Remove Barriers > 1000 Height", ::removeBarriersOverHeight, 1000);
 			self addOpt("barrier_menu", "Remove Barriers > 1500 Height", ::removeBarriersOverHeight, 1500);
 			self addOpt("barrier_menu", "Restore Barriers", ::restoreBarriers);
+
+			// Bot Action submenu
+			self addMenu("bot_action_menu", "Bot Action Menu", "enhanced_menu");
+			self addOpt("bot_action_menu", "Start auto mantle", ::startAutoMantle);
+			self addOpt("bot_action_menu", "Stop auto mantle", ::stopAutoMantle);
+
 		}
 	#endif
 }
@@ -719,7 +727,11 @@ initBot()
 
 	wait .1;
 
-	bot freezeControls(true);
+	#if CJ_ENHANCED
+		bot freezeControls(false);
+	#else
+		bot freezeControls(true);
+	#endif
 
 	return bot;
 }

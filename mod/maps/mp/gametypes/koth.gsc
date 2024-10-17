@@ -481,6 +481,13 @@ kickAllBots()
 			kick(level.players[i] getEntityNumber());
 }
 
+getPlayerFromName(playerName)
+{
+	for (i = 0; i < level.players.size; i++)
+		if (level.players[i].name == playerName)
+			return level.players[i];
+}
+
 #if CJ_ENHANCED
 // NOTE: Currently all custom GSC functions require self
 
@@ -499,4 +506,42 @@ restoreBarriers()
 	self restorebrushcollisions();
 	iprintln("Barriers restored");
 }
+
+startAutoMantle()
+{
+	self endon("disconnect");
+	self endon("death");
+	self endon("stop_automantle");
+
+	playerName = "bot0";
+	bot = getPlayerFromName(playerName);
+	if (!isdefined(bot))
+	{
+		self iPrintln("Could not find player: " + playerName);
+		return;
+	}
+	else
+	{
+		self iprintln("Watching player: " + playerName);
+	}
+
+	bot savePos();
+	for (;;)
+	{
+		if (distance(bot geteye(), self getOrigin()) < 150)
+		{
+			self botaction();
+			wait 2;
+			bot loadPos();
+		}
+		wait 0.05;
+	}
+}
+
+stopAutoMantle()
+{
+	self notify("stop_automantle");
+	self iprintln("Stopped automantle");
+}
+
 #endif
