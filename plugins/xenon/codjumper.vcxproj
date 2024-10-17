@@ -63,5 +63,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\detour.h" />
+    <ClInclude Include="structs.h" />
   </ItemGroup>
 </Project>
