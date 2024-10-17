@@ -56,7 +56,7 @@ initHeightMeterHudElem()
 
 updateSpeedometerHudElem()
 {
-	self endon("death");
+	self endon("end_respawn");
 	self endon("disconnect");
 	level endon("game_ended");
 
@@ -176,7 +176,7 @@ activeGameObjectMoveOriginZ(z)
 
 forgeMode()
 {
-	self endon("death");
+	self endon("end_respawn");
 	self endon("disconnect");
 	self endon("stop_forge");
 
@@ -246,7 +246,7 @@ toggleRPGSwitch()
 rpgSwitch()
 {
 	self endon("disconnect");
-	self endon("death");
+	self endon("end_respawn");
 
 	self notify("stop_rpg_switch");
 	self endon("stop_rpg_switch");

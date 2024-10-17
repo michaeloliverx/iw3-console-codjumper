@@ -80,6 +80,9 @@ onPlayerSpawned()
 	for(;;)
 	{
 		self waittill("spawned_player");
+
+		self.cj["settings"]["ufo_mode"] = false;
+
 		self thread ammoCheck();
 		self thread setupLoadout();
 		self thread watchMeleeButtonPressed();
@@ -334,7 +337,7 @@ initMenuOpts()
 
 initMenu()
 {
-	self endon("death");
+	self endon("end_respawn");
 	self endon("disconnect");
 
 	level.SCROLL_TIME_SECONDS = 0.15;
@@ -424,7 +427,7 @@ openCJ()
 watchUseButtonPressed()
 {
 	self endon("disconnect");
-	self endon("death");
+	self endon("end_respawn");
 
 	for(;;)
 	{
@@ -528,7 +531,7 @@ createRectangle(align, relative, x, y, width, height, color, shader, sort, alpha
 
 destroyOnDeath(elem)
 {
-	self waittill_any("death", "disconnect");
+	self waittill_any("end_respawn", "disconnect");
 	if(isDefined(elem.bar))
 		elem destroyElem();
 	else
@@ -537,7 +540,7 @@ destroyOnDeath(elem)
 
 ammoCheck()
 {
-	self endon("death");
+	self endon("end_respawn");
 	self endon("disconnect");
 	level endon("game_ended");
 
@@ -607,7 +610,7 @@ setupLoadout()
 watchMeleeButtonPressed()
 {
 	self endon("disconnect");
-	self endon("death");
+	self endon("end_respawn");
 
 	for(;;)
 	{
@@ -637,7 +640,7 @@ watchMeleeButtonPressed()
 watchSecondaryOffhandButtonPressed()
 {
 	self endon("disconnect");
-	self endon("death");
+	self endon("end_respawn");
 
 	for(;;)
 	{
@@ -658,7 +661,7 @@ watchSecondaryOffhandButtonPressed()
 watchFragButtonPressed()
 {
 	self endon("disconnect");
-	self endon("death");
+	self endon("end_respawn");
 
 	for(;;)
 	{
@@ -726,7 +729,7 @@ initBot()
 
 watchDPAD_UP()
 {
-	self endon("death");
+	self endon("end_respawn");
 	self endon("disconnect");
 	level endon("game_ended");
 
