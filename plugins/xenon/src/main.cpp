@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cassert>
 #include <vector>
+#include <map>
 #include "detour.h"
 #include "structs.h"
 
@@ -82,6 +83,9 @@ void (*ClientThink)(int clientNum) = reinterpret_cast<void (*)(int clientNum)>(0
 void (*G_SetLastServerTime)(int clientNum, int lastServerTime) = reinterpret_cast<void (*)(int clientNum, int lastServerTime)>(0x82285D08);
 void (*Com_PrintError)(conChannel_t channel, const char *fmt, ...) = reinterpret_cast<void (*)(conChannel_t channel, const char *fmt, ...)>(0x82235C50);
 char (*va)(char *format, ...) = reinterpret_cast<char (*)(char *format, ...)>(0x821CD858);
+void (*Scr_AddInt)(int value) = reinterpret_cast<void (*)(int value)>(0x822111C0);
+void (*Scr_Error)(const char *error) = reinterpret_cast<void (*)(const char *error)>(0x8220F6F0);
+gentity_s *(*Scr_GetEntity)(scr_entref_t entref) = reinterpret_cast<gentity_s *(*)(scr_entref_t entref)>(0x8224EE68);
 
 // Variables
 serverStaticHeader_t *svsHeader = reinterpret_cast<serverStaticHeader_t *>(0x849F1580);
@@ -156,11 +160,22 @@ void GScr_RestoreBrushCollisions(scr_entref_t entref)
     RestoreBrushCollisions();
 }
 
-bool BOT_JUMP = false;
-
-void GScr_BotAction(scr_entref_t entref)
+struct BotAction
 {
-    BOT_JUMP = true;
+    bool jump;
+};
+
+// map of client index to bot action
+std::map<int, BotAction> botActions;
+
+void GScr_BotJump(scr_entref_t entref)
+{
+    client_t *cl = &svsHeader->clients[entref.entnum];
+
+    if (cl->header.state && cl->header.netchan.remoteAddress.type == NA_BOT)
+    {
+        botActions[entref.entnum].jump = true;
+    }
 }
 
 Detour SV_ClientThinkDetour;
@@ -176,11 +191,15 @@ void SV_ClientThinkHook(client_t *cl, usercmd_s *cmd)
         cmd->rightmove = 0;
         cmd->buttons = 0;
 
-        // Handle bot jump
-        if (BOT_JUMP)
+        int clientIndex = cl - svsHeader->clients;
+
+        if (botActions.find(clientIndex) != botActions.end())
         {
-            cmd->buttons = KEY_MASK_JUMP;
-            BOT_JUMP = false;
+            if (botActions[clientIndex].jump)
+            {
+                cmd->buttons = KEY_MASK_JUMP;
+                botActions[clientIndex].jump = false;
+            }
         }
     }
 
@@ -233,8 +252,8 @@ xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
     if (std::strcmp(*pName, "restorebrushcollisions") == 0)
         return reinterpret_cast<xfunction_t *>(&GScr_RestoreBrushCollisions);
 
-    if (std::strcmp(*pName, "botaction") == 0)
-        return reinterpret_cast<xfunction_t *>(&GScr_BotAction);
+    if (std::strcmp(*pName, "botjump") == 0)
+        return reinterpret_cast<xfunction_t *>(&GScr_BotJump);
 
     return result;
 }
