@@ -1087,17 +1087,17 @@ startAutoMantle()
 
 	if (!isdefined(self.triggerDistance))
 		self.triggerDistance = 200;
-
-	playerName = "bot0";
-	bot = getPlayerFromName(playerName);
+	
+	bot = self.cj["bots"][self.cj["botnumber"]];
 	if (!isdefined(bot))
 	{
-		self iprintln("Could not find player: " + playerName);
+		self iprintln("Could not find bot" + self.cj["botnumber"]);
+		self.cj["settings"]["automantle"] = false;
 		return;
 	}
 	else
 	{
-		self iprintln("Watching player: " + playerName);
+		self iprintln("Watching player: " + bot.name);
 		self iprintln("Trigger distance: " + self.triggerDistance);
 	}
 
@@ -1108,7 +1108,7 @@ startAutoMantle()
 	{
 		if (distance(botEye, self getorigin()) < self.triggerDistance)
 		{
-			self botaction();
+			bot botjump();
 			self waittill("position_loaded");
 			// wait for bot to finish mantling before loading position
 			if (bot ismantling())
