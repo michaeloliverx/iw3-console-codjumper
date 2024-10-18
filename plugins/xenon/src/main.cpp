@@ -192,7 +192,6 @@ void SV_ClientThinkHook(client_t *cl, usercmd_s *cmd)
         cmd->buttons = 0;
 
         int clientIndex = cl - svsHeader->clients;
-
         if (botActions.find(clientIndex) != botActions.end())
         {
             if (botActions[clientIndex].jump)
