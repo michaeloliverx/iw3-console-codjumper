@@ -320,17 +320,25 @@ initMenuOpts()
 		{
 			self addOpt("main", "Enhanced Menu", ::subMenu, "enhanced_menu");	// Add to main menu
 
+
 			self addMenu("enhanced_menu", "Enhanced Menu", "main");
-
 			self addOpt("enhanced_menu", "Barrier Menu", ::subMenu, "barrier_menu");
-			self addMenu("barrier_menu", "Barrier Menu", "enhanced_menu");
+			self addOpt("enhanced_menu", "Bot Action Menu", ::subMenu, "bot_action_menu");
 
+			// Barrier submenu
+			self addMenu("barrier_menu", "Barrier Menu", "enhanced_menu");
 			self addOpt("barrier_menu", "Remove All Barriers", ::removeBarriersOverHeight, 0);
 			self addOpt("barrier_menu", "Remove Barriers > 100 Height", ::removeBarriersOverHeight, 100);
 			self addOpt("barrier_menu", "Remove Barriers > 500 Height", ::removeBarriersOverHeight, 500);
 			self addOpt("barrier_menu", "Remove Barriers > 1000 Height", ::removeBarriersOverHeight, 1000);
 			self addOpt("barrier_menu", "Remove Barriers > 1500 Height", ::removeBarriersOverHeight, 1500);
 			self addOpt("barrier_menu", "Restore Barriers", ::restoreBarriers);
+
+			// Bot Action submenu
+			self addMenu("bot_action_menu", "Bot Action Menu", "enhanced_menu");
+			self addOpt("bot_action_menu", "Auto Mantle ON/OFF", ::toggleAutoMantle);
+			self addOpt("bot_action_menu", "Trigger Distance UP", ::modifyTriggerDistance, 10);
+			self addOpt("bot_action_menu", "Trigger Distance DOWN", ::modifyTriggerDistance, -10);
 		}
 	#endif
 }
@@ -690,6 +698,8 @@ loadPos()
 	self setPlayerAngles(self.cj["save"]["ang"]);
 	self setOrigin(self.cj["save"]["org"]);
 
+	self notify("position_loaded");
+
 	//pull out rpg on load if RPG switch is enabled
 	if(self.cj["settings"]["rpg_switch_enabled"] && self.cj["settings"]["rpg_switched"])
 	{
@@ -722,7 +732,11 @@ initBot()
 
 	wait .1;
 
-	bot freezeControls(true);
+	#if CJ_ENHANCED
+		bot freezeControls(false);
+	#else
+		bot freezeControls(true);
+	#endif
 
 	return bot;
 }
@@ -773,6 +787,7 @@ spawnSelectedBot()
 	self.cj["bots"][self.cj["botnumber"]] setOrigin(origin);
 	// Face the bot the same direction the player was facing
 	self.cj["bots"][self.cj["botnumber"]] setPlayerAngles((0, playerAngles[1], 0));
+	self.cj["bots"][self.cj["botnumber"]] savePos();	// Save the bot's position for auto mantle
 }
 
 toggleOldschool()
@@ -1019,3 +1034,96 @@ spawnFloatingBot()
 	self.floating_bot = spawn("script_origin", self.origin);
 	bot linkto(self.floating_bot);
 }
+
+#if CJ_ENHANCED
+// NOTE: Currently all custom GSC functions require self
+
+removeBarriersOverHeight(height)
+{
+	self restorebrushcollisions();
+	self removebrushcollisionsoverheight(height);
+	if(height == 0)
+		iprintln("Barriers removed");
+	else
+		iprintln("Barriers above " + height + " height removed");
+}
+
+restoreBarriers()
+{
+	self restorebrushcollisions();
+	iprintln("Barriers restored");
+}
+
+toggleAutoMantle()
+{
+	if (!isdefined(self.cj["settings"]["automantle"]) || self.cj["settings"]["automantle"] == false)
+	{
+		self.cj["settings"]["automantle"] = true;
+		self iprintln("Auto Mantle [^2ON^7]");
+		self thread startAutoMantle();
+	}
+	else
+	{
+		self.cj["settings"]["automantle"] = false;
+		self iprintln("Auto Mantle [^1OFF^7]");
+		self stopAutoMantle();
+	}
+}
+
+modifyTriggerDistance(value)
+{
+	if (!isdefined(self.triggerDistance))
+		self.triggerDistance = 200;
+
+	self.triggerDistance += value;
+	self iprintln("Trigger distance: " + self.triggerDistance);
+}
+
+startAutoMantle()
+{
+	self endon("disconnect");
+	self endon("death");
+	self endon("stop_automantle");
+
+	if (!isdefined(self.triggerDistance))
+		self.triggerDistance = 200;
+	
+	bot = self.cj["bots"][self.cj["botnumber"]];
+	if (!isdefined(bot))
+	{
+		self iprintln("Could not find bot" + self.cj["botnumber"]);
+		self.cj["settings"]["automantle"] = false;
+		return;
+	}
+	else
+	{
+		self iprintln("Watching player: " + bot.name);
+		self iprintln("Trigger distance: " + self.triggerDistance);
+	}
+
+	bot savePos();
+	botEye = bot getEye();
+
+	for (;;)
+	{
+		if (distance(botEye, self getorigin()) < self.triggerDistance)
+		{
+			bot botjump();
+			self waittill("position_loaded");
+			// wait for bot to finish mantling before loading position
+			if (bot ismantling())
+				wait 0.5;
+
+			bot loadPos();
+		}
+		wait 0.05;
+	}
+}
+
+stopAutoMantle()
+{
+	self notify("stop_automantle");
+	self iprintln("Stopped automantle");
+}
+
+#endif

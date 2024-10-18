@@ -5,7 +5,9 @@
 #include <cstddef>
 #include <cassert>
 #include <vector>
+#include <map>
 #include "detour.h"
+#include "structs.h"
 
 extern "C"
 {
@@ -66,76 +68,7 @@ uint32_t MonitorTitleId(void *pThreadParameter)
     return 0;
 }
 
-/* 8761 */
-struct cplane_s
-{
-    float normal[3];
-    float dist;
-    unsigned __int8 type;
-    unsigned __int8 signbits;
-    unsigned __int8 pad[2];
-};
-
-/* 8798 */
-struct __declspec(align(2)) cbrushside_t
-{
-    cplane_s *plane;
-    unsigned int materialNum;
-    __int16 firstAdjacentSideOffset;
-    unsigned __int8 edgeCount;
-};
-
-/* 8961 */
-struct __declspec(align(16)) cbrush_t
-{
-    float mins[3];
-    int contents;
-    float maxs[3];
-    unsigned int numsides;
-    cbrushside_t *sides;
-    __int16 axialMaterialNum[2][3];
-    unsigned __int8 *baseAdjacentSide;
-    __int16 firstAdjacentSideOffsets[2][3];
-    unsigned __int8 edgeCount[2][3];
-};
-
-static_assert(sizeof(cbrush_t) == 80, "");
-
-struct scr_entref_t
-{
-    unsigned __int16 entnum;
-    unsigned __int16 classnum;
-};
-
-typedef void (*xfunction_t)(scr_entref_t);
-
-/* 8925 */
-union DvarValue
-{
-    bool enabled;
-    int integer;
-    unsigned int unsignedInt;
-    float value;
-    float vector[4];
-    const char *string;
-    unsigned __int8 color[4];
-};
-
-/* 8928 */
-struct dvar_s
-{
-    const char *name;
-    const char *description;
-    unsigned __int16 flags;
-    unsigned __int8 type;
-    bool modified;
-    DvarValue current;
-    DvarValue latched;
-    DvarValue reset;
-    // DvarLimits domain;
-    // dvar_s *hashNext;
-};
-
+// Function pointers
 void (*CG_GameMessage)(int localClientNum, const char *msg) = reinterpret_cast<void (*)(int localClientNum, const char *msg)>(0x8230AAF0);
 dvar_s *(*Dvar_FindMalleableVar)(const char *dvarName) = reinterpret_cast<dvar_s *(*)(const char *dvarName)>(0x821D4C10);
 int (*Scr_GetInt)(unsigned int index) = reinterpret_cast<int (*)(unsigned int index)>(0x8220FD10);
@@ -145,6 +78,17 @@ xfunction_t *(*ScriptEnt_GetMethod)(const char **pName) = reinterpret_cast<xfunc
 xfunction_t *(*HudElem_GetMethod)(const char **pName) = reinterpret_cast<xfunction_t *(*)(const char **pName)>(0x822773A8);
 xfunction_t *(*Helicopter_GetMethod)(const char **pName) = reinterpret_cast<xfunction_t *(*)(const char **pName)>(0x82265C68);
 xfunction_t *(*BuiltIn_GetMethod)(const char **pName, int *type) = reinterpret_cast<xfunction_t *(*)(const char **pName, int *type)>(0x82256E20);
+void (*SV_ClientThink)(client_t *cl, usercmd_s *cmd) = reinterpret_cast<void (*)(client_t *cl, usercmd_s *cmd)>(0x82208448);
+void (*ClientThink)(int clientNum) = reinterpret_cast<void (*)(int clientNum)>(0x822886E8);
+void (*G_SetLastServerTime)(int clientNum, int lastServerTime) = reinterpret_cast<void (*)(int clientNum, int lastServerTime)>(0x82285D08);
+void (*Com_PrintError)(conChannel_t channel, const char *fmt, ...) = reinterpret_cast<void (*)(conChannel_t channel, const char *fmt, ...)>(0x82235C50);
+char (*va)(char *format, ...) = reinterpret_cast<char (*)(char *format, ...)>(0x821CD858);
+void (*Scr_AddInt)(int value) = reinterpret_cast<void (*)(int value)>(0x822111C0);
+void (*Scr_Error)(const char *error) = reinterpret_cast<void (*)(const char *error)>(0x8220F6F0);
+gentity_s *(*Scr_GetEntity)(scr_entref_t entref) = reinterpret_cast<gentity_s *(*)(scr_entref_t entref)>(0x8224EE68);
+
+// Variables
+serverStaticHeader_t *svsHeader = reinterpret_cast<serverStaticHeader_t *>(0x849F1580);
 
 std::vector<int> originalBrushContents;
 std::string lastMapName;
@@ -162,7 +106,7 @@ void RemoveBrushCollisions(int heightLimit)
     cbrush_t *cm_brushesFirst = *cm_brushesArrayPtr;
 
     dvar_s *mapname = Dvar_FindMalleableVar("mapname");
-    if (lastMapName !=  mapname->current.string)
+    if (lastMapName != mapname->current.string)
     {
         originalBrushContents.clear();
         originalBrushContents.resize(cm_numBrushes);
@@ -185,7 +129,7 @@ void RemoveBrushCollisions(int heightLimit)
 
 void RestoreBrushCollisions()
 {
-    if(lastMapName == "")
+    if (lastMapName == "")
         return;
 
     // cm.numBrushes
@@ -214,6 +158,67 @@ void GScr_RemoveBrushCollisionsOverHeight(scr_entref_t entref)
 void GScr_RestoreBrushCollisions(scr_entref_t entref)
 {
     RestoreBrushCollisions();
+}
+
+struct BotAction
+{
+    bool jump;
+};
+
+// map of client index to bot action
+std::map<int, BotAction> botActions;
+
+void GScr_BotJump(scr_entref_t entref)
+{
+    client_t *cl = &svsHeader->clients[entref.entnum];
+
+    if (cl->header.state && cl->header.netchan.remoteAddress.type == NA_BOT)
+    {
+        botActions[entref.entnum].jump = true;
+    }
+}
+
+Detour SV_ClientThinkDetour;
+
+// TODO: maybe recreate the original and call it in the hook
+void SV_ClientThinkHook(client_t *cl, usercmd_s *cmd)
+{
+    // Check if the client is a bot
+    if (cl->header.state && cl->header.netchan.remoteAddress.type == NA_BOT)
+    {
+        // Reset bot's movement and actions set in SV_BotUserMove
+        cmd->forwardmove = 0;
+        cmd->rightmove = 0;
+        cmd->buttons = 0;
+
+        int clientIndex = cl - svsHeader->clients;
+        if (botActions.find(clientIndex) != botActions.end())
+        {
+            if (botActions[clientIndex].jump)
+            {
+                cmd->buttons = KEY_MASK_JUMP;
+                botActions[clientIndex].jump = false;
+            }
+        }
+    }
+
+    // Now do the original function logic
+    if (cmd->serverTime - svsHeader->time <= 20000)
+    {
+        memcpy(&cl->lastUsercmd, cmd, sizeof(usercmd_s));
+
+        if (cl->header.state == 4)
+        {
+            int clientIndex = cl - svsHeader->clients;
+            G_SetLastServerTime(clientIndex, cmd->serverTime);
+            ClientThink(clientIndex);
+        }
+    }
+    else
+    {
+        char msg = va("Invalid command time %i from client %s, current server time is %i", cmd->serverTime, cl->name, svsHeader->time);
+        Com_PrintError(CON_CHANNEL_SERVER, &msg);
+    }
 }
 
 Detour Scr_GetMethodDetour;
@@ -246,6 +251,9 @@ xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
     if (std::strcmp(*pName, "restorebrushcollisions") == 0)
         return reinterpret_cast<xfunction_t *>(&GScr_RestoreBrushCollisions);
 
+    if (std::strcmp(*pName, "botjump") == 0)
+        return reinterpret_cast<xfunction_t *>(&GScr_BotJump);
+
     return result;
 }
 
@@ -258,6 +266,9 @@ void InitIW3()
 
     Scr_GetMethodDetour = Detour(Scr_GetMethod, Scr_GetMethodHook);
     Scr_GetMethodDetour.Install();
+
+    SV_ClientThinkDetour = Detour(SV_ClientThink, SV_ClientThinkHook);
+    SV_ClientThinkDetour.Install();
 }
 
 int DllMain(HANDLE hModule, DWORD reason, void *pReserved)

@@ -481,22 +481,9 @@ kickAllBots()
 			kick(level.players[i] getEntityNumber());
 }
 
-#if CJ_ENHANCED
-// NOTE: Currently all custom GSC functions require self
-
-removeBarriersOverHeight(height)
+getPlayerFromName(playerName)
 {
-	self restorebrushcollisions();
-	self removebrushcollisionsoverheight(height);
-	if(height == 0)
-		iprintln("Barriers removed");
-	else
-		iprintln("Barriers above " + height + " height removed");
+	for (i = 0; i < level.players.size; i++)
+		if (level.players[i].name == playerName)
+			return level.players[i];
 }
-
-restoreBarriers()
-{
-	self restorebrushcollisions();
-	iprintln("Barriers restored");
-}
-#endif
