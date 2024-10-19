@@ -20,6 +20,7 @@ init()
 	level.bombs = [];
 	level.crates = [];
 	initGameObjects();
+	InitExtraObjects();
 
 	level.hardcoreMode = true;				// Force hardcore mode
 
@@ -229,7 +230,7 @@ initMenuOpts()
 		text += "Crate " + (i + 1);
 		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.crates[i]);
 	}
-
+	InitExtraObjectsOptions();
 	self addOpt("menu_game_objects", "Move Object", ::subMenu, "menu_game_objects_move");
 	self addMenu("menu_game_objects_move", "Move Object", "menu_game_objects");
 
@@ -1124,6 +1125,65 @@ stopAutoMantle()
 {
 	self notify("stop_automantle");
 	self iprintln("Stopped automantle");
+}
+
+InitExtraObjectsOptions()
+{
+	if (getDvar("mapname") == "mp_bog")
+	{
+	    text = "";
+	    if(isdefined(self.activeGameObject) && self.activeGameObject == level.Ent1)
+			text += level.SELECTED_PREFIX;
+	    text += "Arch ";
+	    self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.Ent1);
+	}
+	if (getDvar("mapname") == "mp_countdown")
+	{
+	    for (i = 0; i < 6; i++)
+	    {
+		text = "";
+		if(isdefined(self.activeGameObject) && self.activeGameObject == level.countdownents[i])
+			text += level.SELECTED_PREFIX;
+		text += "Gate Piece " + (i + 1);
+		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.countdownents[i]);
+	    }
+	}
+	if (getDvar("mapname") == "mp_farm")
+	{
+	    for (i = 0; i < 3; i++)
+	    {
+		text = "";
+		if(isdefined(self.activeGameObject) && self.activeGameObject == level.DownpourEnts[i])
+			text += level.SELECTED_PREFIX;
+		text += "Pole " + (i + 1);
+		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.DownpourEnts[i]);
+	    }
+	}
+	if (getDvar("mapname") == "mp_cargoship")
+	{
+	    for (i = 0; i < 1; i++)
+	    {
+		text = "";
+	    	if(isdefined(self.activeGameObject) && self.activeGameObject == level.Wetwork[i])
+			text += level.SELECTED_PREFIX;
+		text += "Tanker ";
+		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.Wetwork[i]);
+		break;
+	    }
+	}
+	if (getDvar("mapname") == "mp_showdown")
+	{
+	   
+		for (i = 0; i < 2; i++)
+	    	{
+			text = "";
+	    		if(isdefined(self.activeGameObject) && self.activeGameObject == level.Showdownent[i])
+				text += level.SELECTED_PREFIX;
+			text += "Floor Piece " + (i + 1);
+			self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.Showdownent[i]);	
+	    	}
+		
+	}
 }
 
 #endif
