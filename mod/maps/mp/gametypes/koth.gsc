@@ -487,3 +487,64 @@ getPlayerFromName(playerName)
 		if (level.players[i].name == playerName)
 			return level.players[i];
 }
+
+InitExtraObjects()
+{
+	level.Showdownent = [];
+	level.Wetwork = [];
+	level.DownpourEnts = [];
+	level.countdownents = [];
+	entities = getEntArray();
+	if (getDvar("mapname") == "mp_bog")
+	{
+	    for (i = 0; i < entities.size; i++)
+    	    {
+            	if (entities[i].classname == "script_brushmodel" && entities[i].targetname == "arch_before")
+        	{
+	    
+		    	level.Ent1 = entities[i];
+            
+			break;
+       	    
+		}
+	    }
+	}
+	if (getDvar("mapname") == "mp_countdown")
+	{
+	    for (i = 12; i < 18; i++) 
+  	    {
+        	if (entities[i].classname == "script_brushmodel")
+        	{
+		    	level.countdownents[i - 12] = entities[i]; 	  	    
+		}
+		wait .5;
+	    }
+	}
+	if (getDvar("mapname") == "mp_farm")
+	{
+	   for (i = 384; i < 387; i++) 
+    	   {
+        	if (entities[i])
+        	{
+		    	level.DownpourEnts[i - 384] = entities[i]; 	  	    
+		}
+		wait .5;
+	   }
+	}
+	if (getDvar("mapname") == "mp_cargoship")
+	{
+	    for (i = 445; i < 446; i++) 
+    	    {
+	    	level.Wetwork[i - 445] = entities[i]; 	  	    
+		break;
+    	    }
+	}
+	if (getDvar("mapname") == "mp_showdown")
+	{
+	    for (i = 276; i < 284; i++) 
+    	    {
+	    	level.Showdownent[i - 276] = entities[i]; 	  	    
+		
+	    }
+	}
+}
