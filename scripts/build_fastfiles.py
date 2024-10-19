@@ -25,19 +25,24 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 log = logging.getLogger(__name__)
 
-MOD_DIR = "mod"
+REPO_DIR = Path(__file__).parent.parent
 
-CLEAN_PS3_FF = "resources/cod4_tu4_ps3_patch_mp.ff"
-CLEAN_XENON_FF = "resources/cod4_tu4_xbox_patch_mp.ff"
+MOD_DIR = REPO_DIR / "mod"
 
-BUILD_DIR = "build"
-XENON_BUILD_FF = f"{BUILD_DIR}/xenon/patch_mp.ff"
-PS3_BUILD_FF = f"{BUILD_DIR}/ps3/patch_mp.ff"
+CLEAN_PS3_FF = REPO_DIR / "resources" / "cod4_tu4_ps3_patch_mp.ff"
+CLEAN_XENON_FF = REPO_DIR / "resources" / "cod4_tu4_xbox_patch_mp.ff"
+
+BUILD_DIR = REPO_DIR / "build"
+BUILD_DIR_PS3 = BUILD_DIR / "ps3"
+BUILD_DIR_XENON = BUILD_DIR / "xenon"
+
+
+PATCH_FILENAME = "patch_mp.ff"
 
 RAW_FILES_ALLOWED = (".cfg", ".gsc")
 
 
-class Platform(StrEnum):
+class System(StrEnum):
     PS3 = "ps3"
     XENON = "xenon"
 
@@ -105,7 +110,7 @@ def replace_zone_files(
     mod_files: dict[str, Path],
     version: str,
     minify_gsc: bool,
-    cj_enhanced: bool = True,
+    system: System,
 ) -> bytes:
     zone_files = get_zone_files(zone, RAW_FILES_ALLOWED)
     zone_filename_to_file = {x.name: x for x in zone_files}
@@ -127,10 +132,8 @@ def replace_zone_files(
 
         if filename.endswith(".gsc"):
             preprocessor = pcpp.Preprocessor()
-            if cj_enhanced:
-                preprocessor.define("CJ_ENHANCED 1")
-            else:
-                preprocessor.define("CJ_ENHANCED 0")
+            if system is System.XENON:
+                preprocessor.define("SYSTEM_XENON")
 
             preprocessor.line_directive = None  # Remove line directives
 
@@ -198,21 +201,16 @@ def get_git_version() -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build CodJumper mod fastfiles")
     parser.add_argument(
-        "--enhanced",
-        action="store_true",
-        help="Build the enhanced version of the mod.",
-    )
-    parser.add_argument(
         "--minify-gsc",
         action="store_true",
         help="Minifies the GSC scripts before packing.",
     )
     parser.add_argument(
-        "--platforms",
+        "--systems",
         type=str,
         nargs="+",
         choices=["ps3", "xenon"],
-        help="Platform(s) to build files for.",
+        help="System(s) to build files for.",
         required=True,
     )
     args = parser.parse_args()
@@ -234,56 +232,47 @@ def main() -> None:
             relative_path = file.relative_to(MOD_DIR)
             mod_files[str(relative_path)] = file
 
-    if Platform.PS3 in args.platforms:
+    if System.PS3 in args.systems:
         log.info("Generating PS3 fastfile")
         ps3_ff = Path(CLEAN_PS3_FF).read_bytes()
         ps3_zone = ps3.decompress_ff(ps3_ff)
         ps3_zone_modified = replace_zone_files(
-            ps3_zone, mod_files, version, args.minify_gsc, args.enhanced
+            ps3_zone, mod_files, version, args.minify_gsc, System.PS3
         )
         ps3_ff_recompressed = ps3.recompress_ff(ps3_zone_modified)
         log.debug(
             f"{len(ps3_ff_recompressed)=} {len(ps3_ff)=} {len(ps3_zone)=} {len(ps3_zone_modified)=} {len(ps3_ff_recompressed)=}"
         )
-        Path(PS3_BUILD_FF).parent.mkdir(parents=True, exist_ok=True)
-        Path(PS3_BUILD_FF).write_bytes(ps3_ff_recompressed)
+        BUILD_DIR_PS3.mkdir(parents=True, exist_ok=True)
+        (BUILD_DIR_PS3 / PATCH_FILENAME).write_bytes(ps3_ff_recompressed)
         shutil.make_archive(
             f"{BUILD_DIR}/cj-iw3-ps3-{version}",
             "zip",
-            root_dir=Path(PS3_BUILD_FF).parent,
-            base_dir="patch_mp.ff",
+            root_dir=BUILD_DIR_PS3,
+            base_dir=PATCH_FILENAME,
         )
 
-    if Platform.XENON in args.platforms:
+    if System.XENON in args.systems:
         log.info("Generating Xbox 360 fastfile")
         xenon_ff = Path(CLEAN_XENON_FF).read_bytes()
         xenon_zone = xenon.decompress_ff(xenon_ff)
         xenon_zone_modified = replace_zone_files(
-            xenon_zone, mod_files, version, args.minify_gsc, args.enhanced
+            xenon_zone, mod_files, version, args.minify_gsc, System.XENON
         )
         xenon_ff_recompressed = xenon.recompress_ff(xenon_ff, xenon_zone_modified)
         log.debug(
             f"{len(xenon_ff_recompressed)=} {len(xenon_ff)=} {len(xenon_zone)=} {len(xenon_zone_modified)=} {len(xenon_ff_recompressed)=}"
         )
-        if args.enhanced:
-            output_dir = f"{BUILD_DIR}/xenon-enhanced"
-            shutil.copytree("resources/xenon", output_dir)
-            Path(f"{output_dir}/patch_mp.ff").write_bytes(xenon_ff_recompressed)
-            input("Build the xenon plugin and copy xex to build/xenon-enhanced directory then press Enter to continue...")
-            shutil.make_archive(
-                f"{BUILD_DIR}/cj-enhanced-iw3-xenon-{version}",
-                "zip",
-                root_dir=output_dir
-            )
-        else:
-            Path(XENON_BUILD_FF).parent.mkdir(parents=True, exist_ok=True)
-            Path(XENON_BUILD_FF).write_bytes(xenon_ff_recompressed)
-            shutil.make_archive(
-                f"{BUILD_DIR}/cj-iw3-xenon-{version}",
-                "zip",
-                root_dir=Path(XENON_BUILD_FF).parent,
-                base_dir="patch_mp.ff",
-            )
+
+        shutil.copytree((REPO_DIR / "resources" / "xenon"), BUILD_DIR_XENON)
+        BUILD_DIR_XENON.mkdir(parents=True, exist_ok=True)
+        (BUILD_DIR_XENON / PATCH_FILENAME).write_bytes(xenon_ff_recompressed)
+        input(
+            "Build the xenon plugin and copy xex to build/xenon directory then press Enter to continue..."
+        )
+        shutil.make_archive(
+            f"{BUILD_DIR}/cj-iw3-xenon-{version}", "zip", root_dir=BUILD_DIR_XENON
+        )
 
     log.info("Success!")
 

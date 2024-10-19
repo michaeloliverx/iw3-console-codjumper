@@ -7,12 +7,6 @@ init()
 	// Replaced by the build script
 	level.VERSION = "__VERSION__";
 
-	#if CJ_ENHANCED
-		level.MOD_NAME = "CodJumper: Enhanced";
-	#else
-		level.MOD_NAME = "CodJumper";
-	#endif
-
 	level.THEME_COLOR = (0, 0, 1);
 
 	level.SELECTED_PREFIX = "^2-->^7 ";
@@ -165,7 +159,7 @@ setupPlayer()
 
 initMenuOpts()
 {
-	self addMenu("main", level.MOD_NAME + level.VERSION, undefined);
+	self addMenu("main", "CodJumper " + level.VERSION, undefined);
 
 	is_host = self GetEntityNumber() == 0;
 
@@ -314,7 +308,7 @@ initMenuOpts()
 	self addOpt("clone_menu", "Spawn Clone", ::addClone);
 	self addOpt("clone_menu", "Remove Clones", ::deleteClones);
 
-	#if CJ_ENHANCED
+	#if defined(SYSTEM_XENON)
 		// Enhanced submenu
 		if(is_host)
 		{
@@ -732,7 +726,8 @@ initBot()
 
 	wait .1;
 
-	#if CJ_ENHANCED
+	// plugin handles bot controls
+	#if defined(SYSTEM_XENON)
 		bot freezeControls(false);
 	#else
 		bot freezeControls(true);
@@ -1035,7 +1030,7 @@ spawnFloatingBot()
 	bot linkto(self.floating_bot);
 }
 
-#if CJ_ENHANCED
+#if defined(SYSTEM_XENON)
 // NOTE: Currently all custom GSC functions require self
 
 removeBarriersOverHeight(height)
