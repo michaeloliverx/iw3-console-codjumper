@@ -14,9 +14,12 @@ GSC CodJumper mod for Call of Duty 4.
 - Various visual tweaks
 - Ability to spawn stationary bots
 
-### Enhanced Features
+### Xbox 360 Specific Features
 
-The mod ships with an enhanced version that includes additional features. These features require engine modifications and are only available on Xbox 360 and Xenia.
+The Xbox 360 version of the mod includes additional features that require engine modifications via a plugin.
+
+- Auto Mantle Bots - Bots will automatically mantle when player is near them. This allows bots to be used for head bounces.
+- Barrier Removal - Removes barriers from the map. This allows players to walk on areas that are normally blocked off.
 
 ## Usage
 
@@ -26,13 +29,6 @@ This mod is compatible with the following setups:
 - PS3 Jailbroken
 - Xenia Emulator
 - RPCS3 Emulator
-
-| System   | CJ        | CJ Enhanced |
-| -------- | --------- | ----------- |
-| Xbox 360 | Supported | Supported   |
-| Xenia    | Supported | Supported   |
-| PS3      | Supported | unsupported |
-| RPCS3    | Supported | unsupported |
 
 ## Build
 
@@ -46,15 +42,15 @@ This mod is compatible with the following setups:
 To build the fastfiles run:
 
 ```sh
-make build-fastfiles
+make build-all
 ```
 
 PS3 is `build/ps3/patch_mp.ff`
 Xbox 360 is `build/xenon/patch_mp.ff`
 
-### Enhanced plugin
+### Xbox 360 plugin
 
-The enhanced version of the mod requires additional steps to build. The plugin can be built on Windows only.
+The plugin requires additional steps to build and can only be built on Windows.
 
 You need the following tools installed:
 
@@ -66,12 +62,6 @@ To build the plugin run:
 
 ```sh
 make build-plugin-xenon
-```
-
-To build the enhanced version of the fastfiles run:
-
-```sh
-make build-fastfiles-enhanced
 ```
 
 ## Credits

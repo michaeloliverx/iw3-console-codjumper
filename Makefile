@@ -1,10 +1,14 @@
-.PHONY: build-fastfiles
-build-fastfiles:
-	uv run scripts/build_fastfiles.py --platforms ps3 xenon --minify-gsc
+.PHONY: build-all
+build-all:
+	uv run scripts/build_fastfiles.py --systems ps3 xenon --minify-gsc
 
-.PHONY: build-fastfiles-enhanced
-build-fastfiles-enhanced:
-	uv run scripts/build_fastfiles.py --platforms xenon --minify-gsc --enhanced
+.PHONY: build-ps3
+build-ps3:
+	uv run scripts/build_fastfiles.py --systems ps3 --minify-gsc
+
+.PHONY: build-xenon
+build-xenon:
+	uv run scripts/build_fastfiles.py --systems xenon --minify-gsc
 
 .PHONY: build-plugin-xenon
 build-plugin-xenon:
