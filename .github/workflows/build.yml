@@ -26,9 +26,9 @@ jobs:
         with:
           python-version-file: ".python-version"
 
-      - name: Build fastfiles
+      - name: Build PS3
         run: |
-          make build-fastfiles
+          make build-ps3
 
       - name: Upload fastfiles to release
         uses: softprops/action-gh-release@v2
