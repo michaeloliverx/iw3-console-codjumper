@@ -116,7 +116,7 @@ def replace_zone_files(
     zone_filename_to_file = {x.name: x for x in zone_files}
 
     for filename, path in mod_files.items():
-        zone_file = zone_filename_to_file.get(filename)
+        zone_file = zone_filename_to_file.get(Path(filename).as_posix())
         if not zone_file:
             log.info(f'Filename "{filename}" not found in zone, ignoring.')
             continue
