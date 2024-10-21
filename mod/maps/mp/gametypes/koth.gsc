@@ -519,7 +519,20 @@ forgestart()
 	self allowSpectateTeam("freelook", true);
 	self.sessionstate = "spectator";
 
+	instructions[0] = "[{+smoke}] + [{+frag}] Exit Forge";
+	instructions[1] = "HOLD [{+activate}] + [{+smoke}] Pickup/Drop";
+	instructions[2] = "HOLD [{+activate}] + [{+frag}] Cycle Modes";
+	instructions[3] = "[{+smoke}] Decrease [{+frag}] Increase";
+
+	instructionsString = "";
+	for (i = 0; i < instructions.size; i++)
+		instructionsString += instructions[i] + "\n";
+
 	self.hud = [];
+
+	self.hud["instructions"] = createFontString("default", 1.4);
+	self.hud["instructions"] setPoint("TOPLEFT", "TOPLEFT", 0, 0);
+	self.hud["instructions"] setText(instructionsString);
 
 	self.hud["mode"] = createFontString("default", 1.4);
 	self.hud["mode"] setPoint("TOPRIGHT", "TOPRIGHT", 0, 60);
@@ -650,7 +663,8 @@ forgestart()
 			wait 0.05;
 		}
 
-		// 	obj["ent"] waittill("rotatedone");
+		// ent waittill("rotatedone");
+		// ent waittill("movedone");
 		if (isdefined(focusedEnt))
 		{
 			self.hud["pitch"] SetValue(focusedEnt.angles[0]);
