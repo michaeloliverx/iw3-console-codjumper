@@ -1,3 +1,6 @@
+#include common_scripts\utility;
+#include maps\mp\gametypes\_hud_util;
+
 /**
  * Flattens the Z-coordinate of the origin by converting it to an integer.
  *
@@ -172,56 +175,6 @@ activeGameObjectMoveOriginZ(z)
 	self.activeGameObject movez(z, 0.05);
 	wait 0.1;
 	self iprintln("z: " + self.activeGameObject.origin[2]);
-}
-
-forgeMode()
-{
-	self endon("end_respawn");
-	self endon("disconnect");
-	self endon("stop_forge");
-
-	for (;;) {
-		while (self adsbuttonpressed())
-		{
-			trace = bullettrace(self gettagorigin("j_head"), self gettagorigin("j_head") + anglestoforward(self getplayerangles()) * 1000000, true, self);
-			ent = trace["entity"];
-			while (self adsbuttonpressed())
-			{
-				origin = self gettagorigin("j_head") + anglestoforward(self getplayerangles()) * 150;
-				// Only pickup bots, bombs and crates
-				if ( isplayer(ent) && isdefined(ent.pers["isBot"]) )
-				{
-					ent setorigin(origin);
-				}
-				if ( isdefined(ent.model) && (ent.model == "com_bomb_objective" || ent.model == "com_plasticcase_beige_big") )
-				{
-					ent.origin = origin;
-				}
-				wait 0.05;
-			}
-		}
-		wait 0.05;
-	}
-}
-
-toggleForgeMode()
-{
-	setting = "forge_mode";
-	printName = "Forge Mode";
-
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
-	{
-		self.cj["settings"][setting] = true;
-		self thread forgeMode();
-		self iPrintln(printName + " [^2ON^7]");
-		self iPrintln("Hold [{+speed_throw}] to lift stuff");
-	}
-	else
-	{
-		self.cj["settings"][setting] = false;
-		self notify("stop_forge");
-		self iPrintln(printName + " [^1OFF^7]");
-	}
 }
 
 toggleRPGSwitch()
@@ -547,4 +500,235 @@ InitExtraObjects()
 		
 	    }
 	}
+}
+
+forgestart()
+{
+	self endon("disconnect");
+	self endon("end_respawn");
+
+	self.cj["settings"]["forge"] = true;
+
+	self setClientDvar("player_view_pitch_up", 89.9);	   // allow looking straight up
+	self setClientDvar("player_view_pitch_down", 89.9);	   // allow looking straight down
+	self setClientDvar("player_spectateSpeedScale", 0.75); // Slower movement in spectator for precision
+	self setClientDvar("cg_descriptiveText", 0);		   // Show button icons and text
+
+	// TODO: place compass (if needed)
+
+	self allowSpectateTeam("freelook", true);
+	self.sessionstate = "spectator";
+
+	self.hud = [];
+
+	self.hud["mode"] = createFontString("default", 1.4);
+	self.hud["mode"] setPoint("TOPRIGHT", "TOPRIGHT", 0, 60);
+	self.hud["mode"] setText("mode: " + "pitch");
+
+	self.hud["pitch"] = createFontString("default", 1.4);
+	self.hud["pitch"] setPoint("TOPRIGHT", "TOPRIGHT", 0, 80);
+	self.hud["pitch"].label = &"pitch: &&1";
+	self.hud["pitch"] SetValue(1);
+
+	self.hud["yaw"] = createFontString("default", 1.4);
+	self.hud["yaw"] setPoint("TOPRIGHT", "TOPRIGHT", 0, 100);
+	self.hud["yaw"].label = &"yaw: &&1";
+	self.hud["yaw"] SetValue(1);
+
+	self.hud["roll"] = createFontString("default", 1.4);
+	self.hud["roll"] setPoint("TOPRIGHT", "TOPRIGHT", 0, 120);
+	self.hud["roll"].label = &"roll: &&1";
+	self.hud["roll"] SetValue(1);
+
+	self.hud["z"] = createFontString("default", 1.4);
+	self.hud["z"] setPoint("TOPRIGHT", "TOPRIGHT", 0, 140);
+	self.hud["z"].label = &"z: &&1";
+	self.hud["z"] SetValue(1);
+
+	self.hud["reticle"] = createIcon("reticle_flechette", 40, 40);
+	self.hud["reticle"] setPoint("center", "center", "center", "center");
+
+	self iprintln("Forge started");
+
+	focusedColor = (0, 0.5, 0.5);
+	unfocusedColor = (1, 1, 1);
+	pickedUpColor = (1, 0, 0);
+
+	focusedEnt = undefined;
+	pickedUpEnt = undefined;
+
+	mode = "pitch";
+	unit = 1;
+
+	// NOTE: while in spectator mode only the following buttons are available:
+	// usebuttonpressed, secondaryoffhandbuttonpressed, fragbuttonpressed, adsbuttonpressed, attackbuttonpressed
+	// adsbuttonpressed, attackbuttonpressed are both used by spectator to move up and down
+
+	for (;;)
+	{
+		// exit forge mode
+		if (self secondaryoffhandbuttonpressed() && self fragbuttonpressed())
+		{
+			self setclientdvar("player_view_pitch_down", 70);
+
+			self allowSpectateTeam("freelook", false);
+			self.sessionstate = "playing";
+
+			huds = getarraykeys(self.hud);
+			for (i = 0; i < huds.size; i++)
+				self.hud[huds[i]] destroy();
+
+			self.cj["settings"]["forge"] = false;
+
+			self iprintln("Forge ended");
+			break;
+		}
+
+		if (!isdefined(pickedUpEnt))
+		{
+			forward = anglestoforward(self getplayerangles());
+			eye = self.origin + (0, 0, 10);
+			start = eye;
+			end = vectorscale(forward, 9999);
+			trace = bullettrace(start, start + end, true, self);
+			if (isdefined(trace["entity"]))
+			{
+				ent = trace["entity"];
+				self.hud["reticle"].color = focusedColor;
+				focusedEnt = ent;
+			}
+			else
+			{
+				self.hud["reticle"].color = unfocusedColor;
+				focusedEnt = undefined;
+			}
+		}
+		else
+		{
+			self.hud["reticle"].color = pickedUpColor;
+		}
+
+		while (self usebuttonpressed())
+		{
+			// pick up or drop ent
+			if (!isdefined(pickedUpEnt) && isdefined(focusedEnt) && self secondaryoffhandbuttonpressed())
+			{
+				ent = focusedEnt;
+				ent linkto(self);
+				pickedUpEnt = focusedEnt;
+				self iprintln("Picked up " + getdisplayname(ent));
+				wait 0.1;
+				break;
+			}
+			else if (isdefined(pickedUpEnt) && !isplayer(pickedUpEnt) && self secondaryoffhandbuttonpressed())
+			{
+				ent = pickedUpEnt;
+				ent unlink();
+				pickedUpEnt = undefined;
+				self iprintln("Dropped " + getdisplayname(ent));
+				wait 0.1;
+				break;
+			}
+
+			// change mode
+			if (self fragbuttonpressed())
+			{
+				if (mode == "z")
+					mode = "pitch";
+				else if (mode == "pitch")
+					mode = "yaw";
+				else if (mode == "yaw")
+					mode = "roll";
+				else if (mode == "roll")
+					mode = "z";
+
+				self.hud["mode"] setText("mode: " + mode);
+
+				wait 0.1;
+			}
+
+			wait 0.05;
+		}
+
+		// 	obj["ent"] waittill("rotatedone");
+		if (isdefined(focusedEnt))
+		{
+			self.hud["pitch"] SetValue(focusedEnt.angles[0]);
+			self.hud["yaw"] SetValue(focusedEnt.angles[1]);
+			self.hud["roll"] SetValue(focusedEnt.angles[2]);
+			self.hud["pitch"].alpha = 1;
+			self.hud["yaw"].alpha = 1;
+			self.hud["roll"].alpha = 1;
+			self.hud["z"].alpha = 1;
+		}
+		else
+		{
+			self.hud["pitch"].alpha = 0;
+			self.hud["yaw"].alpha = 0;
+			self.hud["roll"].alpha = 0;
+			self.hud["z"].alpha = 0;
+		}
+
+		if (isdefined(focusedEnt) && self secondaryoffhandbuttonpressed() || self fragbuttonpressed())
+		{
+			if (self secondaryoffhandbuttonpressed())
+			{
+				if (mode == "pitch")
+				{
+					focusedEnt rotatepitch(unit, 0.01);
+					self.hud["pitch"] SetValue(focusedEnt.angles[0]);
+				}
+				else if (mode == "yaw")
+				{
+					focusedEnt rotateyaw(unit, 0.01);
+					self.hud["yaw"] SetValue(focusedEnt.angles[1]);
+				}
+				else if (mode == "roll")
+				{
+					focusedEnt rotateroll(unit, 0.01);
+					self.hud["roll"] SetValue(focusedEnt.angles[2]);
+				}
+				else if (mode == "z")
+				{
+					focusedEnt movez(unit * -1, 0.01);
+					self.hud["z"] SetValue(focusedEnt.origin[2]);
+				}
+			}
+			else if (self fragbuttonpressed())
+			{
+				if (mode == "pitch")
+				{
+					focusedEnt rotatepitch(unit * -1, 0.01);
+					self.hud["pitch"] SetValue(focusedEnt.angles[0]);
+				}
+				else if (mode == "yaw")
+				{
+					focusedEnt rotateyaw(unit * -1, 0.01);
+					self.hud["yaw"] SetValue(focusedEnt.angles[1]);
+				}
+				else if (mode == "roll")
+				{
+					focusedEnt rotateroll(unit * -1, 0.01);
+					self.hud["roll"] SetValue(focusedEnt.angles[2]);
+				}
+				else if (mode == "z")
+				{
+					focusedEnt movez(unit, 0.01);
+					self.hud["z"] SetValue(focusedEnt.origin[2]);
+				}
+			}
+		}
+
+		wait 0.05;
+	}
+}
+
+getdisplayname(ent)
+{
+	if (isplayer(ent))
+		return ent.name;
+	else if (isdefined(ent.model) && ent.model != "")
+		return ent.model;
+	else
+		return ent.classname;
 }

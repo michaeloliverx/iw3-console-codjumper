@@ -4,6 +4,8 @@
 
 init()
 {
+	precacheShader("reticle_flechette"); // Precache the reticle shader for Forge
+
 	// Replaced by the build script
 	level.VERSION = "__VERSION__";
 
@@ -76,6 +78,7 @@ onPlayerSpawned()
 	{
 		self waittill("spawned_player");
 
+		self.cj["settings"]["forge"] = false;
 		self.cj["settings"]["ufo_mode"] = false;
 
 		self thread ammoCheck();
@@ -204,7 +207,7 @@ initMenuOpts()
 	self addOpt("main", "Game Objects Menu", ::subMenu, "menu_game_objects");
 
 	self addMenu("menu_game_objects", "Game Objects Menu", "main");
-	self addOpt("menu_game_objects", "Toggle forge mode", ::toggleForgeMode);
+	self addOpt("menu_game_objects", "Forge mode", ::forgestart);
 	self addOpt("menu_game_objects", "Select Object", ::subMenu, "menu_game_objects_select");
 	self addMenu("menu_game_objects_select", "Select Object", "menu_game_objects");
 
@@ -434,6 +437,12 @@ watchUseButtonPressed()
 
 	for(;;)
 	{
+		if(self.cj["settings"]["forge"])
+		{
+			wait 1;
+			continue;
+		}
+
 		if(!self.inMenu && self UseButtonPressed())
 		{
 			catch_next = false;
@@ -647,6 +656,12 @@ watchSecondaryOffhandButtonPressed()
 
 	for(;;)
 	{
+		if(self.cj["settings"]["forge"])
+		{
+			wait 1;
+			continue;
+		}
+
 		if(!self.inMenu && !self.cj["settings"]["ufo_mode"] && self secondaryOffhandButtonPressed())
 		{
 			self loadPos();
@@ -668,6 +683,11 @@ watchFragButtonPressed()
 
 	for(;;)
 	{
+		if(self.cj["settings"]["forge"])
+		{
+			wait 1;
+			continue;
+		}
 		if(self FragButtonPressed())
 		{
 			self thread toggleUFO();
