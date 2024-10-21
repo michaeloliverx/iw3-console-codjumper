@@ -228,28 +228,6 @@ initMenuOpts()
 		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.crates[i]);
 	}
 	InitExtraObjectsOptions();
-	self addOpt("menu_game_objects", "Move Object", ::subMenu, "menu_game_objects_move");
-	self addMenu("menu_game_objects_move", "Move Object", "menu_game_objects");
-
-	self addOpt("menu_game_objects_move", "Pitch +1", ::activeGameObjectRotatePitch, 1);
-	self addOpt("menu_game_objects_move", "Pitch +5", ::activeGameObjectRotatePitch, 5);
-	self addOpt("menu_game_objects_move", "Pitch -1", ::activeGameObjectRotatePitch, -1);
-	self addOpt("menu_game_objects_move", "Pitch -5", ::activeGameObjectRotatePitch, -5);
-
-	self addOpt("menu_game_objects_move", "Roll +1", ::activeGameObjectRotateRoll, 1);
-	self addOpt("menu_game_objects_move", "Roll +5", ::activeGameObjectRotateRoll, 5);
-	self addOpt("menu_game_objects_move", "Roll -1", ::activeGameObjectRotateRoll, -1);
-	self addOpt("menu_game_objects_move", "Roll -5", ::activeGameObjectRotateRoll, -5);
-
-	self addOpt("menu_game_objects_move", "Yaw +1", ::activeGameObjectRotateYaw, 1);
-	self addOpt("menu_game_objects_move", "Yaw +5", ::activeGameObjectRotateYaw, 5);
-	self addOpt("menu_game_objects_move", "Yaw -1", ::activeGameObjectRotateYaw, -1);
-	self addOpt("menu_game_objects_move", "Yaw -5", ::activeGameObjectRotateYaw, -5);
-
-	self addOpt("menu_game_objects_move", "Z +1", ::activeGameObjectMoveOriginZ, 1);
-	self addOpt("menu_game_objects_move", "Z +5", ::activeGameObjectMoveOriginZ, 5);
-	self addOpt("menu_game_objects_move", "Z -1", ::activeGameObjectMoveOriginZ, -1);
-	self addOpt("menu_game_objects_move", "Z -5", ::activeGameObjectMoveOriginZ, -5);
 
 	if(is_host)
 	{
