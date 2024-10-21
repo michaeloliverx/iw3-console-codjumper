@@ -4,6 +4,8 @@
 
 init()
 {
+	precacheShader("reticle_flechette"); // Precache the reticle shader for Forge
+
 	// Replaced by the build script
 	level.VERSION = "__VERSION__";
 
@@ -76,6 +78,7 @@ onPlayerSpawned()
 	{
 		self waittill("spawned_player");
 
+		self.cj["settings"]["forge"] = false;
 		self.cj["settings"]["ufo_mode"] = false;
 
 		self thread ammoCheck();
@@ -204,7 +207,7 @@ initMenuOpts()
 	self addOpt("main", "Game Objects Menu", ::subMenu, "menu_game_objects");
 
 	self addMenu("menu_game_objects", "Game Objects Menu", "main");
-	self addOpt("menu_game_objects", "Toggle forge mode", ::toggleForgeMode);
+	self addOpt("menu_game_objects", "Forge mode", ::forgestart);
 	self addOpt("menu_game_objects", "Select Object", ::subMenu, "menu_game_objects_select");
 	self addMenu("menu_game_objects_select", "Select Object", "menu_game_objects");
 
@@ -225,28 +228,6 @@ initMenuOpts()
 		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.crates[i]);
 	}
 	InitExtraObjectsOptions();
-	self addOpt("menu_game_objects", "Move Object", ::subMenu, "menu_game_objects_move");
-	self addMenu("menu_game_objects_move", "Move Object", "menu_game_objects");
-
-	self addOpt("menu_game_objects_move", "Pitch +1", ::activeGameObjectRotatePitch, 1);
-	self addOpt("menu_game_objects_move", "Pitch +5", ::activeGameObjectRotatePitch, 5);
-	self addOpt("menu_game_objects_move", "Pitch -1", ::activeGameObjectRotatePitch, -1);
-	self addOpt("menu_game_objects_move", "Pitch -5", ::activeGameObjectRotatePitch, -5);
-
-	self addOpt("menu_game_objects_move", "Roll +1", ::activeGameObjectRotateRoll, 1);
-	self addOpt("menu_game_objects_move", "Roll +5", ::activeGameObjectRotateRoll, 5);
-	self addOpt("menu_game_objects_move", "Roll -1", ::activeGameObjectRotateRoll, -1);
-	self addOpt("menu_game_objects_move", "Roll -5", ::activeGameObjectRotateRoll, -5);
-
-	self addOpt("menu_game_objects_move", "Yaw +1", ::activeGameObjectRotateYaw, 1);
-	self addOpt("menu_game_objects_move", "Yaw +5", ::activeGameObjectRotateYaw, 5);
-	self addOpt("menu_game_objects_move", "Yaw -1", ::activeGameObjectRotateYaw, -1);
-	self addOpt("menu_game_objects_move", "Yaw -5", ::activeGameObjectRotateYaw, -5);
-
-	self addOpt("menu_game_objects_move", "Z +1", ::activeGameObjectMoveOriginZ, 1);
-	self addOpt("menu_game_objects_move", "Z +5", ::activeGameObjectMoveOriginZ, 5);
-	self addOpt("menu_game_objects_move", "Z -1", ::activeGameObjectMoveOriginZ, -1);
-	self addOpt("menu_game_objects_move", "Z -5", ::activeGameObjectMoveOriginZ, -5);
 
 	if(is_host)
 	{
@@ -434,7 +415,7 @@ watchUseButtonPressed()
 
 	for(;;)
 	{
-		if(!self.inMenu && self UseButtonPressed())
+		if(!self.cj["settings"]["forge"] && !self.inMenu && self UseButtonPressed())
 		{
 			catch_next = false;
 
@@ -647,12 +628,12 @@ watchSecondaryOffhandButtonPressed()
 
 	for(;;)
 	{
-		if(!self.inMenu && !self.cj["settings"]["ufo_mode"] && self secondaryOffhandButtonPressed())
+		if(!self.cj["settings"]["forge"] && !self.inMenu && !self.cj["settings"]["ufo_mode"] && self secondaryOffhandButtonPressed())
 		{
 			self loadPos();
 			wait .1;
 		}
-		if(self.cj["settings"]["ufo_mode"] == true && self secondaryOffhandButtonPressed())
+		if(!self.cj["settings"]["forge"] && self.cj["settings"]["ufo_mode"] == true && self secondaryOffhandButtonPressed())
 		{
 			self thread spawnGameObject();
 			wait .1;
@@ -668,7 +649,7 @@ watchFragButtonPressed()
 
 	for(;;)
 	{
-		if(self FragButtonPressed())
+		if(!self.cj["settings"]["forge"] && self FragButtonPressed())
 		{
 			self thread toggleUFO();
 			wait 0.5;
