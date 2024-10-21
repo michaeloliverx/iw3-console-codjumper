@@ -1103,6 +1103,8 @@ stopAutoMantle()
 	self iprintln("Stopped automantle");
 }
 
+#endif
+
 InitExtraObjectsOptions()
 {
 	if (getDvar("mapname") == "mp_bog")
@@ -1161,5 +1163,3 @@ InitExtraObjectsOptions()
 		
 	}
 }
-
-#endif
