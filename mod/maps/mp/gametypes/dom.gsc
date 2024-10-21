@@ -437,13 +437,7 @@ watchUseButtonPressed()
 
 	for(;;)
 	{
-		if(self.cj["settings"]["forge"])
-		{
-			wait 1;
-			continue;
-		}
-
-		if(!self.inMenu && self UseButtonPressed())
+		if(!self.cj["settings"]["forge"] && !self.inMenu && self UseButtonPressed())
 		{
 			catch_next = false;
 
@@ -656,18 +650,12 @@ watchSecondaryOffhandButtonPressed()
 
 	for(;;)
 	{
-		if(self.cj["settings"]["forge"])
-		{
-			wait 1;
-			continue;
-		}
-
-		if(!self.inMenu && !self.cj["settings"]["ufo_mode"] && self secondaryOffhandButtonPressed())
+		if(!self.cj["settings"]["forge"] && !self.inMenu && !self.cj["settings"]["ufo_mode"] && self secondaryOffhandButtonPressed())
 		{
 			self loadPos();
 			wait .1;
 		}
-		if(self.cj["settings"]["ufo_mode"] == true && self secondaryOffhandButtonPressed())
+		if(!self.cj["settings"]["forge"] && self.cj["settings"]["ufo_mode"] == true && self secondaryOffhandButtonPressed())
 		{
 			self thread spawnGameObject();
 			wait .1;
@@ -683,12 +671,7 @@ watchFragButtonPressed()
 
 	for(;;)
 	{
-		if(self.cj["settings"]["forge"])
-		{
-			wait 1;
-			continue;
-		}
-		if(self FragButtonPressed())
+		if(!self.cj["settings"]["forge"] && self FragButtonPressed())
 		{
 			self thread toggleUFO();
 			wait 0.5;
