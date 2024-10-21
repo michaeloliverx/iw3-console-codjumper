@@ -609,6 +609,7 @@ forgestart()
 			{
 				ent = pickedUpEnt;
 				ent unlink();
+				ent.origin = flat_origin_z(ent.origin); // snap to whole numbers
 				pickedUpEnt = undefined;
 				self iprintln("Dropped " + getdisplayname(ent));
 				wait 0.1;
@@ -635,13 +636,13 @@ forgestart()
 			wait 0.05;
 		}
 
-		// ent waittill("rotatedone");
-		// ent waittill("movedone");
+		// update hud
 		if (isdefined(focusedEnt))
 		{
 			self.hud["pitch"] SetValue(focusedEnt.angles[0]);
 			self.hud["yaw"] SetValue(focusedEnt.angles[1]);
 			self.hud["roll"] SetValue(focusedEnt.angles[2]);
+			self.hud["z"] SetValue(focusedEnt.origin[2]);
 			self.hud["pitch"].alpha = 1;
 			self.hud["yaw"].alpha = 1;
 			self.hud["roll"].alpha = 1;
@@ -655,53 +656,31 @@ forgestart()
 			self.hud["z"].alpha = 0;
 		}
 
-		if (isdefined(focusedEnt) && self secondaryoffhandbuttonpressed() || self fragbuttonpressed())
+		// rotations and movements can't be done on a linked entity
+		if (!isdefined(pickedUpEnt) && isdefined(focusedEnt) && self secondaryoffhandbuttonpressed() || self fragbuttonpressed())
 		{
 			if (self secondaryoffhandbuttonpressed())
 			{
 				if (mode == "pitch")
-				{
-					focusedEnt rotatepitch(unit, 0.01);
-					self.hud["pitch"] SetValue(focusedEnt.angles[0]);
-				}
+					focusedEnt rotatepitch(unit, 0.05);
 				else if (mode == "yaw")
-				{
-					focusedEnt rotateyaw(unit, 0.01);
-					self.hud["yaw"] SetValue(focusedEnt.angles[1]);
-				}
+					focusedEnt rotateyaw(unit, 0.05);
+
 				else if (mode == "roll")
-				{
-					focusedEnt rotateroll(unit, 0.01);
-					self.hud["roll"] SetValue(focusedEnt.angles[2]);
-				}
+					focusedEnt rotateroll(unit, 0.05);
 				else if (mode == "z")
-				{
-					focusedEnt movez(unit * -1, 0.01);
-					self.hud["z"] SetValue(focusedEnt.origin[2]);
-				}
+					focusedEnt movez(unit * -1, 0.05);
 			}
 			else if (self fragbuttonpressed())
 			{
 				if (mode == "pitch")
-				{
-					focusedEnt rotatepitch(unit * -1, 0.01);
-					self.hud["pitch"] SetValue(focusedEnt.angles[0]);
-				}
+					focusedEnt rotatepitch(unit * -1, 0.05);
 				else if (mode == "yaw")
-				{
-					focusedEnt rotateyaw(unit * -1, 0.01);
-					self.hud["yaw"] SetValue(focusedEnt.angles[1]);
-				}
+					focusedEnt rotateyaw(unit * -1, 0.05);
 				else if (mode == "roll")
-				{
-					focusedEnt rotateroll(unit * -1, 0.01);
-					self.hud["roll"] SetValue(focusedEnt.angles[2]);
-				}
+					focusedEnt rotateroll(unit * -1, 0.05);
 				else if (mode == "z")
-				{
-					focusedEnt movez(unit, 0.01);
-					self.hud["z"] SetValue(focusedEnt.origin[2]);
-				}
+					focusedEnt movez(unit, 0.05);
 			}
 		}
 
