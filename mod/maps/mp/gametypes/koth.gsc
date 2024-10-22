@@ -335,10 +335,9 @@ show_hide_by_script_gameobjectname(script_gameobjectname)
 	iprintln(type + " " + action);
 }
 
-spawnGameObject()
+spawnGameObject(ent)
 {
 	playerAngles = self getPlayerAngles();
-	ent = self.activeGameObject;
 	ent.origin = flat_origin_z(self.origin + (anglestoforward(playerAngles) * 150));
 	ent.angles = (0, playerAngles[1], 0);
 	self iprintln("Object spawned at " + ent.origin + ent.angles);

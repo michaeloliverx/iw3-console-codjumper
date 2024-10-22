@@ -225,10 +225,7 @@ initMenuOpts()
 		{
 			modelEnt = level.FORGE_MODELS[modelName][j];
 			menuLabel = modelName + " " + (j + 1);
-			if(isdefined(self.activeGameObject) && self.activeGameObject == modelEnt)
-				menuLabel = level.SELECTED_PREFIX + " " + menuLabel;
-
-			self addOpt(menuKey, menuLabel, ::setActiveGameObject, modelEnt);
+			self addOpt(menuKey, menuLabel, ::spawnGameObject, modelEnt);
 		}
 	}
 
@@ -637,11 +634,6 @@ watchSecondaryOffhandButtonPressed()
 			self loadPos();
 			wait .1;
 		}
-		if(!self.cj["settings"]["forge"] && self.cj["settings"]["ufo_mode"] == true && self secondaryOffhandButtonPressed())
-		{
-			self thread spawnGameObject();
-			wait .1;
-		}
 		wait 0.05;
 	}
 }
@@ -979,13 +971,6 @@ toggleSpectatorButtons()
 		self setClientDvar(setting, 1);
 		self iPrintln(printName + " [^2ON^7]");
 	}
-}
-
-setActiveGameObject(ent)
-{
-	self.activeGameObject = ent;
-	self iPrintLn("Press [{+smoke}] while in UFO mode to spawn object.");
-	self refreshMenu();
 }
 
 deleteClones()
