@@ -602,6 +602,7 @@ initForgeModels()
 {
 	// keep in alphabetical order
 	level.FORGE_MODELS = [];
+	level.FORGE_MODELS["arch"] = [];
 	level.FORGE_MODELS["bc_hesco_barrier_med"] = [];
 	level.FORGE_MODELS["com_bomb_objective"] = [];
 	level.FORGE_MODELS["com_laptop_2_open"] = [];
@@ -715,11 +716,24 @@ initForgeModels()
 		}
 	}
 
+	if (getdvar("mapname") == "mp_bog")
+	{
+		for (i = 0; i < script_brushmodels.size; i++)
+		{
+			if (isdefined(script_brushmodels[i].targetname) && script_brushmodels[i].targetname == "arch_before")
+			{
+				// only the first one is useful
+				level.FORGE_MODELS["arch"][level.FORGE_MODELS["arch"].size] = script_brushmodels[i];
+				break;
+			}
+		}
+	}
+
 	// capture the starting positions
-	for(i = 0; i < level.FORGE_MODELS.size; i++)
+	for (i = 0; i < level.FORGE_MODELS.size; i++)
 	{
 		modelName = getarraykeys(level.FORGE_MODELS)[i];
-		for(j = 0; j < level.FORGE_MODELS[modelName].size; j++)
+		for (j = 0; j < level.FORGE_MODELS[modelName].size; j++)
 		{
 			modelEnt = level.FORGE_MODELS[modelName][j];
 			modelEnt.startOrigin = modelEnt.origin;
