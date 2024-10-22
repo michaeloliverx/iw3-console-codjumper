@@ -728,6 +728,18 @@ initForgeModels()
 		}
 	}
 
+	if (getdvar("mapname") == "mp_cargoship")
+	{
+		for (i = 0; i < script_brushmodels.size; i++)
+		{
+			if (isdefined(script_brushmodels[i].targetname) && script_brushmodels[i].targetname == "pipe_shootable")
+			{
+				level.FORGE_MODELS["pipe_shootable"][level.FORGE_MODELS["pipe_shootable"].size] = script_brushmodels[i];
+				break;
+			}
+		}
+	}
+
 	// capture the starting positions
 	for (i = 0; i < level.FORGE_MODELS.size; i++)
 	{
