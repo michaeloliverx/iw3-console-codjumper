@@ -231,11 +231,11 @@ initMenuOpts()
 
 	if(is_host)
 	{
-		self addOpt("menu_game_objects", "^1Reset All!^7", ::resetAllGameObjects);
 		self addOpt("menu_game_objects", "Show/Hide Domination", ::show_hide_by_script_gameobjectname, "dom");
 		self addOpt("menu_game_objects", "Show/Hide HQ", ::show_hide_by_script_gameobjectname, "hq");
 		self addOpt("menu_game_objects", "Show/Hide Sab", ::show_hide_by_script_gameobjectname, "sab");
 		self addOpt("menu_game_objects", "Show/Hide SD", ::show_hide_by_script_gameobjectname, "bombzone");
+		self addOpt("menu_game_objects", "^1Reset All!^7", ::resetAllGameObjects);
 	}
 
 	// Loadout submenu
