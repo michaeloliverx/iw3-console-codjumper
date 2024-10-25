@@ -463,6 +463,15 @@ forgestart()
 	else
 		self iprintln("Forge mode ON");
 
+	focusedColor = (0, 0.5, 0.5);
+	unfocusedColor = (1, 1, 1);
+	pickedUpColor = (1, 0, 0);
+
+	focusedEnt = undefined;
+	pickedUpEnt = undefined;
+
+	unit = 1;
+
 	for (;;)
 	{
 		// prevent monitoring when in menu
@@ -500,16 +509,136 @@ forgestart()
 			}
 
 			// exit forge
-			if (self.spectator_mode == "forge" && self adsButtonPressed())
+			if (self.spectator_mode == "forge")
 			{
-				self thread destroyforgehud();
-				self ufocontrolsOFF();
-				self freezecontrols(false);
-				self iprintln("Forge mode OFF");
-				return;
+
+				if (self adsButtonPressed())
+				{
+					self thread destroyforgehud();
+					self ufocontrolsOFF();
+					self freezecontrols(false);
+					self iprintln("Forge mode OFF");
+					return;
+				}
+
+				// change mode
+				if (self fragbuttonpressed())
+				{
+					if (self.forge_change_mode == "z")
+						self.forge_change_mode = "pitch";
+					else if (self.forge_change_mode == "pitch")
+						self.forge_change_mode = "yaw";
+					else if (self.forge_change_mode == "yaw")
+						self.forge_change_mode = "roll";
+					else if (self.forge_change_mode == "roll")
+						self.forge_change_mode = "z";
+
+					self.forge_hud["mode"] setText("mode: " + self.forge_change_mode);
+
+					wait 0.1;
+				}
+				else if (self secondaryoffhandbuttonpressed())
+				{
+					if (self.forge_change_mode == "pitch")
+						self.forge_change_mode = "z";
+					else if (self.forge_change_mode == "z")
+						self.forge_change_mode = "roll";
+					else if (self.forge_change_mode == "roll")
+						self.forge_change_mode = "yaw";
+					else if (self.forge_change_mode == "yaw")
+						self.forge_change_mode = "pitch";
+
+					self.forge_hud["mode"] setText("mode: " + self.forge_change_mode);
+
+					wait 0.1;
+				}
 			}
 
 			wait 0.05;
+		}
+
+		if (self.spectator_mode == "forge")
+		{
+			if (!isdefined(pickedUpEnt))
+			{
+				forward = anglestoforward(self getplayerangles());
+				eye = self.origin + (0, 0, 10);
+				start = eye;
+				end = vectorscale(forward, 9999);
+				trace = bullettrace(start, start + end, true, self);
+				if (isdefined(trace["entity"]))
+				{
+					ent = trace["entity"];
+					self.forge_hud["reticle"].color = focusedColor;
+					if (isdefined(ent.forge_parent))
+						ent = ent.forge_parent;
+
+					focusedEnt = ent;
+				}
+				else
+				{
+					self.forge_hud["reticle"].color = unfocusedColor;
+					focusedEnt = undefined;
+				}
+			}
+			else
+			{
+				self.forge_hud["reticle"].color = pickedUpColor;
+			}
+
+			// update hud
+			if (isdefined(focusedEnt))
+			{
+				self.forge_hud["pitch"] SetValue(focusedEnt.angles[0]);
+				self.forge_hud["yaw"] SetValue(focusedEnt.angles[1]);
+				self.forge_hud["roll"] SetValue(focusedEnt.angles[2]);
+				self.forge_hud["x"] SetValue(focusedEnt.origin[0]);
+				self.forge_hud["y"] SetValue(focusedEnt.origin[1]);
+				self.forge_hud["z"] SetValue(focusedEnt.origin[2]);
+				self.forge_hud["pitch"].alpha = 1;
+				self.forge_hud["yaw"].alpha = 1;
+				self.forge_hud["roll"].alpha = 1;
+				self.forge_hud["x"].alpha = 1;
+				self.forge_hud["y"].alpha = 1;
+				self.forge_hud["z"].alpha = 1;
+			}
+			else
+			{
+				self.forge_hud["pitch"].alpha = 0;
+				self.forge_hud["yaw"].alpha = 0;
+				self.forge_hud["roll"].alpha = 0;
+				self.forge_hud["x"].alpha = 0;
+				self.forge_hud["y"].alpha = 0;
+				self.forge_hud["z"].alpha = 0;
+			}
+
+			// rotations and movements can't be done on a linked entity so do it on focus
+			if (!isdefined(pickedUpEnt) && isdefined(focusedEnt) && self secondaryoffhandbuttonpressed() || self fragbuttonpressed())
+			{
+				if (self secondaryoffhandbuttonpressed())
+				{
+					if (self.forge_change_mode == "pitch")
+						focusedEnt rotatepitch(unit, 0.05);
+					else if (self.forge_change_mode == "yaw")
+						focusedEnt rotateyaw(unit, 0.05);
+
+					else if (self.forge_change_mode == "roll")
+						focusedEnt rotateroll(unit, 0.05);
+					else if (self.forge_change_mode == "z")
+						focusedEnt movez(unit * -1, 0.05);
+				}
+				else if (self fragbuttonpressed())
+				{
+					if (self.forge_change_mode == "pitch")
+						focusedEnt rotatepitch(unit * -1, 0.05);
+					else if (self.forge_change_mode == "yaw")
+						focusedEnt rotateyaw(unit * -1, 0.05);
+					else if (self.forge_change_mode == "roll")
+						focusedEnt rotateroll(unit * -1, 0.05);
+					else if (self.forge_change_mode == "z")
+						focusedEnt movez(unit, 0.05);
+				}
+			}
 		}
 
 		wait 0.05;
