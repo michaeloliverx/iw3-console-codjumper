@@ -601,13 +601,16 @@ initForgeModels()
 {
 	// keep in alphabetical order
 	level.FORGE_MODELS = [];
-	level.FORGE_MODELS["arch"] = [];
 	level.FORGE_MODELS["bc_hesco_barrier_med"] = [];
 	level.FORGE_MODELS["com_bomb_objective"] = [];
 	level.FORGE_MODELS["com_laptop_2_open"] = [];
 	level.FORGE_MODELS["com_plasticcase_beige_big"] = [];
+
 	level.FORGE_MODELS["pipe"] = [];
 	level.FORGE_MODELS["terrain"] = [];
+	level.FORGE_MODELS["arch"] = [];
+	level.FORGE_MODELS["fuel_tanker"] = [];
+	level.FORGE_MODELS["fence_piece"] = [];
 
 	script_models = getentarray("script_model", "classname");
 	script_brushmodels = getentarray("script_brushmodel", "classname");
