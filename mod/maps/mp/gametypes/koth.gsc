@@ -286,16 +286,18 @@ toggle_look_straight_down()
 
 resetAllGameObjects()
 {
-	for (i = 0; i < level.bombs.size; i++)
+	modelnames = getarraykeys(level.FORGE_MODELS);
+	for (i = 0; i < modelnames.size; i++)
 	{
-		level.bombs[i].origin = level.bombs[i].startOrigin;
-		level.bombs[i].angles = level.bombs[i].startAngles;
+		modelName = modelnames[i];
+		for (j = 0; j < level.FORGE_MODELS[modelName].size; j++)
+		{
+			modelEnt = level.FORGE_MODELS[modelName][j];
+			modelEnt.origin = modelEnt.startOrigin;
+			modelEnt.angles = modelEnt.startAngles;
+		}
 	}
-	for (i = 0; i < level.crates.size; i++)
-	{
-		level.crates[i].origin = level.crates[i].startOrigin;
-		level.crates[i].angles = level.crates[i].startAngles;
-	}
+	iprintln("All game objects reset");
 }
 
 show_hide_by_script_gameobjectname(script_gameobjectname)
@@ -333,54 +335,9 @@ show_hide_by_script_gameobjectname(script_gameobjectname)
 	iprintln(type + " " + action);
 }
 
-initGameObjects()
-{
-	ents = getentarray();
-
-	for (i = 0; i < ents.size; i++)
-	{
-		// Search and Destroy / Sabotage bombs
-		if(ents[i].classname == "script_model" && ents[i].model == "com_bomb_objective")
-		{
-			linkScriptBrushModel(ents[i]);
-			ents[i].startOrigin = ents[i].origin;
-			ents[i].startAngles = ents[i].angles;
-			level.bombs[level.bombs.size] = ents[i];
-		}
-
-		// Headquarters crates
-		if(ents[i].classname == "script_model" && ents[i].script_gameobjectname == "hq" && ents[i].model == "com_plasticcase_beige_big")
-		{
-			linkScriptBrushModel(ents[i]);
-			ents[i].startOrigin = ents[i].origin;
-			ents[i].startAngles = ents[i].angles;
-			level.crates[level.crates.size] = ents[i];
-		}
-	}
-
-	// self iPrintLn("Found " + level.bombs.size + " bombs on this map!");
-	// self iPrintLn("Found " + level.crates.size + " crates on this map!");
-
-	return true;
-}
-
-linkScriptBrushModel(ent)
-{
-	brushModels = getEntArray("script_brushmodel", "classname");
-	for (i = 0; i < brushModels.size; i++)
-	{
-		if(distance(ent.origin, brushModels[i].origin) < 80 && ent.script_gameobjectname == brushModels[i].script_gameobjectname)
-		{
-			brushModels[i] LinkTo(ent);
-			break;
-		}
-	}
-}
-
-spawnGameObject()
+spawnGameObject(ent)
 {
 	playerAngles = self getPlayerAngles();
-	ent = self.activeGameObject;
 	ent.origin = flat_origin_z(self.origin + (anglestoforward(playerAngles) * 150));
 	ent.angles = (0, playerAngles[1], 0);
 	self iprintln("Object spawned at " + ent.origin + ent.angles);
@@ -411,67 +368,6 @@ getPlayerFromName(playerName)
 	for (i = 0; i < level.players.size; i++)
 		if (level.players[i].name == playerName)
 			return level.players[i];
-}
-
-InitExtraObjects()
-{
-	level.Showdownent = [];
-	level.Wetwork = [];
-	level.DownpourEnts = [];
-	level.countdownents = [];
-	entities = getEntArray();
-	if (getDvar("mapname") == "mp_bog")
-	{
-	    for (i = 0; i < entities.size; i++)
-    	    {
-            	if (entities[i].classname == "script_brushmodel" && entities[i].targetname == "arch_before")
-        	{
-	    
-		    	level.Ent1 = entities[i];
-            
-			break;
-       	    
-		}
-	    }
-	}
-	if (getDvar("mapname") == "mp_countdown")
-	{
-	    for (i = 12; i < 18; i++) 
-  	    {
-        	if (entities[i].classname == "script_brushmodel")
-        	{
-		    	level.countdownents[i - 12] = entities[i]; 	  	    
-		}
-		wait .5;
-	    }
-	}
-	if (getDvar("mapname") == "mp_farm")
-	{
-	   for (i = 384; i < 387; i++) 
-    	   {
-        	if (entities[i])
-        	{
-		    	level.DownpourEnts[i - 384] = entities[i]; 	  	    
-		}
-		wait .5;
-	   }
-	}
-	if (getDvar("mapname") == "mp_cargoship")
-	{
-	    for (i = 445; i < 446; i++) 
-    	    {
-	    	level.Wetwork[i - 445] = entities[i]; 	  	    
-		break;
-    	    }
-	}
-	if (getDvar("mapname") == "mp_showdown")
-	{
-	    for (i = 276; i < 284; i++) 
-    	    {
-	    	level.Showdownent[i - 276] = entities[i]; 	  	    
-		
-	    }
-	}
 }
 
 forgestart()
@@ -580,6 +476,9 @@ forgestart()
 			{
 				ent = trace["entity"];
 				self.hud["reticle"].color = focusedColor;
+				if (isdefined(ent.forge_parent))
+					ent = ent.forge_parent;
+
 				focusedEnt = ent;
 			}
 			else
@@ -696,4 +595,206 @@ getdisplayname(ent)
 		return ent.model;
 	else
 		return ent.classname;
+}
+
+initForgeModels()
+{
+	// keep in alphabetical order
+	level.FORGE_MODELS = [];
+	level.FORGE_MODELS["bc_hesco_barrier_med"] = [];
+	level.FORGE_MODELS["com_bomb_objective"] = [];
+	level.FORGE_MODELS["com_laptop_2_open"] = [];
+	level.FORGE_MODELS["com_plasticcase_beige_big"] = [];
+
+	level.FORGE_MODELS["pipe"] = [];
+	level.FORGE_MODELS["terrain"] = [];
+	level.FORGE_MODELS["arch"] = [];
+	level.FORGE_MODELS["fuel_tanker"] = [];
+	level.FORGE_MODELS["fence_piece"] = [];
+
+	script_models = getentarray("script_model", "classname");
+	script_brushmodels = getentarray("script_brushmodel", "classname");
+
+	for (i = 0; i < script_models.size; i++)
+	{
+		if (script_models[i].model == "com_bomb_objective")
+		{
+			for (j = 0; j < script_brushmodels.size; j++)
+			{
+				if (!isdefined(script_brushmodels[j].script_gameobjectname))
+					continue;
+
+				if (script_brushmodels[j].script_gameobjectname != script_models[i].script_gameobjectname)
+					continue;
+
+				if (distance(script_models[i].origin, script_brushmodels[j].origin) > 80)
+					continue;
+
+				script_brushmodels[j] linkto(script_models[i]);
+				level.FORGE_MODELS["com_bomb_objective"][level.FORGE_MODELS["com_bomb_objective"].size] = script_models[i];
+			}
+		}
+
+		if (script_models[i].model == "com_laptop_2_open")
+		{
+			choices = [];
+			for (j = 0; j < script_brushmodels.size; j++)
+			{
+				if (script_brushmodels[j].script_gameobjectname != "hq")
+					continue;
+
+				if (!isdefined(script_brushmodels[j].targetname) || script_brushmodels[j].targetname != script_models[i].target)
+					continue;
+
+				choices[choices.size] = script_brushmodels[j];
+			}
+
+			AssertEx(choices.size == 2, "Expected 2 brush choices for com_laptop_2_open, got " + choices.size);
+			// choose the higher Zorigin
+			if (choices[0].origin[2] > choices[1].origin[2])
+				choices[0] linkto(script_models[i]);
+			else
+				choices[1] linkto(script_models[i]);
+
+			level.FORGE_MODELS["com_laptop_2_open"][level.FORGE_MODELS["com_laptop_2_open"].size] = script_models[i];
+		}
+
+		if (script_models[i].model == "com_plasticcase_beige_big")
+		{
+			choices = [];
+			for (j = 0; j < script_brushmodels.size; j++)
+			{
+				if (!isdefined(script_brushmodels[j].script_gameobjectname))
+					continue;
+
+				if (script_brushmodels[j].script_gameobjectname != "hq")
+					continue;
+
+				if (!isdefined(script_brushmodels[j].targetname) || script_brushmodels[j].targetname != script_models[i].targetname)
+					continue;
+
+				choices[choices.size] = script_brushmodels[j];
+			}
+
+			AssertEx(choices.size == 2, "Expected 2 brush choices for com_plasticcase_beige_big, got " + choices.size);
+			// choose the lower Zorigin
+			if (choices[0].origin[2] < choices[1].origin[2])
+				choices[0] linkto(script_models[i]);
+			else
+				choices[1] linkto(script_models[i]);
+
+			level.FORGE_MODELS["com_plasticcase_beige_big"][level.FORGE_MODELS["com_plasticcase_beige_big"].size] = script_models[i];
+		}
+	}
+
+	if (getdvar("mapname") == "mp_crossfire")
+	{
+		// there are 3 bc_hesco_barrier_med script_models linked to 1 script_brushmodel
+		for (i = 0; i < script_brushmodels.size; i++)
+		{
+			if (!isdefined(script_brushmodels[i].script_gameobjectname))
+				continue;
+
+			if (script_brushmodels[i].script_gameobjectname != "dom")
+				continue;
+
+			bc_hesco_barrier_med_script_brushmodel = script_brushmodels[i];
+			bc_hesco_barrier_med_script_models = [];
+
+			for (j = 0; j < script_models.size; j++)
+			{
+				if (script_models[j].model == "bc_hesco_barrier_med")
+				{
+					if (distance(script_models[j].origin, bc_hesco_barrier_med_script_brushmodel.origin) < 80)
+					{
+						bc_hesco_barrier_med_script_models[bc_hesco_barrier_med_script_models.size] = script_models[j];
+						script_models[j] linkto(bc_hesco_barrier_med_script_brushmodel);
+						script_models[j].forge_parent = bc_hesco_barrier_med_script_brushmodel;
+					}
+				}
+			}
+
+			assertex(bc_hesco_barrier_med_script_models.size == 3, "Expected 3 bc_hesco_barrier_med script_models linked to 1 script_brushmodel, got " + bc_hesco_barrier_med_script_models.size);
+
+			level.FORGE_MODELS["bc_hesco_barrier_med"][level.FORGE_MODELS["bc_hesco_barrier_med"].size] = bc_hesco_barrier_med_script_brushmodel;
+		}
+	}
+
+	if (getdvar("mapname") == "mp_bog")
+	{
+		level.FORGE_MODELS["arch"][level.FORGE_MODELS["arch"].size] = getentbyorigin((3461, -149, 176));
+	}
+
+	if (getdvar("mapname") == "mp_cargoship")
+	{
+		level.FORGE_MODELS["fuel_tanker"][level.FORGE_MODELS["fuel_tanker"].size] = getentbyorigin((1300, 61, 104));
+	}
+
+	if (getdvar("mapname") == "mp_countdown")
+	{
+		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-573, 2956, 32));
+		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-574, 2958, 35));
+		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-581, 2961, -18));
+		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-568, 2953, -18));
+		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-505, 2918, -37));
+		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-506, 2918, 82));
+		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-474, 2900, 36));
+		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-439, 2880, 82));
+		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-505, 2918, -11));
+		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-439, 2880, -12));
+	}
+
+	// TODO: find out why this doesn't get all 3
+	if (getdvar("mapname") == "mp_farm")
+	{
+		level.FORGE_MODELS["pipe"][level.FORGE_MODELS["pipe"].size] = getentbyorigin((922, 741, 338));
+		level.FORGE_MODELS["pipe"][level.FORGE_MODELS["pipe"].size] = getentbyorigin((1293, 1327, 299));
+		level.FORGE_MODELS["pipe"][level.FORGE_MODELS["pipe"].size] = getentbyorigin((1293, 1347, 299));
+	}
+
+	if (getdvar("mapname") == "mp_showdown")
+	{
+		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-1040, 74, 82), 1);
+		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-1040, 74, 82), 2);
+		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-778, 684, 82), 1);
+		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-778, 684, 82), 2);
+	}
+
+	// capture the starting positions
+	for (i = 0; i < level.FORGE_MODELS.size; i++)
+	{
+		modelName = getarraykeys(level.FORGE_MODELS)[i];
+		for (j = 0; j < level.FORGE_MODELS[modelName].size; j++)
+		{
+			modelEnt = level.FORGE_MODELS[modelName][j];
+			modelEnt.startOrigin = modelEnt.origin;
+			modelEnt.startAngles = modelEnt.angles;
+		}
+	}
+}
+
+/**
+ * Finds the nth entity with the specified origin.
+ *
+ * @param origin - The target origin to match.
+ * @param matchNumber - (Optional) The 1-based position of the match to return. Defaults to 1.
+ * @returns The entity at the specified matchNumber, or undefined if not found.
+ */
+getentbyorigin(origin, matchNumber)
+{
+	if (!isdefined(matchNumber))
+		matchNumber = 1;
+
+	matchCount = 0;
+
+	ents = getentarray();
+	for (i = 0; i < ents.size; i++)
+	{
+		if (ents[i].origin == origin)
+		{
+			matchCount++;
+			if (matchCount == matchNumber)
+				return ents[i];
+		}
+	}
 }

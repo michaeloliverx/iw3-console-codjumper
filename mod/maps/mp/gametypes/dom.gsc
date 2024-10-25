@@ -13,12 +13,9 @@ init()
 
 	level.SELECTED_PREFIX = "^2-->^7 ";
 
-	level.bombs = [];
-	level.crates = [];
-	initGameObjects();
-	InitExtraObjects();
+	initForgeModels();
 
-	level.hardcoreMode = true;				// Force hardcore mode
+	level.hardcoreMode = true; // Force hardcore mode
 
 	gametype = level.gametype;
 
@@ -208,33 +205,37 @@ initMenuOpts()
 
 	self addMenu("menu_game_objects", "Game Objects Menu", "main");
 	self addOpt("menu_game_objects", "Forge mode", ::forgestart);
-	self addOpt("menu_game_objects", "Select Object", ::subMenu, "menu_game_objects_select");
-	self addMenu("menu_game_objects_select", "Select Object", "menu_game_objects");
+	self addOpt("menu_game_objects", "Spawn Object", ::subMenu, "menu_game_objects_spawn");
+	self addMenu("menu_game_objects_spawn", "Spawn Object", "menu_game_objects");
 
-	for (i = 0; i < level.bombs.size; i++)
+	// create a submenu for each model type
+	modelnames = getarraykeys(level.FORGE_MODELS);
+	for (i = 0; i < modelnames.size; i++)
 	{
-		text = "";
-		if(isdefined(self.activeGameObject) && self.activeGameObject == level.bombs[i])
-			text += level.SELECTED_PREFIX;
-		text += "Bomb " + (i + 1);
-		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.bombs[i]);
+		modelName = modelnames[i];
+		count = level.FORGE_MODELS[modelName].size;
+		if (count == 0) // skip empty model types
+			continue;
+		menuLabel = modelName + " " + " (" + count + ")";
+		menuKey = "menu_game_objects_select_" + modelName;
+		self addOpt("menu_game_objects_spawn", menuLabel, ::subMenu, menuKey);
+		self addMenu(menuKey, menuLabel, "menu_game_objects_spawn");
+
+		for (j = 0; j < level.FORGE_MODELS[modelName].size; j++)
+		{
+			modelEnt = level.FORGE_MODELS[modelName][j];
+			menuLabel = modelName + " " + (j + 1);
+			self addOpt(menuKey, menuLabel, ::spawnGameObject, modelEnt);
+		}
 	}
-	for (i = 0; i < level.crates.size; i++)
-	{
-		text = "";
-		if(isdefined(self.activeGameObject) && self.activeGameObject == level.crates[i])
-			text += level.SELECTED_PREFIX;
-		text += "Crate " + (i + 1);
-		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.crates[i]);
-	}
-	InitExtraObjectsOptions();
 
 	if(is_host)
 	{
-		self addOpt("menu_game_objects", "Reset All", ::resetAllGameObjects);
+		self addOpt("menu_game_objects", "Show/Hide Domination", ::show_hide_by_script_gameobjectname, "dom");
 		self addOpt("menu_game_objects", "Show/Hide HQ", ::show_hide_by_script_gameobjectname, "hq");
 		self addOpt("menu_game_objects", "Show/Hide Sab", ::show_hide_by_script_gameobjectname, "sab");
 		self addOpt("menu_game_objects", "Show/Hide SD", ::show_hide_by_script_gameobjectname, "bombzone");
+		self addOpt("menu_game_objects", "^1Reset All!^7", ::resetAllGameObjects);
 	}
 
 	// Loadout submenu
@@ -633,11 +634,6 @@ watchSecondaryOffhandButtonPressed()
 			self loadPos();
 			wait .1;
 		}
-		if(!self.cj["settings"]["forge"] && self.cj["settings"]["ufo_mode"] == true && self secondaryOffhandButtonPressed())
-		{
-			self thread spawnGameObject();
-			wait .1;
-		}
 		wait 0.05;
 	}
 }
@@ -977,13 +973,6 @@ toggleSpectatorButtons()
 	}
 }
 
-setActiveGameObject(ent)
-{
-	self.activeGameObject = ent;
-	self iPrintLn("Press [{+smoke}] while in UFO mode to spawn object.");
-	self refreshMenu();
-}
-
 deleteClones()
 {
 	clones = self.cj["clones"];
@@ -1104,62 +1093,3 @@ stopAutoMantle()
 }
 
 #endif
-
-InitExtraObjectsOptions()
-{
-	if (getDvar("mapname") == "mp_bog")
-	{
-	    text = "";
-	    if(isdefined(self.activeGameObject) && self.activeGameObject == level.Ent1)
-			text += level.SELECTED_PREFIX;
-	    text += "Arch ";
-	    self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.Ent1);
-	}
-	if (getDvar("mapname") == "mp_countdown")
-	{
-	    for (i = 0; i < 6; i++)
-	    {
-		text = "";
-		if(isdefined(self.activeGameObject) && self.activeGameObject == level.countdownents[i])
-			text += level.SELECTED_PREFIX;
-		text += "Gate Piece " + (i + 1);
-		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.countdownents[i]);
-	    }
-	}
-	if (getDvar("mapname") == "mp_farm")
-	{
-	    for (i = 0; i < 3; i++)
-	    {
-		text = "";
-		if(isdefined(self.activeGameObject) && self.activeGameObject == level.DownpourEnts[i])
-			text += level.SELECTED_PREFIX;
-		text += "Pole " + (i + 1);
-		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.DownpourEnts[i]);
-	    }
-	}
-	if (getDvar("mapname") == "mp_cargoship")
-	{
-	    for (i = 0; i < 1; i++)
-	    {
-		text = "";
-	    	if(isdefined(self.activeGameObject) && self.activeGameObject == level.Wetwork[i])
-			text += level.SELECTED_PREFIX;
-		text += "Tanker ";
-		self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.Wetwork[i]);
-		break;
-	    }
-	}
-	if (getDvar("mapname") == "mp_showdown")
-	{
-	   
-		for (i = 0; i < 2; i++)
-	    	{
-			text = "";
-	    		if(isdefined(self.activeGameObject) && self.activeGameObject == level.Showdownent[i])
-				text += level.SELECTED_PREFIX;
-			text += "Floor Piece " + (i + 1);
-			self addOpt("menu_game_objects_select", text, ::setActiveGameObject, level.Showdownent[i]);	
-	    	}
-		
-	}
-}
