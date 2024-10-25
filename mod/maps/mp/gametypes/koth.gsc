@@ -429,28 +429,24 @@ createforgehud()
 	self.forge_hud["reticle"] setPoint("center", "center", "center", "center");
 
 	self waittill_any("end_respawn", "disconnect", "forge_end");
+	self destroyforgehud();
+}
+
+destroyforgehud()
+{
 	huds = getarraykeys(self.forge_hud);
 	for (i = 0; i < huds.size; i++)
-		self.forge_hud[huds[i]] destroy();
+		if(isdefined(self.forge_hud[huds[i]]))
+			self.forge_hud[huds[i]] destroy();
 }
 
 forgestart()
 {
 	self endon("disconnect");
 	self endon("end_respawn");
+	self endon("forge_end");
 
-	// self iprintln("Forge started");
-
-	self.cj["settings"]["forge"] = true;
-
-	self setClientDvar("player_view_pitch_up", 89.9);	   // allow looking straight up
-	self setClientDvar("player_view_pitch_down", 89.9);	   // allow looking straight down
-	self setClientDvar("player_spectateSpeedScale", 0.75); // Slower movement in spectator for precision
-	self setClientDvar("cg_descriptiveText", 0);		   // Hide button icons and text
-
-	// Enable spectator mode
-	self allowSpectateTeam("freelook", true);
-	self.sessionstate = "spectator";
+	self ufocontrolsON();
 
 	if(!isdefined(self.spectator_mode))
 		self.spectator_mode = "ufo";
@@ -458,8 +454,8 @@ forgestart()
 	if(!isdefined(self.forge_change_mode))
 		self.forge_change_mode = "pitch";
 	
-	// if(self.spectator_mode == "forge")
-	// 	self createforgehud();
+	if(self.spectator_mode == "forge")
+		self thread createforgehud();
 
 	if(self.spectator_mode == "ufo")
 		self iprintln("UFO mode ON");
@@ -484,21 +480,20 @@ forgestart()
 			self freezecontrols(true);
 			if (self meleebuttonpressed())
 			{
-
 				if (self.spectator_mode == "ufo")
 				{
 					self.spectator_mode = "forge";
 					self iprintln("Forge mode");
 					self thread createforgehud();
-					wait 1;
+					wait 0.5;
 					break;
 				}
 				else
 				{
+					self thread destroyforgehud();
 					self.spectator_mode = "ufo";
 					self iprintln("UFO mode");
-					self notify("forge_end");
-					wait 1;
+					wait 0.5;
 					break;
 				}
 				wait 0.05;
@@ -518,7 +513,6 @@ forgestart()
 			// 	self allowSpectateTeam("freelook", false);
 			// 	self.sessionstate = "playing";
 
-			// 	self.cj["settings"]["forge"] = false;
 
 			// 	return;
 			// }
@@ -528,6 +522,39 @@ forgestart()
 
 		wait 0.05;
 	}
+}
+
+forgeend()
+{
+	if(self.spectator_mode == "ufo")
+	{
+		self ufocontrolsOFF();
+		self notify("forge_end");
+		self iprintln("UFO mode OFF");
+	}
+	// else if(self.spectator_mode == "forge")
+	// {
+	// 	self notify("forge_end");
+	// 	self ufocontrolsOFF();
+	// 	self iprintln("Forge mode OFF");
+	// }
+}
+
+ufocontrolsON()
+{
+	self setClientDvar("player_view_pitch_up", 89.9);	   // allow looking straight up
+	self setClientDvar("player_view_pitch_down", 89.9);	   // allow looking straight down
+
+	self allowSpectateTeam("freelook", true);
+	self.sessionstate = "spectator";
+}
+
+ufocontrolsOFF()
+{
+	self setClientDvar("player_view_pitch_down", 70);
+
+	self allowSpectateTeam("freelook", false);
+	self.sessionstate = "playing";
 }
 
 getdisplayname(ent)

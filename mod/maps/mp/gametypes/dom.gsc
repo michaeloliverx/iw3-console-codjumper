@@ -76,7 +76,6 @@ onPlayerSpawned()
 		self waittill("spawned_player");
 
 		self.cj["settings"]["forge"] = false;
-		self.cj["settings"]["ufo_mode"] = false;
 
 		self thread ammoCheck();
 		self thread setupLoadout();
@@ -204,7 +203,6 @@ initMenuOpts()
 	self addOpt("main", "Game Objects Menu", ::subMenu, "menu_game_objects");
 
 	self addMenu("menu_game_objects", "Game Objects Menu", "main");
-	self addOpt("menu_game_objects", "Forge mode", ::forgestart);
 	self addOpt("menu_game_objects", "Spawn Object", ::subMenu, "menu_game_objects_spawn");
 	self addMenu("menu_game_objects_spawn", "Spawn Object", "menu_game_objects");
 
@@ -416,7 +414,7 @@ watchUseButtonPressed()
 
 	for(;;)
 	{
-		if(!self.cj["settings"]["forge"] && !self.inMenu && self UseButtonPressed())
+		if(!self.inMenu && self UseButtonPressed())
 		{
 			catch_next = false;
 
@@ -629,7 +627,7 @@ watchSecondaryOffhandButtonPressed()
 
 	for(;;)
 	{
-		if(!self.cj["settings"]["forge"] && !self.inMenu && !self.cj["settings"]["ufo_mode"] && self secondaryOffhandButtonPressed())
+		if(self.sessionstate == "playing" && !self.inMenu && self secondaryOffhandButtonPressed())
 		{
 			self loadPos();
 			wait .1;
@@ -645,9 +643,13 @@ watchFragButtonPressed()
 
 	for(;;)
 	{
-		if(!self.cj["settings"]["forge"] && self FragButtonPressed())
+		if(self FragButtonPressed())
 		{
-			self thread toggleUFO();
+			if(self.sessionstate == "playing")
+				self thread forgestart();
+			else if(self.sessionstate == "spectator" && self.spectator_mode == "ufo")
+				self thread forgeend();
+
 			wait 0.5;
 		}
 
@@ -847,31 +849,6 @@ toggleThirdPerson()
 	{
 		self.cj["settings"][setting] = false;
 		self setClientDvar(setting, 0);
-		self iPrintln(printName + " [^1OFF^7]");
-	}
-}
-
-toggleUFO()
-{
-	setting = "ufo_mode";
-	printName = "UFO Mode";
-
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
-	{
-		self.cj["settings"][setting] = true;
-		self allowSpectateTeam("freelook", true);
-		self.sessionstate = "spectator";
-		wait 0.1;
-		self resetFOV();
-		self iPrintln(printName + " [^2ON^7]");
-	}
-	else
-	{
-		self.cj["settings"][setting] = false;
-		self allowSpectateTeam("freelook", false);
-		self.sessionstate = "playing";
-		wait 0.1;
-		self resetFOV();
 		self iPrintln(printName + " [^1OFF^7]");
 	}
 }
