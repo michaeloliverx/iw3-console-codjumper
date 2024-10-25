@@ -2,17 +2,14 @@
 #include maps\mp\gametypes\_hud_util;
 
 /**
- * Flattens the Z-coordinate of the origin by converting it to an integer.
- *
- * @param origin - Array with X, Y, Z coordinates.
- * @return Tuple with Z as an integer.
+ * Flattens the origin by converting it to an integer.
  */
-flat_origin_z(origin)
+flat_origin(origin)
 {
-    x = origin[0];
-    y = origin[1];
-    z = origin[2];
-    return (x, y, int(z));
+	x = origin[0];
+	y = origin[1];
+	z = origin[2];
+	return (int(x), int(y), int(z));
 }
 
 initSpeedometerHudElem()
@@ -338,7 +335,7 @@ show_hide_by_script_gameobjectname(script_gameobjectname)
 spawnGameObject(ent)
 {
 	playerAngles = self getPlayerAngles();
-	ent.origin = flat_origin_z(self.origin + (anglestoforward(playerAngles) * 150));
+	ent.origin = flat_origin(self.origin + (anglestoforward(playerAngles) * 150));
 	ent.angles = (0, playerAngles[1], 0);
 	self iprintln("Object spawned at " + ent.origin + ent.angles);
 }
@@ -508,10 +505,10 @@ forgestart()
 				wait 0.05;
 			}
 
-			// exit forge
 			if (self.spectator_mode == "forge")
 			{
 
+				// exit forge
 				if (self adsButtonPressed())
 				{
 					self thread destroyforgehud();
@@ -519,6 +516,27 @@ forgestart()
 					self freezecontrols(false);
 					self iprintln("Forge mode OFF");
 					return;
+				}
+
+				// pick up or drop ent
+				if (!isdefined(pickedUpEnt) && isdefined(focusedEnt) && self attackButtonPressed())
+				{
+					ent = focusedEnt;
+					ent linkto(self);
+					pickedUpEnt = focusedEnt;
+					self iprintln("Picked up " + getdisplayname(ent));
+					wait 0.25;
+					break;
+				}
+				else if (isdefined(pickedUpEnt) && self attackButtonPressed())
+				{
+					ent = pickedUpEnt;
+					ent unlink();
+					ent.origin = flat_origin(ent.origin); // snap to whole numbers
+					pickedUpEnt = undefined;
+					self iprintln("Dropped " + getdisplayname(ent));
+					wait 0.25;
+					break;
 				}
 
 				// change mode
