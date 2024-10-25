@@ -606,6 +606,8 @@ initForgeModels()
 	level.FORGE_MODELS["com_bomb_objective"] = [];
 	level.FORGE_MODELS["com_laptop_2_open"] = [];
 	level.FORGE_MODELS["com_plasticcase_beige_big"] = [];
+	level.FORGE_MODELS["pipe"] = [];
+	level.FORGE_MODELS["terrain"] = [];
 
 	script_models = getentarray("script_model", "classname");
 	script_brushmodels = getentarray("script_brushmodel", "classname");
@@ -740,6 +742,22 @@ initForgeModels()
 		}
 	}
 
+	// TODO: find out why this doesn't get all 3
+	if (getdvar("mapname") == "mp_farm")
+	{
+		level.FORGE_MODELS["pipe"][level.FORGE_MODELS["pipe"].size] = getentbyorigin((922, 741, 338));
+		level.FORGE_MODELS["pipe"][level.FORGE_MODELS["pipe"].size] = getentbyorigin((1293, 1327, 299));
+		level.FORGE_MODELS["pipe"][level.FORGE_MODELS["pipe"].size] = getentbyorigin((1293, 1347, 299));
+	}
+
+	if (getdvar("mapname") == "mp_showdown")
+	{
+		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-1040, 74, 82), 1);
+		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-1040, 74, 82), 2);
+		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-778, 684, 82), 1);
+		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-778, 684, 82), 2);
+	}
+
 	// capture the starting positions
 	for (i = 0; i < level.FORGE_MODELS.size; i++)
 	{
@@ -749,6 +767,32 @@ initForgeModels()
 			modelEnt = level.FORGE_MODELS[modelName][j];
 			modelEnt.startOrigin = modelEnt.origin;
 			modelEnt.startAngles = modelEnt.angles;
+		}
+	}
+}
+
+/**
+ * Finds the nth entity with the specified origin.
+ *
+ * @param origin - The target origin to match.
+ * @param matchNumber - (Optional) The 1-based position of the match to return. Defaults to 1.
+ * @returns The entity at the specified matchNumber, or undefined if not found.
+ */
+getentbyorigin(origin, matchNumber)
+{
+	if (!isdefined(matchNumber))
+		matchNumber = 1;
+
+	matchCount = 0;
+
+	ents = getentarray();
+	for (i = 0; i < ents.size; i++)
+	{
+		if (ents[i].origin == origin)
+		{
+			matchCount++;
+			if (matchCount == matchNumber)
+				return ents[i];
 		}
 	}
 }
