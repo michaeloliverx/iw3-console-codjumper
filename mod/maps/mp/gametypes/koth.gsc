@@ -376,8 +376,9 @@ createforgehud()
 	instructions[instructions.size] = "[{+smoke}] [{+frag}] Decrease/Increase";
 	instructions[instructions.size] = "While holding [{+activate}]:";
 	instructions[instructions.size] = "        [{+smoke}] [{+frag}] Change modes";
-	instructions[instructions.size] = "        [{+speed_throw}] Pick up/Drop";
-	instructions[instructions.size] = "        [{+attack}] Exit Forge";
+	instructions[instructions.size] = "        [{+attack}] Pick up/Drop";
+	instructions[instructions.size] = "";
+	instructions[instructions.size] = "        [{+speed_throw}] Exit Forge";
 	instructions[instructions.size] = "        [{+melee}] Switch to UFO mode";
 
 	instructionsString = "";
@@ -436,7 +437,7 @@ destroyforgehud()
 {
 	huds = getarraykeys(self.forge_hud);
 	for (i = 0; i < huds.size; i++)
-		if(isdefined(self.forge_hud[huds[i]]))
+		if (isdefined(self.forge_hud[huds[i]]))
 			self.forge_hud[huds[i]] destroy();
 }
 
@@ -448,30 +449,29 @@ forgestart()
 
 	self ufocontrolsON();
 
-	if(!isdefined(self.spectator_mode))
+	if (!isdefined(self.spectator_mode))
 		self.spectator_mode = "ufo";
-	
-	if(!isdefined(self.forge_change_mode))
+
+	if (!isdefined(self.forge_change_mode))
 		self.forge_change_mode = "pitch";
-	
-	if(self.spectator_mode == "forge")
+
+	if (self.spectator_mode == "forge")
 		self thread createforgehud();
 
-	if(self.spectator_mode == "ufo")
+	if (self.spectator_mode == "ufo")
 		self iprintln("UFO mode ON");
 	else
 		self iprintln("Forge mode ON");
 
 	for (;;)
 	{
-		// // prevent monitoring when in menu
-		// if(isDefined(self.inMenu))
-		// 	continue;
+		// prevent monitoring when in menu
+		if (isDefined(self.inMenu) && self.inMenu)
+			continue;
 
 		// don't unfreeze controls if in menu otherwise the menu controls will break
-		if(!isDefined(self.inMenu))
+		if (!isDefined(self.inMenu))
 			self freezecontrols(false);
-
 
 		// HOLD X actions
 		while (self usebuttonpressed())
@@ -499,23 +499,15 @@ forgestart()
 				wait 0.05;
 			}
 
-			// ignore other actions if not in forge mode
-			if(!self.spectator_mode == "forge")
-				break;
-
-			// // exit forge
-			// if (self adsbuttonpressed())
-			// {
-			// 	self notify("forge_end");
-
-			// 	self setClientDvar("player_view_pitch_down", 70);
-
-			// 	self allowSpectateTeam("freelook", false);
-			// 	self.sessionstate = "playing";
-
-
-			// 	return;
-			// }
+			// exit forge
+			if (self.spectator_mode == "forge" && self adsButtonPressed())
+			{
+				self thread destroyforgehud();
+				self ufocontrolsOFF();
+				self freezecontrols(false);
+				self iprintln("Forge mode OFF");
+				return;
+			}
 
 			wait 0.05;
 		}
@@ -524,26 +516,20 @@ forgestart()
 	}
 }
 
-forgeend()
+ufoend()
 {
-	if(self.spectator_mode == "ufo")
+	if (self.spectator_mode == "ufo")
 	{
 		self ufocontrolsOFF();
 		self notify("forge_end");
 		self iprintln("UFO mode OFF");
 	}
-	// else if(self.spectator_mode == "forge")
-	// {
-	// 	self notify("forge_end");
-	// 	self ufocontrolsOFF();
-	// 	self iprintln("Forge mode OFF");
-	// }
 }
 
 ufocontrolsON()
 {
-	self setClientDvar("player_view_pitch_up", 89.9);	   // allow looking straight up
-	self setClientDvar("player_view_pitch_down", 89.9);	   // allow looking straight down
+	self setClientDvar("player_view_pitch_up", 89.9);	// allow looking straight up
+	self setClientDvar("player_view_pitch_down", 89.9); // allow looking straight down
 
 	self allowSpectateTeam("freelook", true);
 	self.sessionstate = "spectator";

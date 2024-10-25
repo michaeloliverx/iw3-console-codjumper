@@ -648,7 +648,7 @@ watchFragButtonPressed()
 			if(self.sessionstate == "playing")
 				self thread forgestart();
 			else if(self.sessionstate == "spectator" && self.spectator_mode == "ufo")
-				self thread forgeend();
+				self ufoend();
 
 			wait 0.5;
 		}
