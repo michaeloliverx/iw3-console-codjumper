@@ -473,7 +473,10 @@ forgestart()
 	{
 		// prevent monitoring when in menu
 		if (isDefined(self.inMenu) && self.inMenu)
+		{
+			wait 0.1;
 			continue;
+		}
 
 		// don't unfreeze controls if in menu otherwise the menu controls will break
 		if (!isDefined(self.inMenu))
