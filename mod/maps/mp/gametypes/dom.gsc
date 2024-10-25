@@ -205,8 +205,8 @@ initMenuOpts()
 
 	self addMenu("menu_game_objects", "Game Objects Menu", "main");
 	self addOpt("menu_game_objects", "Forge mode", ::forgestart);
-	self addOpt("menu_game_objects", "Select Object", ::subMenu, "menu_game_objects_select");
-	self addMenu("menu_game_objects_select", "Select Object", "menu_game_objects");
+	self addOpt("menu_game_objects", "Spawn Object", ::subMenu, "menu_game_objects_spawn");
+	self addMenu("menu_game_objects_spawn", "Spawn Object", "menu_game_objects");
 
 	// create a submenu for each model type
 	modelnames = getarraykeys(level.FORGE_MODELS);
@@ -218,8 +218,8 @@ initMenuOpts()
 			continue;
 		menuLabel = modelName + " " + " (" + count + ")";
 		menuKey = "menu_game_objects_select_" + modelName;
-		self addOpt("menu_game_objects_select", menuLabel, ::subMenu, menuKey);
-		self addMenu(menuKey, menuLabel, "menu_game_objects_select");
+		self addOpt("menu_game_objects_spawn", menuLabel, ::subMenu, menuKey);
+		self addMenu(menuKey, menuLabel, "menu_game_objects_spawn");
 
 		for (j = 0; j < level.FORGE_MODELS[modelName].size; j++)
 		{
