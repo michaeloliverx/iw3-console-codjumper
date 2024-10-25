@@ -375,6 +375,8 @@ forgestart()
 	self endon("disconnect");
 	self endon("end_respawn");
 
+	self iprintln("Forge started");
+
 	self.cj["settings"]["forge"] = true;
 
 	self setClientDvar("player_view_pitch_up", 89.9);	   // allow looking straight up
@@ -409,27 +411,35 @@ forgestart()
 	self.hud["pitch"] = createFontString("default", 1.4);
 	self.hud["pitch"] setPoint("TOPRIGHT", "TOPRIGHT", 0, 80);
 	self.hud["pitch"].label = &"pitch: &&1";
-	self.hud["pitch"] SetValue(1);
+	self.hud["pitch"] SetValue(0);
 
 	self.hud["yaw"] = createFontString("default", 1.4);
 	self.hud["yaw"] setPoint("TOPRIGHT", "TOPRIGHT", 0, 100);
 	self.hud["yaw"].label = &"yaw: &&1";
-	self.hud["yaw"] SetValue(1);
+	self.hud["yaw"] SetValue(0);
 
 	self.hud["roll"] = createFontString("default", 1.4);
 	self.hud["roll"] setPoint("TOPRIGHT", "TOPRIGHT", 0, 120);
 	self.hud["roll"].label = &"roll: &&1";
-	self.hud["roll"] SetValue(1);
+	self.hud["roll"] SetValue(0);
+
+	self.hud["x"] = createFontString("default", 1.4);
+	self.hud["x"] setPoint("TOPRIGHT", "TOPRIGHT", 0, 140);
+	self.hud["x"].label = &"x: &&1";
+	self.hud["x"] SetValue(0);
+
+	self.hud["y"] = createFontString("default", 1.4);
+	self.hud["y"] setPoint("TOPRIGHT", "TOPRIGHT", 0, 160);
+	self.hud["y"].label = &"y: &&1";
+	self.hud["y"] SetValue(0);
 
 	self.hud["z"] = createFontString("default", 1.4);
-	self.hud["z"] setPoint("TOPRIGHT", "TOPRIGHT", 0, 140);
+	self.hud["z"] setPoint("TOPRIGHT", "TOPRIGHT", 0, 180);
 	self.hud["z"].label = &"z: &&1";
-	self.hud["z"] SetValue(1);
+	self.hud["z"] SetValue(0);
 
 	self.hud["reticle"] = createIcon("reticle_flechette", 40, 40);
 	self.hud["reticle"] setPoint("center", "center", "center", "center");
-
-	self iprintln("Forge started");
 
 	focusedColor = (0, 0.5, 0.5);
 	unfocusedColor = (1, 1, 1);
@@ -451,6 +461,7 @@ forgestart()
 		if (self secondaryoffhandbuttonpressed() && self fragbuttonpressed())
 		{
 			self setclientdvar("player_view_pitch_down", 70);
+			self setClientDvar("player_spectateSpeedScale", 1.5);
 
 			self allowSpectateTeam("freelook", false);
 			self.sessionstate = "playing";
@@ -541,10 +552,14 @@ forgestart()
 			self.hud["pitch"] SetValue(focusedEnt.angles[0]);
 			self.hud["yaw"] SetValue(focusedEnt.angles[1]);
 			self.hud["roll"] SetValue(focusedEnt.angles[2]);
+			self.hud["x"] SetValue(focusedEnt.origin[0]);
+			self.hud["y"] SetValue(focusedEnt.origin[1]);
 			self.hud["z"] SetValue(focusedEnt.origin[2]);
 			self.hud["pitch"].alpha = 1;
 			self.hud["yaw"].alpha = 1;
 			self.hud["roll"].alpha = 1;
+			self.hud["x"].alpha = 1;
+			self.hud["y"].alpha = 1;
 			self.hud["z"].alpha = 1;
 		}
 		else
@@ -552,6 +567,8 @@ forgestart()
 			self.hud["pitch"].alpha = 0;
 			self.hud["yaw"].alpha = 0;
 			self.hud["roll"].alpha = 0;
+			self.hud["x"].alpha = 0;
+			self.hud["y"].alpha = 0;
 			self.hud["z"].alpha = 0;
 		}
 
