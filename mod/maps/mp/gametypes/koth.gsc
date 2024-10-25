@@ -719,27 +719,13 @@ initForgeModels()
 
 	if (getdvar("mapname") == "mp_bog")
 	{
-		for (i = 0; i < script_brushmodels.size; i++)
-		{
-			if (isdefined(script_brushmodels[i].targetname) && script_brushmodels[i].targetname == "arch_before")
-			{
-				// only the first one is useful
-				level.FORGE_MODELS["arch"][level.FORGE_MODELS["arch"].size] = script_brushmodels[i];
-				break;
-			}
-		}
+		level.FORGE_MODELS["arch"][level.FORGE_MODELS["arch"].size] = getentbyorigin((3461, -149, 176));
 	}
 
 	if (getdvar("mapname") == "mp_cargoship")
 	{
-		for (i = 0; i < script_brushmodels.size; i++)
-		{
-			if (isdefined(script_brushmodels[i].targetname) && script_brushmodels[i].targetname == "pipe_shootable")
-			{
-				level.FORGE_MODELS["pipe_shootable"][level.FORGE_MODELS["pipe_shootable"].size] = script_brushmodels[i];
-				break;
-			}
-		}
+		level.FORGE_MODELS["fuel_tanker"][level.FORGE_MODELS["fuel_tanker"].size] = getentbyorigin((1300, 61, 104));
+	}
 	}
 
 	// TODO: find out why this doesn't get all 3
