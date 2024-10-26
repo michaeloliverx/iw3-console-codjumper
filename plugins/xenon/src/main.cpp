@@ -238,6 +238,12 @@ void GScr_CloneBrushModelToScriptModel(scr_entref_t *scriptModelEntRef)
     SV_LinkEntity(scriptEnt);
 }
 
+void PlayerCmd_holdBreathButtonPressed(scr_entref_t *entref)
+{
+    gentity_s *ent = GetEntity(entref);
+    Scr_AddInt(((ent->client->buttonsSinceLastFrame | ent->client->buttons) & KEY_MASK_HOLDBREATH) != 0);
+}
+
 Detour Scr_GetMethodDetour;
 
 xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
@@ -273,6 +279,9 @@ xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
 
     if (std::strcmp(*pName, "clonebrushmodeltoscriptmodel") == 0)
         return reinterpret_cast<xfunction_t *>(&GScr_CloneBrushModelToScriptModel);
+
+    if (std::strcmp(*pName, "holdbreathbuttonpressed") == 0)
+        return reinterpret_cast<xfunction_t *>(&PlayerCmd_holdBreathButtonPressed);
 
     return result;
 }
