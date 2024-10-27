@@ -372,11 +372,16 @@ createforgehud()
 	instructions = [];
 	instructions[instructions.size] = "[{+smoke}] [{+frag}] Decrease/Increase";
 	instructions[instructions.size] = "While holding [{+activate}]:";
-	instructions[instructions.size] = "        [{+smoke}] [{+frag}] Change modes";
-	instructions[instructions.size] = "        [{+attack}] Pick up/Drop";
+	instructions[instructions.size] = "[{+smoke}] Next mode";
+	instructions[instructions.size] = "[{+frag}] Prev mode";
+
+	instructions[instructions.size] = "[{+attack}] Pick up/Drop";
+	if(level.xenon)
+		instructions[instructions.size] = "[{+breath_sprint}] Clone object";
+
 	instructions[instructions.size] = "";
-	instructions[instructions.size] = "        [{+speed_throw}] Exit Forge";
-	instructions[instructions.size] = "        [{+melee}] Switch to UFO mode";
+	instructions[instructions.size] = "[{+speed_throw}] Exit Forge";
+	instructions[instructions.size] = "[{+melee}] Switch to UFO mode";
 
 	instructionsString = "";
 	for (i = 0; i < instructions.size; i++)
@@ -388,6 +393,11 @@ createforgehud()
 	self.forge_hud["instructions"] setText(instructionsString);
 
 	x = 30;
+
+	// self.forge_hud["slots"] = createFontString("default", 1.4);
+	// self.forge_hud["slots"] setPoint("TOPRIGHT", "TOPRIGHT", x, -20);
+	// self.forge_hud["slots"].label = &"slots: &&1";
+	// self.forge_hud["slots"] SetValue(0);
 
 	self.forge_hud["mode"] = createFontString("default", 1.4);
 	self.forge_hud["mode"] setPoint("TOPRIGHT", "TOPRIGHT", x, -20);
@@ -510,6 +520,49 @@ forgestart()
 
 			if (self.spectator_mode == "forge")
 			{
+				// CLONE OBJECT
+				if(self holdbreathbuttonpressed())
+				{
+					if(isdefined(focusedEnt))
+					{
+						if(isdefined(focusedEnt.model) && isdefined(focusedEnt.script_brushmodel) && (focusedEnt.model == "com_bomb_objective" || focusedEnt.model == "com_laptop_2_open" || focusedEnt.model == "com_plasticcase_beige_big"))
+						{
+							// spawn a script_model convert it to a script_brushmodel
+							script_brushmodel = spawn("script_model", focusedEnt.script_brushmodel.origin);
+							script_brushmodel.angles = focusedEnt.script_brushmodel.angles;
+							script_brushmodel clonebrushmodeltoscriptmodel(focusedEnt.script_brushmodel);
+
+							script_model = spawn("script_model", focusedEnt.origin);
+							script_model setmodel(focusedEnt.model);
+							script_model.angles = focusedEnt.angles;
+
+							script_brushmodel linkto(script_model);
+
+							script_model linkto(self);
+							pickedUpEnt = script_model;
+							self iprintln("Cloned and picked up " + getdisplayname(script_model));
+							wait 0.25;
+							// break;
+						}
+						// mp_bog
+						else if (focusedEnt.classname == "script_brushmodel" && (focusedEnt.targetname == "arch_before" || "pipe_shootable"))
+						{
+							script_brushmodel = spawn("script_model", focusedEnt.origin);
+							script_brushmodel.angles = focusedEnt.angles;
+							script_brushmodel clonebrushmodeltoscriptmodel(focusedEnt);
+
+							script_brushmodel linkto(self);
+							pickedUpEnt = script_brushmodel;
+							self iprintln("Cloned and picked up " + getdisplayname(script_brushmodel));
+							wait 0.25;
+						}
+						
+						else
+						{
+							self iprintln("Can't clone " + getdisplayname(focusedEnt));
+						}
+					}
+				}
 
 				// exit forge
 				if (self adsButtonPressed())
@@ -616,6 +669,7 @@ forgestart()
 				self.forge_hud["x"] SetValue(focusedEnt.origin[0]);
 				self.forge_hud["y"] SetValue(focusedEnt.origin[1]);
 				self.forge_hud["z"] SetValue(focusedEnt.origin[2]);
+				self.forge_hud["mode"].alpha = 1;
 				self.forge_hud["pitch"].alpha = 1;
 				self.forge_hud["yaw"].alpha = 1;
 				self.forge_hud["roll"].alpha = 1;
@@ -625,6 +679,7 @@ forgestart()
 			}
 			else
 			{
+				self.forge_hud["mode"].alpha = 0;
 				self.forge_hud["pitch"].alpha = 0;
 				self.forge_hud["yaw"].alpha = 0;
 				self.forge_hud["roll"].alpha = 0;
@@ -666,6 +721,13 @@ forgestart()
 	}
 }
 
+// TODO: refactor forge mode into readable functions
+// maybe switch statement with actions
+// Don't allow more clone while something is picked up
+// Add entity counter to hud
+// RB opens + closes. Except if hovering on item in forge mode
+
+
 ufoend()
 {
 	if (self.spectator_mode == "ufo")
@@ -703,6 +765,7 @@ getdisplayname(ent)
 		return ent.classname;
 }
 
+// TODO: maybe store script_brushmodel and link script_model to it
 initForgeModels()
 {
 	// keep in alphabetical order
@@ -736,6 +799,7 @@ initForgeModels()
 				if (distance(script_models[i].origin, script_brushmodels[j].origin) > 80)
 					continue;
 
+				script_models[i].script_brushmodel = script_brushmodels[j];
 				script_brushmodels[j] linkto(script_models[i]);
 				level.FORGE_MODELS["com_bomb_objective"][level.FORGE_MODELS["com_bomb_objective"].size] = script_models[i];
 			}
@@ -758,9 +822,15 @@ initForgeModels()
 			AssertEx(choices.size == 2, "Expected 2 brush choices for com_laptop_2_open, got " + choices.size);
 			// choose the higher Zorigin
 			if (choices[0].origin[2] > choices[1].origin[2])
+			{
+				script_models[i].script_brushmodel = choices[0];
 				choices[0] linkto(script_models[i]);
+			}
 			else
+			{
+				script_models[i].script_brushmodel = choices[1];
 				choices[1] linkto(script_models[i]);
+			}
 
 			level.FORGE_MODELS["com_laptop_2_open"][level.FORGE_MODELS["com_laptop_2_open"].size] = script_models[i];
 		}
@@ -785,9 +855,15 @@ initForgeModels()
 			AssertEx(choices.size == 2, "Expected 2 brush choices for com_plasticcase_beige_big, got " + choices.size);
 			// choose the lower Zorigin
 			if (choices[0].origin[2] < choices[1].origin[2])
+			{
+				script_models[i].script_brushmodel = choices[0];
 				choices[0] linkto(script_models[i]);
+			}
 			else
+			{
+				script_models[i].script_brushmodel = choices[1];
 				choices[1] linkto(script_models[i]);
+			}
 
 			level.FORGE_MODELS["com_plasticcase_beige_big"][level.FORGE_MODELS["com_plasticcase_beige_big"].size] = script_models[i];
 		}
