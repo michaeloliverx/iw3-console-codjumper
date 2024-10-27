@@ -539,6 +539,7 @@ forgestart()
 							script_brushmodel linkto(script_model);
 
 							script_model linkto(self);
+							focusedEnt = script_model;	// so HUD updates correctly
 							pickedUpEnt = script_model;
 							self iprintln("Cloned and picked up " + getdisplayname(script_model));
 							wait 0.25;
