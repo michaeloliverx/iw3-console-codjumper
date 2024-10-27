@@ -85,7 +85,11 @@ void (*Com_PrintError)(conChannel_t channel, const char *fmt, ...) = reinterpret
 char (*va)(char *format, ...) = reinterpret_cast<char (*)(char *format, ...)>(0x821CD858);
 void (*Scr_AddInt)(int value) = reinterpret_cast<void (*)(int value)>(0x822111C0);
 void (*Scr_Error)(const char *error) = reinterpret_cast<void (*)(const char *error)>(0x8220F6F0);
-gentity_s *(*Scr_GetEntity)(scr_entref_t entref) = reinterpret_cast<gentity_s *(*)(scr_entref_t entref)>(0x8224EE68);
+gentity_s *(*Scr_GetEntity)(scr_entref_t *entref) = reinterpret_cast<gentity_s *(*)(scr_entref_t *)>(0x8224EE68);
+gentity_s *(*GetEntity)(scr_entref_t *entref) = reinterpret_cast<gentity_s *(*)(scr_entref_t *entref)>(0x82257F30);
+void (*SV_UnlinkEntity)(gentity_s *ent) = reinterpret_cast<void (*)(gentity_s *ent)>(0x82355F08);
+int (*SV_SetBrushModel)(gentity_s *ent) = reinterpret_cast<int (*)(gentity_s *ent)>(0x82205050);
+void (*SV_LinkEntity)(gentity_s *ent) = reinterpret_cast<void (*)(gentity_s *ent)>(0x82355A00);
 
 // Variables
 serverStaticHeader_t *svsHeader = reinterpret_cast<serverStaticHeader_t *>(0x849F1580);
@@ -221,6 +225,25 @@ void SV_ClientThinkHook(client_t *cl, usercmd_s *cmd)
     }
 }
 
+void GScr_CloneBrushModelToScriptModel(scr_entref_t *scriptModelEntRef)
+{
+    gentity_s *scriptEnt = GetEntity(scriptModelEntRef);
+    gentity_s *brushEnt = Scr_GetEntity(0);
+
+    SV_UnlinkEntity(scriptEnt);
+    scriptEnt->s.index = brushEnt->s.index;
+    int contents = scriptEnt->r.contents;
+    SV_SetBrushModel(scriptEnt);
+    scriptEnt->r.contents |= contents;
+    SV_LinkEntity(scriptEnt);
+}
+
+void PlayerCmd_holdBreathButtonPressed(scr_entref_t *entref)
+{
+    gentity_s *ent = GetEntity(entref);
+    Scr_AddInt(((ent->client->buttonsSinceLastFrame | ent->client->buttons) & KEY_MASK_HOLDBREATH) != 0);
+}
+
 Detour Scr_GetMethodDetour;
 
 xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
@@ -253,6 +276,12 @@ xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
 
     if (std::strcmp(*pName, "botjump") == 0)
         return reinterpret_cast<xfunction_t *>(&GScr_BotJump);
+
+    if (std::strcmp(*pName, "clonebrushmodeltoscriptmodel") == 0)
+        return reinterpret_cast<xfunction_t *>(&GScr_CloneBrushModelToScriptModel);
+
+    if (std::strcmp(*pName, "holdbreathbuttonpressed") == 0)
+        return reinterpret_cast<xfunction_t *>(&PlayerCmd_holdBreathButtonPressed);
 
     return result;
 }
