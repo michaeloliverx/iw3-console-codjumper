@@ -525,6 +525,12 @@ forgestart()
 				{
 					if(isdefined(focusedEnt))
 					{
+						if(isdefined(pickedUpEnt))
+						{
+							self iprintln("Can't clone while holding an object");
+							wait 0.1;
+							continue;
+						}
 						if(isdefined(focusedEnt.model) && isdefined(focusedEnt.script_brushmodel) && (focusedEnt.model == "com_bomb_objective" || focusedEnt.model == "com_laptop_2_open" || focusedEnt.model == "com_plasticcase_beige_big"))
 						{
 							// spawn a script_model convert it to a script_brushmodel
