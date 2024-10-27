@@ -379,7 +379,6 @@ createforgehud()
 	if(level.xenon)
 		instructions[instructions.size] = "[{+breath_sprint}] Clone object";
 
-	instructions[instructions.size] = "";
 	instructions[instructions.size] = "[{+speed_throw}] Exit Forge";
 	instructions[instructions.size] = "[{+melee}] Switch to UFO mode";
 
@@ -394,42 +393,42 @@ createforgehud()
 
 	x = 30;
 
-	// self.forge_hud["slots"] = createFontString("default", 1.4);
-	// self.forge_hud["slots"] setPoint("TOPRIGHT", "TOPRIGHT", x, -20);
-	// self.forge_hud["slots"].label = &"slots: &&1";
-	// self.forge_hud["slots"] SetValue(0);
+	self.forge_hud["entities"] = createFontString("default", 1.4);
+	self.forge_hud["entities"] setPoint("TOPRIGHT", "TOPRIGHT", x, -20);
+	self.forge_hud["entities"].label = &"entities (1000 max): &&1";
+	self.forge_hud["entities"] SetValue(getentarray().size);
 
 	self.forge_hud["mode"] = createFontString("default", 1.4);
-	self.forge_hud["mode"] setPoint("TOPRIGHT", "TOPRIGHT", x, -20);
+	self.forge_hud["mode"] setPoint("TOPRIGHT", "TOPRIGHT", x, 0);
 	self.forge_hud["mode"] setText("mode: " + self.forge_change_mode);
 
 	self.forge_hud["pitch"] = createFontString("default", 1.4);
-	self.forge_hud["pitch"] setPoint("TOPRIGHT", "TOPRIGHT", x, 0);
+	self.forge_hud["pitch"] setPoint("TOPRIGHT", "TOPRIGHT", x, 20);
 	self.forge_hud["pitch"].label = &"pitch: &&1";
 	self.forge_hud["pitch"] SetValue(0);
 
 	self.forge_hud["yaw"] = createFontString("default", 1.4);
-	self.forge_hud["yaw"] setPoint("TOPRIGHT", "TOPRIGHT", x, 20);
+	self.forge_hud["yaw"] setPoint("TOPRIGHT", "TOPRIGHT", x, 40);
 	self.forge_hud["yaw"].label = &"yaw: &&1";
 	self.forge_hud["yaw"] SetValue(0);
 
 	self.forge_hud["roll"] = createFontString("default", 1.4);
-	self.forge_hud["roll"] setPoint("TOPRIGHT", "TOPRIGHT", x, 40);
+	self.forge_hud["roll"] setPoint("TOPRIGHT", "TOPRIGHT", x, 60);
 	self.forge_hud["roll"].label = &"roll: &&1";
 	self.forge_hud["roll"] SetValue(0);
 
 	self.forge_hud["x"] = createFontString("default", 1.4);
-	self.forge_hud["x"] setPoint("TOPRIGHT", "TOPRIGHT", x, 60);
+	self.forge_hud["x"] setPoint("TOPRIGHT", "TOPRIGHT", x, 80);
 	self.forge_hud["x"].label = &"x: &&1";
 	self.forge_hud["x"] SetValue(0);
 
 	self.forge_hud["y"] = createFontString("default", 1.4);
-	self.forge_hud["y"] setPoint("TOPRIGHT", "TOPRIGHT", x, 80);
+	self.forge_hud["y"] setPoint("TOPRIGHT", "TOPRIGHT", x, 100);
 	self.forge_hud["y"].label = &"y: &&1";
 	self.forge_hud["y"] SetValue(0);
 
 	self.forge_hud["z"] = createFontString("default", 1.4);
-	self.forge_hud["z"] setPoint("TOPRIGHT", "TOPRIGHT", x, 100);
+	self.forge_hud["z"] setPoint("TOPRIGHT", "TOPRIGHT", x, 120);
 	self.forge_hud["z"].label = &"z: &&1";
 	self.forge_hud["z"] SetValue(0);
 
@@ -501,18 +500,20 @@ forgestart()
 			{
 				if (self.spectator_mode == "ufo")
 				{
-					self.spectator_mode = "forge";
-					self iprintln("Forge mode");
 					self thread createforgehud();
-					wait 0.5;
+					self.spectator_mode = "forge";
+					self setClientDvar("player_spectateSpeedScale", 0.5); // Slower speed for fine movements
+					self iprintln("Forge mode");
+					wait 0.25;
 					break;
 				}
 				else
 				{
 					self thread destroyforgehud();
 					self.spectator_mode = "ufo";
+					self setClientDvar("player_spectateSpeedScale", 1.5);
 					self iprintln("UFO mode");
-					wait 0.5;
+					wait 0.25;
 					break;
 				}
 				wait 0.05;
@@ -520,18 +521,26 @@ forgestart()
 
 			if (self.spectator_mode == "forge")
 			{
+
+#if defined(SYSTEM_XENON)
 				// CLONE OBJECT
-				if(self holdbreathbuttonpressed())
+				if (self holdbreathbuttonpressed())
 				{
-					if(isdefined(focusedEnt))
+					if (isdefined(focusedEnt))
 					{
-						if(isdefined(pickedUpEnt))
+						if (getentarray().size >= 1000)
+						{
+							self iprintln("Max entities reached.");
+							wait 0.1;
+							continue;
+						}
+						if (isdefined(pickedUpEnt))
 						{
 							self iprintln("Can't clone while holding an object");
 							wait 0.1;
 							continue;
 						}
-						if(isdefined(focusedEnt.model) && isdefined(focusedEnt.script_brushmodel) && (focusedEnt.model == "com_bomb_objective" || focusedEnt.model == "com_laptop_2_open" || focusedEnt.model == "com_plasticcase_beige_big"))
+						if (isdefined(focusedEnt.model) && isdefined(focusedEnt.script_brushmodel) && (focusedEnt.model == "com_bomb_objective" || focusedEnt.model == "com_laptop_2_open" || focusedEnt.model == "com_plasticcase_beige_big"))
 						{
 							// spawn a script_model convert it to a script_brushmodel
 							script_brushmodel = spawn("script_model", focusedEnt.script_brushmodel.origin);
@@ -542,34 +551,37 @@ forgestart()
 							script_model setmodel(focusedEnt.model);
 							script_model.angles = focusedEnt.angles;
 
+							script_model.script_brushmodel = script_brushmodel;
 							script_brushmodel linkto(script_model);
 
 							script_model linkto(self);
-							focusedEnt = script_model;	// so HUD updates correctly
+							focusedEnt = script_model; // so HUD updates correctly
 							pickedUpEnt = script_model;
 							self iprintln("Cloned and picked up " + getdisplayname(script_model));
 							wait 0.25;
 							// break;
 						}
 						// mp_bog
-						else if (focusedEnt.classname == "script_brushmodel" && (focusedEnt.targetname == "arch_before" || "pipe_shootable"))
+						else if (focusedEnt.classname == "script_brushmodel" && (focusedEnt.targetname == "arch_before" || "pipe_shootable" || "gas_station"))
 						{
 							script_brushmodel = spawn("script_model", focusedEnt.origin);
 							script_brushmodel.angles = focusedEnt.angles;
 							script_brushmodel clonebrushmodeltoscriptmodel(focusedEnt);
 
+							script_brushmodel.targetname = focusedEnt.targetname;
 							script_brushmodel linkto(self);
 							pickedUpEnt = script_brushmodel;
 							self iprintln("Cloned and picked up " + getdisplayname(script_brushmodel));
 							wait 0.25;
 						}
-						
 						else
 						{
 							self iprintln("Can't clone " + getdisplayname(focusedEnt));
+							wait 0.1;
 						}
 					}
 				}
+#endif
 
 				// exit forge
 				if (self adsButtonPressed())
@@ -668,6 +680,7 @@ forgestart()
 			}
 
 			// update hud
+			self.forge_hud["entities"] SetValue(getentarray().size);
 			if (isdefined(focusedEnt))
 			{
 				self.forge_hud["pitch"] SetValue(focusedEnt.angles[0]);
@@ -696,7 +709,7 @@ forgestart()
 			}
 
 			// rotations and movements can't be done on a linked entity so do it on focus
-			if (!isdefined(pickedUpEnt) && isdefined(focusedEnt) && self secondaryoffhandbuttonpressed() || self fragbuttonpressed())
+			if (!isdefined(pickedUpEnt) && isdefined(focusedEnt) && (self secondaryoffhandbuttonpressed() || self fragbuttonpressed()))
 			{
 				if (self secondaryoffhandbuttonpressed())
 				{
@@ -704,7 +717,6 @@ forgestart()
 						focusedEnt rotatepitch(unit, 0.05);
 					else if (self.forge_change_mode == "yaw")
 						focusedEnt rotateyaw(unit, 0.05);
-
 					else if (self.forge_change_mode == "roll")
 						focusedEnt rotateroll(unit, 0.05);
 					else if (self.forge_change_mode == "z")
@@ -730,9 +742,10 @@ forgestart()
 
 // TODO: refactor forge mode into readable functions
 // maybe switch statement with actions
-// Don't allow more clone while something is picked up
-// Add entity counter to hud
 // RB opens + closes. Except if hovering on item in forge mode
+// Add a way to delete entities
+// Add a x,y movement mode
+// add better datastructure for forge models, cloned objects don't inherit classname and targetnames etc
 
 
 ufoend()
