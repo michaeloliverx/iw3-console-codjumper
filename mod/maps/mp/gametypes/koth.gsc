@@ -850,12 +850,9 @@ initForgeModels()
 		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-439, 2880, -12));
 	}
 
-	// TODO: find out why this doesn't get all 3
 	if (getdvar("mapname") == "mp_farm")
 	{
-		level.FORGE_MODELS["pipe"][level.FORGE_MODELS["pipe"].size] = getentbyorigin((922, 741, 338));
-		level.FORGE_MODELS["pipe"][level.FORGE_MODELS["pipe"].size] = getentbyorigin((1293, 1327, 299));
-		level.FORGE_MODELS["pipe"][level.FORGE_MODELS["pipe"].size] = getentbyorigin((1293, 1347, 299));
+		level.FORGE_MODELS["pipe"] = getEntArray("gas_station", "targetname");
 	}
 
 	if (getdvar("mapname") == "mp_showdown")
