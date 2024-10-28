@@ -374,6 +374,8 @@ getForgeInstructionsText(state)
 	if (!isdefined(state))
 	{
 		instructions[instructions.size] = "[{+activate}] Hold for more options";
+		instructions[instructions.size] = "[{+smoke}] Change speed";
+		instructions[instructions.size] = "[{+frag}] Exit";
 	}
 	else if (state == "FOCUSED")
 	{
@@ -497,8 +499,8 @@ forgestart()
 	unfocusedColor = (1, 1, 1);
 	pickedUpColor = (1, 0, 0);
 
-	focusedEnt = undefined;
-	pickedUpEnt = undefined;
+	self.focusedEnt = undefined;
+	self.pickedUpEnt = undefined;
 
 	unit = 1;
 
@@ -534,7 +536,7 @@ forgestart()
 				}
 				else
 				{
-					if (isdefined(pickedUpEnt))
+					if (isdefined(self.pickedUpEnt))
 					{
 						self iprintln("Can't switch to UFO while holding an object");
 						wait 0.1;
@@ -559,65 +561,46 @@ forgestart()
 				// CLONE OBJECT
 				if (self holdbreathbuttonpressed())
 				{
-					if (isdefined(pickedUpEnt))
+					if (isdefined(self.pickedUpEnt))
 					{
 						self iprintln("Can't clone while holding an object");
 						wait 0.1;
 					}
-					else if (isdefined(focusedEnt))
+					else if (isdefined(self.focusedEnt))
 					{
-						cloned_object = self cloneObject(focusedEnt);
+						cloned_object = self cloneObject(self.focusedEnt);
 						if (isdefined(cloned_object))
 						{
 							cloned_object linkto(self);
-							pickedUpEnt = cloned_object;
-							focusedEnt = cloned_object; // so HUD updates correctly
+							self.pickedUpEnt = cloned_object;
+							self.focusedEnt = cloned_object; // so HUD updates correctly
 							self iprintln("Cloned and picked up " + getdisplayname(cloned_object));
 							wait 0.25;
 						}
 						else
 						{
-							self iprintln("Can't clone " + getdisplayname(focusedEnt));
+							self iprintln("Can't clone " + getdisplayname(self.focusedEnt));
 							wait 0.1;
 						}
 					}
 				}
 #endif
-
-				// exit forge
-				if (self adsButtonPressed())
-				{
-					if (isdefined(pickedUpEnt))
-					{
-						self iprintln("Can't exit while holding an object");
-						wait 0.1;
-					}
-					else
-					{
-						self thread destroyforgehud();
-						self ufocontrolsOFF();
-						self freezecontrols(false);
-						self iprintln("Forge mode OFF");
-						return;
-					}
-				}
-
 				// pick up or drop ent
-				if (!isdefined(pickedUpEnt) && isdefined(focusedEnt) && self attackButtonPressed())
+				if (!isdefined(self.pickedUpEnt) && isdefined(self.focusedEnt) && self attackButtonPressed())
 				{
-					ent = focusedEnt;
+					ent = self.focusedEnt;
 					ent linkto(self);
-					pickedUpEnt = focusedEnt;
+					self.pickedUpEnt = self.focusedEnt;
 					self iprintln("Picked up " + getdisplayname(ent));
 					wait 0.25;
 					break;
 				}
-				else if (isdefined(pickedUpEnt) && self attackButtonPressed())
+				else if (isdefined(self.pickedUpEnt) && self attackButtonPressed())
 				{
-					ent = pickedUpEnt;
+					ent = self.pickedUpEnt;
 					ent unlink();
 					ent.origin = flat_origin(ent.origin); // snap to whole numbers
-					pickedUpEnt = undefined;
+					self.pickedUpEnt = undefined;
 					self iprintln("Dropped " + getdisplayname(ent));
 					wait 0.25;
 					break;
@@ -661,7 +644,7 @@ forgestart()
 
 		if (self.spectator_mode == "forge")
 		{
-			if (!isdefined(pickedUpEnt))
+			if (!isdefined(self.pickedUpEnt))
 			{
 				forward = anglestoforward(self getplayerangles());
 				eye = self.origin + (0, 0, 10);
@@ -675,12 +658,12 @@ forgestart()
 					if (isdefined(ent.forge_parent))
 						ent = ent.forge_parent;
 
-					focusedEnt = ent;
+					self.focusedEnt = ent;
 				}
 				else
 				{
 					self.forge_hud["reticle"].color = unfocusedColor;
-					focusedEnt = undefined;
+					self.focusedEnt = undefined;
 				}
 			}
 			else
@@ -690,21 +673,21 @@ forgestart()
 
 			// update hud
 
-			if (isdefined(focusedEnt))
+			if (isdefined(self.focusedEnt))
 				self.forge_hud["instructions"] setText(getForgeInstructionsText("FOCUSED"));
 			else
 				self.forge_hud["instructions"] setText(getForgeInstructionsText());
 
 			self.forge_hud["entities"] SetValue(getentarray().size);
 
-			if (isdefined(focusedEnt))
+			if (isdefined(self.focusedEnt))
 			{
-				self.forge_hud["pitch"] SetValue(focusedEnt.angles[0]);
-				self.forge_hud["yaw"] SetValue(focusedEnt.angles[1]);
-				self.forge_hud["roll"] SetValue(focusedEnt.angles[2]);
-				self.forge_hud["x"] SetValue(focusedEnt.origin[0]);
-				self.forge_hud["y"] SetValue(focusedEnt.origin[1]);
-				self.forge_hud["z"] SetValue(focusedEnt.origin[2]);
+				self.forge_hud["pitch"] SetValue(self.focusedEnt.angles[0]);
+				self.forge_hud["yaw"] SetValue(self.focusedEnt.angles[1]);
+				self.forge_hud["roll"] SetValue(self.focusedEnt.angles[2]);
+				self.forge_hud["x"] SetValue(self.focusedEnt.origin[0]);
+				self.forge_hud["y"] SetValue(self.focusedEnt.origin[1]);
+				self.forge_hud["z"] SetValue(self.focusedEnt.origin[2]);
 				self.forge_hud["mode"].alpha = 1;
 				self.forge_hud["pitch"].alpha = 1;
 				self.forge_hud["yaw"].alpha = 1;
@@ -725,29 +708,29 @@ forgestart()
 			}
 
 			// rotations and movements can't be done on a linked entity so do it on focus
-			if (!isdefined(pickedUpEnt) && isdefined(focusedEnt) && (self secondaryoffhandbuttonpressed() || self fragbuttonpressed()))
+			if (!isdefined(self.pickedUpEnt) && isdefined(self.focusedEnt) && (self secondaryoffhandbuttonpressed() || self fragbuttonpressed()))
 			{
 				if (self secondaryoffhandbuttonpressed())
 				{
 					if (self.forge_change_mode == "pitch")
-						focusedEnt rotatepitch(unit, 0.05);
+						self.focusedEnt rotatepitch(unit, 0.05);
 					else if (self.forge_change_mode == "yaw")
-						focusedEnt rotateyaw(unit, 0.05);
+						self.focusedEnt rotateyaw(unit, 0.05);
 					else if (self.forge_change_mode == "roll")
-						focusedEnt rotateroll(unit, 0.05);
+						self.focusedEnt rotateroll(unit, 0.05);
 					else if (self.forge_change_mode == "z")
-						focusedEnt movez(unit * -1, 0.05);
+						self.focusedEnt movez(unit * -1, 0.05);
 				}
 				else if (self fragbuttonpressed())
 				{
 					if (self.forge_change_mode == "pitch")
-						focusedEnt rotatepitch(unit * -1, 0.05);
+						self.focusedEnt rotatepitch(unit * -1, 0.05);
 					else if (self.forge_change_mode == "yaw")
-						focusedEnt rotateyaw(unit * -1, 0.05);
+						self.focusedEnt rotateyaw(unit * -1, 0.05);
 					else if (self.forge_change_mode == "roll")
-						focusedEnt rotateroll(unit * -1, 0.05);
+						self.focusedEnt rotateroll(unit * -1, 0.05);
 					else if (self.forge_change_mode == "z")
-						focusedEnt movez(unit, 0.05);
+						self.focusedEnt movez(unit, 0.05);
 				}
 			}
 		}
@@ -758,11 +741,9 @@ forgestart()
 
 // TODO: refactor forge mode into readable functions
 // maybe switch statement with actions
-// RB opens + closes. Except if hovering on item in forge mode
 // Add a way to delete entities
 // Add a x,y movement mode
 // add better datastructure for forge models, cloned objects don't inherit classname and targetnames etc
-// prevent exiting forge while holding an object
 
 #if defined(SYSTEM_XENON)
 
@@ -859,6 +840,21 @@ ufoend()
 		self ufocontrolsOFF();
 		self notify("forge_end");
 		self iprintln("UFO mode OFF");
+	}
+	else if (self.spectator_mode == "forge")
+	{
+		if (isdefined(self.focusedEnt))
+			return;
+		if (isdefined(self.pickedUpEnt))
+			self iprintln("Can't exit while holding an object");
+		else
+		{
+			self notify("forge_end");
+			self thread destroyforgehud();
+			self ufocontrolsOFF();
+			self freezecontrols(false);
+			self iprintln("Forge mode OFF");
+		}
 	}
 }
 
