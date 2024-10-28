@@ -528,78 +528,13 @@ forgestart()
 				{
 					if (isdefined(focusedEnt))
 					{
-						if (getentarray().size >= 1000)
+						cloned_object = self cloneObject(focusedEnt);
+						if(isdefined(cloned_object))
 						{
-							self iprintln("Max entities reached.");
-							wait 0.1;
-							continue;
-						}
-						if (isdefined(pickedUpEnt))
-						{
-							self iprintln("Can't clone while holding an object");
-							wait 0.1;
-							continue;
-						}
-						if (isdefined(focusedEnt.model) && isdefined(focusedEnt.script_brushmodel) && (focusedEnt.model == "com_bomb_objective" || focusedEnt.model == "com_laptop_2_open" || focusedEnt.model == "com_plasticcase_beige_big"))
-						{
-							// spawn a script_model convert it to a script_brushmodel
-							script_brushmodel = spawn("script_model", focusedEnt.script_brushmodel.origin);
-							script_brushmodel.angles = focusedEnt.script_brushmodel.angles;
-							script_brushmodel clonebrushmodeltoscriptmodel(focusedEnt.script_brushmodel);
-
-							script_model = spawn("script_model", focusedEnt.origin);
-							script_model setmodel(focusedEnt.model);
-							script_model.angles = focusedEnt.angles;
-
-							script_model.script_brushmodel = script_brushmodel;
-							script_brushmodel linkto(script_model);
-
-							script_model linkto(self);
-							focusedEnt = script_model; // so HUD updates correctly
-							pickedUpEnt = script_model;
-							self iprintln("Cloned and picked up " + getdisplayname(script_model));
-							wait 0.25;
-							// break;
-						}
-						// clone bc_hesco_barrier_med. requires 4 entities
-						else if (isdefined(focusedEnt.model) && focusedEnt.model == "bc_hesco_barrier_med" && isdefined(focusedEnt.forge_parent))
-						{
-							// spawn collision
-							script_brushmodel = spawn("script_model", focusedEnt.forge_parent.origin);
-							script_brushmodel.angles = focusedEnt.forge_parent.angles;
-							script_brushmodel clonebrushmodeltoscriptmodel(focusedEnt.forge_parent);
-
-							// spawn visual and link to collision
-							ents = getentarray("script_model", "classname");
-							for (i = 0; i < ents.size; i++)
-							{
-								if (ents[i].model == "bc_hesco_barrier_med" && isdefined(ents[i].forge_parent) && ents[i].forge_parent == focusedEnt.forge_parent)
-								{
-									script_model = spawn("script_model", ents[i].origin);
-									script_model setmodel("bc_hesco_barrier_med");
-									script_model.angles = ents[i].angles;
-
-									script_model.forge_parent = script_brushmodel;
-									script_model linkto(script_brushmodel);
-								}
-							}
-							script_brushmodel linkto(self);
-							focusedEnt = script_brushmodel; // so HUD updates correctly
-							pickedUpEnt = script_brushmodel;
-							self iprintln("Cloned and picked up " + getdisplayname(script_brushmodel));
-							wait 0.25;
-						}
-						
-						else if (focusedEnt.classname == "script_brushmodel" && (focusedEnt.targetname == "arch_before" || focusedEnt.targetname == "pipe_shootable" || focusedEnt.targetname == "gas_station"))
-						{
-							script_brushmodel = spawn("script_model", focusedEnt.origin);
-							script_brushmodel.angles = focusedEnt.angles;
-							script_brushmodel clonebrushmodeltoscriptmodel(focusedEnt);
-
-							script_brushmodel.targetname = focusedEnt.targetname;
-							script_brushmodel linkto(self);
-							pickedUpEnt = script_brushmodel;
-							self iprintln("Cloned and picked up " + getdisplayname(script_brushmodel));
+							cloned_object linkto(self);
+							pickedUpEnt = cloned_object;
+							focusedEnt = cloned_object; // so HUD updates correctly
+							self iprintln("Cloned and picked up " + getdisplayname(cloned_object));
 							wait 0.25;
 						}
 						else
@@ -776,6 +711,93 @@ forgestart()
 // add better datastructure for forge models, cloned objects don't inherit classname and targetnames etc
 // prevent exiting forge while holding an object
 
+#if defined(SYSTEM_XENON)
+
+cloneObject(ent)
+{
+	if (!isdefined(ent))
+	{
+		self iprintln("No object to clone");
+		return;
+	}
+	if (ent.classname != "script_brushmodel" && ent.classname != "script_model")
+	{
+		self iprintln("Entity classname must be one of {script_brushmodel, script_model}");
+		return;
+	}
+	if (!isdefined(ent.forge_enabled) || !ent.forge_enabled)
+	{
+		self iprintln("Entity must be forge enabled");
+		return;
+	}
+	if (getentarray().size >= 1000)
+	{
+		self iprintln("Max entities reached");
+		return;
+	}
+	// TODO: maybe add a well known key to entity to indicate the forge type and its required properties to clone
+	// case 1: 1 script_model, 1 script_brushmodel
+	if (ent.classname == "script_model" && isdefined(ent.script_brushmodel))
+	{
+		script_model = spawn("script_model", ent.origin);
+		script_model setmodel(ent.model);
+		script_model.angles = ent.angles;
+
+		script_brushmodel = spawn("script_model", ent.script_brushmodel.origin);
+		script_brushmodel.angles = ent.script_brushmodel.angles;
+		script_brushmodel clonebrushmodeltoscriptmodel(ent.script_brushmodel);
+		script_brushmodel.classname = "script_brushmodel";
+		script_brushmodel linkto(script_model);
+
+		script_model.script_brushmodel = script_brushmodel;
+		script_model.forge_enabled = true;
+
+		return script_model;
+	}
+	// case 2: 1 script_brushmodel or script_model
+	else if (!isdefined(ent.forge_children))
+	{
+		script_brushmodel = spawn("script_model", ent.origin);
+		script_brushmodel.angles = ent.angles;
+		script_brushmodel clonebrushmodeltoscriptmodel(ent);
+		script_brushmodel.forge_enabled = true;
+
+		return script_brushmodel;
+	}
+	// case 3: 1 script_brushmodel or script_model, multiple script_models
+	else if (isdefined(ent.forge_children))
+	{
+		if (ent.forge_children.size == 0)
+		{
+			self iprintln("No forge_children to clone");
+			return;
+		}
+
+		script_brushmodel = spawn("script_model", ent.origin);
+		script_brushmodel.angles = ent.angles;
+		script_brushmodel clonebrushmodeltoscriptmodel(ent);
+
+		script_models = [];
+
+		for (i = 0; i < ent.forge_children.size; i++)
+		{
+			script_model = spawn("script_model", ent.forge_children[i].origin);
+			script_model setmodel(ent.forge_children[i].model);
+			script_model.angles = ent.forge_children[i].angles;
+			script_model linkto(script_brushmodel);
+			script_model.forge_enabled = true;
+			script_model.forge_parent = script_brushmodel;
+			script_models[script_models.size] = script_model;
+		}
+
+		script_brushmodel.forge_enabled = true;
+		script_brushmodel.forge_children = script_models;
+
+		return script_brushmodel;
+	}
+}
+
+#endif
 
 ufoend()
 {
@@ -938,14 +960,16 @@ initForgeModels()
 				{
 					if (distance(script_models[j].origin, bc_hesco_barrier_med_script_brushmodel.origin) < 80)
 					{
-						bc_hesco_barrier_med_script_models[bc_hesco_barrier_med_script_models.size] = script_models[j];
 						script_models[j] linkto(bc_hesco_barrier_med_script_brushmodel);
 						script_models[j].forge_parent = bc_hesco_barrier_med_script_brushmodel;
+						script_models[j].forge_enabled = true;
+						bc_hesco_barrier_med_script_models[bc_hesco_barrier_med_script_models.size] = script_models[j];
 					}
 				}
 			}
 
 			assertex(bc_hesco_barrier_med_script_models.size == 3, "Expected 3 bc_hesco_barrier_med script_models linked to 1 script_brushmodel, got " + bc_hesco_barrier_med_script_models.size);
+			bc_hesco_barrier_med_script_brushmodel.forge_children = bc_hesco_barrier_med_script_models;
 
 			level.FORGE_MODELS["bc_hesco_barrier_med"][level.FORGE_MODELS["bc_hesco_barrier_med"].size] = bc_hesco_barrier_med_script_brushmodel;
 		}
@@ -997,6 +1021,7 @@ initForgeModels()
 			modelEnt = level.FORGE_MODELS[modelName][j];
 			modelEnt.startOrigin = modelEnt.origin;
 			modelEnt.startAngles = modelEnt.angles;
+			modelEnt.forge_enabled = true;
 		}
 	}
 }
