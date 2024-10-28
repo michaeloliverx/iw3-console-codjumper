@@ -516,12 +516,20 @@ forgestart()
 				}
 				else
 				{
-					self thread destroyforgehud();
-					self.spectator_mode = "ufo";
-					self setClientDvar("player_spectateSpeedScale", 1.5);
-					self iprintln("UFO mode");
-					wait 0.25;
-					break;
+					if (isdefined(pickedUpEnt))
+					{
+						self iprintln("Can't switch to UFO while holding an object");
+						wait 0.1;
+					}
+					else
+					{
+						self thread destroyforgehud();
+						self.spectator_mode = "ufo";
+						self setClientDvar("player_spectateSpeedScale", 1.5);
+						self iprintln("UFO mode");
+						wait 0.25;
+						break;
+					}
 				}
 				wait 0.05;
 			}
@@ -533,10 +541,15 @@ forgestart()
 				// CLONE OBJECT
 				if (self holdbreathbuttonpressed())
 				{
-					if (isdefined(focusedEnt))
+					if (isdefined(pickedUpEnt))
+					{
+						self iprintln("Can't clone while holding an object");
+						wait 0.1;
+					}
+					else if (isdefined(focusedEnt))
 					{
 						cloned_object = self cloneObject(focusedEnt);
-						if(isdefined(cloned_object))
+						if (isdefined(cloned_object))
 						{
 							cloned_object linkto(self);
 							pickedUpEnt = cloned_object;
@@ -556,11 +569,19 @@ forgestart()
 				// exit forge
 				if (self adsButtonPressed())
 				{
-					self thread destroyforgehud();
-					self ufocontrolsOFF();
-					self freezecontrols(false);
-					self iprintln("Forge mode OFF");
-					return;
+					if (isdefined(pickedUpEnt))
+					{
+						self iprintln("Can't exit while holding an object");
+						wait 0.1;
+					}
+					else
+					{
+						self thread destroyforgehud();
+						self ufocontrolsOFF();
+						self freezecontrols(false);
+						self iprintln("Forge mode OFF");
+						return;
+					}
 				}
 
 				// pick up or drop ent
