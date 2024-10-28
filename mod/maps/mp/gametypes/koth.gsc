@@ -367,29 +367,46 @@ getPlayerFromName(playerName)
 			return level.players[i];
 }
 
-createforgehud()
+getForgeInstructionsText(state)
 {
 	instructions = [];
-	instructions[instructions.size] = "[{+smoke}] [{+frag}] Decrease/Increase";
-	instructions[instructions.size] = "While holding [{+activate}]:";
-	instructions[instructions.size] = "[{+smoke}] Next mode";
-	instructions[instructions.size] = "[{+frag}] Prev mode";
 
-	instructions[instructions.size] = "[{+attack}] Pick up/Drop";
-	if(level.xenon)
-		instructions[instructions.size] = "[{+breath_sprint}] Clone object";
+	if (!isdefined(state))
+	{
+		instructions[instructions.size] = "[{+activate}] Hold for more options";
+	}
+	else if (state == "FOCUSED")
+	{
+		instructions[instructions.size] = "[{+activate}] Hold for more options";
+		instructions[instructions.size] = "[{+smoke}] Decrease";
+		instructions[instructions.size] = "[{+frag}] Increase";
+	}
+	else if (state == "HOLD_X")
+	{
+		instructions[instructions.size] = "[{+smoke}] Next mode";
+		instructions[instructions.size] = "[{+frag}] Prev mode";
 
-	instructions[instructions.size] = "[{+speed_throw}] Exit Forge";
-	instructions[instructions.size] = "[{+melee}] Switch to UFO mode";
+		instructions[instructions.size] = "[{+speed_throw}] Exit Forge";
+		instructions[instructions.size] = "[{+attack}] Pick up/Drop";
+		if (level.xenon)
+			instructions[instructions.size] = "[{+breath_sprint}] Clone object";
+
+		instructions[instructions.size] = "[{+melee}] Switch to UFO mode";
+	}
 
 	instructionsString = "";
 	for (i = 0; i < instructions.size; i++)
 		instructionsString += instructions[i] + "\n";
 
+	return instructionsString;
+}
+
+createforgehud()
+{
 	self.forge_hud = [];
 	self.forge_hud["instructions"] = createFontString("default", 1.4);
 	self.forge_hud["instructions"] setPoint("TOPLEFT", "TOPLEFT", -30, -20);
-	self.forge_hud["instructions"] setText(instructionsString);
+	self.forge_hud["instructions"] setText(getForgeInstructionsText());
 
 	x = 30;
 
@@ -501,6 +518,7 @@ forgestart()
 		// HOLD X actions
 		while (self usebuttonpressed())
 		{
+			self.forge_hud["instructions"] setText(getForgeInstructionsText("HOLD_X"));
 			// freeze controls to allow meleebuttonpressed while in spectator
 			self freezecontrols(true);
 			if (self meleebuttonpressed())
@@ -671,7 +689,14 @@ forgestart()
 			}
 
 			// update hud
+
+			if (isdefined(focusedEnt))
+				self.forge_hud["instructions"] setText(getForgeInstructionsText("FOCUSED"));
+			else
+				self.forge_hud["instructions"] setText(getForgeInstructionsText());
+
 			self.forge_hud["entities"] SetValue(getentarray().size);
+
 			if (isdefined(focusedEnt))
 			{
 				self.forge_hud["pitch"] SetValue(focusedEnt.angles[0]);
