@@ -481,6 +481,17 @@ forgestart()
 
 	self ufocontrolsON();
 
+	spectator_speed_settings = [];
+	spectator_speed_settings["slowest"] = 0.1;
+	spectator_speed_settings["slower"] = 0.25;
+	spectator_speed_settings["slow"] = 0.5;
+	spectator_speed_settings["normal"] = 1;
+	spectator_speed_settings["fast"] = 1.5;
+	spectator_speed_settings["faster"] = 3;
+
+	if(!isdefined(self.spectator_speed_index))
+		self.spectator_speed_index = 3;
+
 	if (!isdefined(self.spectator_mode))
 		self.spectator_mode = "ufo";
 
@@ -511,6 +522,19 @@ forgestart()
 		{
 			wait 0.1;
 			continue;
+		}
+
+		if (!isdefined(self.focusedEnt) && !isdefined(self.pickedUpEnt) && self secondaryoffhandbuttonpressed())
+		{
+			speeds = getarraykeys(spectator_speed_settings);
+			self.spectator_speed_index--;
+			if (self.spectator_speed_index < 0)
+				self.spectator_speed_index = speeds.size - 1;
+
+			speed = speeds[self.spectator_speed_index];
+			self setClientDvar("player_spectateSpeedScale", spectator_speed_settings[speed]);
+			self iprintln("Spectator speed: " + speed);
+			wait 0.25;
 		}
 
 		// don't unfreeze controls if in menu otherwise the menu controls will break
