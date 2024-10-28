@@ -1,6 +1,7 @@
 #include common_scripts\utility;
 #include maps\mp\gametypes\_hud_util;
 #include maps\mp\gametypes\koth;
+#include maps\mp\gametypes\sab;
 
 init()
 {
@@ -14,6 +15,13 @@ init()
 	level.SELECTED_PREFIX = "^2-->^7 ";
 
 	initForgeModels();
+
+	// sab_bomb is always on the ground in the middle of the map
+    level.MAP_CENTER_GROUND_ORIGIN = getent("sab_bomb", "targetname").origin;
+
+    setAllSpawnPointsToOrigin(level.MAP_CENTER_GROUND_ORIGIN);
+
+	deleteUselessEntities();
 
 	level.hardcoreMode = true; // Force hardcore mode
 
