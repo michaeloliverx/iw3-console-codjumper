@@ -374,6 +374,8 @@ getForgeInstructionsText(state)
 	if (!isdefined(state))
 	{
 		instructions[instructions.size] = "[{+activate}] Hold for more options";
+		instructions[instructions.size] = "[{+smoke}] Change speed";
+		instructions[instructions.size] = "[{+frag}] Exit";
 	}
 	else if (state == "FOCUSED")
 	{
@@ -479,6 +481,17 @@ forgestart()
 
 	self ufocontrolsON();
 
+	spectator_speed_settings = [];
+	spectator_speed_settings["slowest"] = 0.1;
+	spectator_speed_settings["slower"] = 0.25;
+	spectator_speed_settings["slow"] = 0.5;
+	spectator_speed_settings["normal"] = 1;
+	spectator_speed_settings["fast"] = 1.5;
+	spectator_speed_settings["faster"] = 3;
+
+	if(!isdefined(self.spectator_speed_index))
+		self.spectator_speed_index = 3;
+
 	if (!isdefined(self.spectator_mode))
 		self.spectator_mode = "ufo";
 
@@ -497,8 +510,8 @@ forgestart()
 	unfocusedColor = (1, 1, 1);
 	pickedUpColor = (1, 0, 0);
 
-	focusedEnt = undefined;
-	pickedUpEnt = undefined;
+	self.focusedEnt = undefined;
+	self.pickedUpEnt = undefined;
 
 	unit = 1;
 
@@ -509,6 +522,19 @@ forgestart()
 		{
 			wait 0.1;
 			continue;
+		}
+
+		if (!isdefined(self.focusedEnt) && !isdefined(self.pickedUpEnt) && self secondaryoffhandbuttonpressed())
+		{
+			speeds = getarraykeys(spectator_speed_settings);
+			self.spectator_speed_index--;
+			if (self.spectator_speed_index < 0)
+				self.spectator_speed_index = speeds.size - 1;
+
+			speed = speeds[self.spectator_speed_index];
+			self setClientDvar("player_spectateSpeedScale", spectator_speed_settings[speed]);
+			self iprintln("Spectator speed: " + speed);
+			wait 0.25;
 		}
 
 		// don't unfreeze controls if in menu otherwise the menu controls will break
@@ -534,7 +560,7 @@ forgestart()
 				}
 				else
 				{
-					if (isdefined(pickedUpEnt))
+					if (isdefined(self.pickedUpEnt))
 					{
 						self iprintln("Can't switch to UFO while holding an object");
 						wait 0.1;
@@ -559,65 +585,46 @@ forgestart()
 				// CLONE OBJECT
 				if (self holdbreathbuttonpressed())
 				{
-					if (isdefined(pickedUpEnt))
+					if (isdefined(self.pickedUpEnt))
 					{
 						self iprintln("Can't clone while holding an object");
 						wait 0.1;
 					}
-					else if (isdefined(focusedEnt))
+					else if (isdefined(self.focusedEnt))
 					{
-						cloned_object = self cloneObject(focusedEnt);
+						cloned_object = self cloneObject(self.focusedEnt);
 						if (isdefined(cloned_object))
 						{
 							cloned_object linkto(self);
-							pickedUpEnt = cloned_object;
-							focusedEnt = cloned_object; // so HUD updates correctly
+							self.pickedUpEnt = cloned_object;
+							self.focusedEnt = cloned_object; // so HUD updates correctly
 							self iprintln("Cloned and picked up " + getdisplayname(cloned_object));
 							wait 0.25;
 						}
 						else
 						{
-							self iprintln("Can't clone " + getdisplayname(focusedEnt));
+							self iprintln("Can't clone " + getdisplayname(self.focusedEnt));
 							wait 0.1;
 						}
 					}
 				}
 #endif
-
-				// exit forge
-				if (self adsButtonPressed())
-				{
-					if (isdefined(pickedUpEnt))
-					{
-						self iprintln("Can't exit while holding an object");
-						wait 0.1;
-					}
-					else
-					{
-						self thread destroyforgehud();
-						self ufocontrolsOFF();
-						self freezecontrols(false);
-						self iprintln("Forge mode OFF");
-						return;
-					}
-				}
-
 				// pick up or drop ent
-				if (!isdefined(pickedUpEnt) && isdefined(focusedEnt) && self attackButtonPressed())
+				if (!isdefined(self.pickedUpEnt) && isdefined(self.focusedEnt) && self attackButtonPressed())
 				{
-					ent = focusedEnt;
+					ent = self.focusedEnt;
 					ent linkto(self);
-					pickedUpEnt = focusedEnt;
+					self.pickedUpEnt = self.focusedEnt;
 					self iprintln("Picked up " + getdisplayname(ent));
 					wait 0.25;
 					break;
 				}
-				else if (isdefined(pickedUpEnt) && self attackButtonPressed())
+				else if (isdefined(self.pickedUpEnt) && self attackButtonPressed())
 				{
-					ent = pickedUpEnt;
+					ent = self.pickedUpEnt;
 					ent unlink();
 					ent.origin = flat_origin(ent.origin); // snap to whole numbers
-					pickedUpEnt = undefined;
+					self.pickedUpEnt = undefined;
 					self iprintln("Dropped " + getdisplayname(ent));
 					wait 0.25;
 					break;
@@ -661,7 +668,7 @@ forgestart()
 
 		if (self.spectator_mode == "forge")
 		{
-			if (!isdefined(pickedUpEnt))
+			if (!isdefined(self.pickedUpEnt))
 			{
 				forward = anglestoforward(self getplayerangles());
 				eye = self.origin + (0, 0, 10);
@@ -675,12 +682,12 @@ forgestart()
 					if (isdefined(ent.forge_parent))
 						ent = ent.forge_parent;
 
-					focusedEnt = ent;
+					self.focusedEnt = ent;
 				}
 				else
 				{
 					self.forge_hud["reticle"].color = unfocusedColor;
-					focusedEnt = undefined;
+					self.focusedEnt = undefined;
 				}
 			}
 			else
@@ -690,21 +697,21 @@ forgestart()
 
 			// update hud
 
-			if (isdefined(focusedEnt))
+			if (isdefined(self.focusedEnt))
 				self.forge_hud["instructions"] setText(getForgeInstructionsText("FOCUSED"));
 			else
 				self.forge_hud["instructions"] setText(getForgeInstructionsText());
 
 			self.forge_hud["entities"] SetValue(getentarray().size);
 
-			if (isdefined(focusedEnt))
+			if (isdefined(self.focusedEnt))
 			{
-				self.forge_hud["pitch"] SetValue(focusedEnt.angles[0]);
-				self.forge_hud["yaw"] SetValue(focusedEnt.angles[1]);
-				self.forge_hud["roll"] SetValue(focusedEnt.angles[2]);
-				self.forge_hud["x"] SetValue(focusedEnt.origin[0]);
-				self.forge_hud["y"] SetValue(focusedEnt.origin[1]);
-				self.forge_hud["z"] SetValue(focusedEnt.origin[2]);
+				self.forge_hud["pitch"] SetValue(self.focusedEnt.angles[0]);
+				self.forge_hud["yaw"] SetValue(self.focusedEnt.angles[1]);
+				self.forge_hud["roll"] SetValue(self.focusedEnt.angles[2]);
+				self.forge_hud["x"] SetValue(self.focusedEnt.origin[0]);
+				self.forge_hud["y"] SetValue(self.focusedEnt.origin[1]);
+				self.forge_hud["z"] SetValue(self.focusedEnt.origin[2]);
 				self.forge_hud["mode"].alpha = 1;
 				self.forge_hud["pitch"].alpha = 1;
 				self.forge_hud["yaw"].alpha = 1;
@@ -725,29 +732,29 @@ forgestart()
 			}
 
 			// rotations and movements can't be done on a linked entity so do it on focus
-			if (!isdefined(pickedUpEnt) && isdefined(focusedEnt) && (self secondaryoffhandbuttonpressed() || self fragbuttonpressed()))
+			if (!isdefined(self.pickedUpEnt) && isdefined(self.focusedEnt) && (self secondaryoffhandbuttonpressed() || self fragbuttonpressed()))
 			{
 				if (self secondaryoffhandbuttonpressed())
 				{
 					if (self.forge_change_mode == "pitch")
-						focusedEnt rotatepitch(unit, 0.05);
+						self.focusedEnt rotatepitch(unit, 0.05);
 					else if (self.forge_change_mode == "yaw")
-						focusedEnt rotateyaw(unit, 0.05);
+						self.focusedEnt rotateyaw(unit, 0.05);
 					else if (self.forge_change_mode == "roll")
-						focusedEnt rotateroll(unit, 0.05);
+						self.focusedEnt rotateroll(unit, 0.05);
 					else if (self.forge_change_mode == "z")
-						focusedEnt movez(unit * -1, 0.05);
+						self.focusedEnt movez(unit * -1, 0.05);
 				}
 				else if (self fragbuttonpressed())
 				{
 					if (self.forge_change_mode == "pitch")
-						focusedEnt rotatepitch(unit * -1, 0.05);
+						self.focusedEnt rotatepitch(unit * -1, 0.05);
 					else if (self.forge_change_mode == "yaw")
-						focusedEnt rotateyaw(unit * -1, 0.05);
+						self.focusedEnt rotateyaw(unit * -1, 0.05);
 					else if (self.forge_change_mode == "roll")
-						focusedEnt rotateroll(unit * -1, 0.05);
+						self.focusedEnt rotateroll(unit * -1, 0.05);
 					else if (self.forge_change_mode == "z")
-						focusedEnt movez(unit, 0.05);
+						self.focusedEnt movez(unit, 0.05);
 				}
 			}
 		}
@@ -758,11 +765,9 @@ forgestart()
 
 // TODO: refactor forge mode into readable functions
 // maybe switch statement with actions
-// RB opens + closes. Except if hovering on item in forge mode
 // Add a way to delete entities
 // Add a x,y movement mode
 // add better datastructure for forge models, cloned objects don't inherit classname and targetnames etc
-// prevent exiting forge while holding an object
 
 #if defined(SYSTEM_XENON)
 
@@ -860,6 +865,21 @@ ufoend()
 		self notify("forge_end");
 		self iprintln("UFO mode OFF");
 	}
+	else if (self.spectator_mode == "forge")
+	{
+		if (isdefined(self.focusedEnt))
+			return;
+		if (isdefined(self.pickedUpEnt))
+			self iprintln("Can't exit while holding an object");
+		else
+		{
+			self notify("forge_end");
+			self thread destroyforgehud();
+			self ufocontrolsOFF();
+			self freezecontrols(false);
+			self iprintln("Forge mode OFF");
+		}
+	}
 }
 
 ufocontrolsON()
@@ -887,220 +907,4 @@ getdisplayname(ent)
 		return ent.model;
 	else
 		return ent.classname;
-}
-
-// TODO: maybe store script_brushmodel and link script_model to it
-initForgeModels()
-{
-	// keep in alphabetical order
-	level.FORGE_MODELS = [];
-	level.FORGE_MODELS["bc_hesco_barrier_med"] = [];
-	level.FORGE_MODELS["com_bomb_objective"] = [];
-	level.FORGE_MODELS["com_laptop_2_open"] = [];
-	level.FORGE_MODELS["com_plasticcase_beige_big"] = [];
-
-	level.FORGE_MODELS["pipe"] = [];
-	level.FORGE_MODELS["terrain"] = [];
-	level.FORGE_MODELS["arch"] = [];
-	level.FORGE_MODELS["fuel_tanker"] = [];
-	level.FORGE_MODELS["fence_piece"] = [];
-
-	script_models = getentarray("script_model", "classname");
-	script_brushmodels = getentarray("script_brushmodel", "classname");
-
-	for (i = 0; i < script_models.size; i++)
-	{
-		if (script_models[i].model == "com_bomb_objective")
-		{
-			for (j = 0; j < script_brushmodels.size; j++)
-			{
-				if (!isdefined(script_brushmodels[j].script_gameobjectname))
-					continue;
-
-				if (script_brushmodels[j].script_gameobjectname != script_models[i].script_gameobjectname)
-					continue;
-
-				if (distance(script_models[i].origin, script_brushmodels[j].origin) > 80)
-					continue;
-
-				script_models[i].script_brushmodel = script_brushmodels[j];
-				script_brushmodels[j] linkto(script_models[i]);
-				level.FORGE_MODELS["com_bomb_objective"][level.FORGE_MODELS["com_bomb_objective"].size] = script_models[i];
-			}
-		}
-
-		if (script_models[i].model == "com_laptop_2_open")
-		{
-			choices = [];
-			for (j = 0; j < script_brushmodels.size; j++)
-			{
-				if (script_brushmodels[j].script_gameobjectname != "hq")
-					continue;
-
-				if (!isdefined(script_brushmodels[j].targetname) || script_brushmodels[j].targetname != script_models[i].target)
-					continue;
-
-				choices[choices.size] = script_brushmodels[j];
-			}
-
-			AssertEx(choices.size == 2, "Expected 2 brush choices for com_laptop_2_open, got " + choices.size);
-			// choose the higher Zorigin
-			if (choices[0].origin[2] > choices[1].origin[2])
-			{
-				script_models[i].script_brushmodel = choices[0];
-				choices[0] linkto(script_models[i]);
-			}
-			else
-			{
-				script_models[i].script_brushmodel = choices[1];
-				choices[1] linkto(script_models[i]);
-			}
-
-			level.FORGE_MODELS["com_laptop_2_open"][level.FORGE_MODELS["com_laptop_2_open"].size] = script_models[i];
-		}
-
-		if (script_models[i].model == "com_plasticcase_beige_big")
-		{
-			choices = [];
-			for (j = 0; j < script_brushmodels.size; j++)
-			{
-				if (!isdefined(script_brushmodels[j].script_gameobjectname))
-					continue;
-
-				if (script_brushmodels[j].script_gameobjectname != "hq")
-					continue;
-
-				if (!isdefined(script_brushmodels[j].targetname) || script_brushmodels[j].targetname != script_models[i].targetname)
-					continue;
-
-				choices[choices.size] = script_brushmodels[j];
-			}
-
-			AssertEx(choices.size == 2, "Expected 2 brush choices for com_plasticcase_beige_big, got " + choices.size);
-			// choose the lower Zorigin
-			if (choices[0].origin[2] < choices[1].origin[2])
-			{
-				script_models[i].script_brushmodel = choices[0];
-				choices[0] linkto(script_models[i]);
-			}
-			else
-			{
-				script_models[i].script_brushmodel = choices[1];
-				choices[1] linkto(script_models[i]);
-			}
-
-			level.FORGE_MODELS["com_plasticcase_beige_big"][level.FORGE_MODELS["com_plasticcase_beige_big"].size] = script_models[i];
-		}
-	}
-
-	if (getdvar("mapname") == "mp_crossfire")
-	{
-		// there are 3 bc_hesco_barrier_med script_models linked to 1 script_brushmodel
-		for (i = 0; i < script_brushmodels.size; i++)
-		{
-			if (!isdefined(script_brushmodels[i].script_gameobjectname))
-				continue;
-
-			if (script_brushmodels[i].script_gameobjectname != "dom")
-				continue;
-
-			bc_hesco_barrier_med_script_brushmodel = script_brushmodels[i];
-			bc_hesco_barrier_med_script_models = [];
-
-			for (j = 0; j < script_models.size; j++)
-			{
-				if (script_models[j].model == "bc_hesco_barrier_med")
-				{
-					if (distance(script_models[j].origin, bc_hesco_barrier_med_script_brushmodel.origin) < 80)
-					{
-						script_models[j] linkto(bc_hesco_barrier_med_script_brushmodel);
-						script_models[j].forge_parent = bc_hesco_barrier_med_script_brushmodel;
-						script_models[j].forge_enabled = true;
-						bc_hesco_barrier_med_script_models[bc_hesco_barrier_med_script_models.size] = script_models[j];
-					}
-				}
-			}
-
-			assertex(bc_hesco_barrier_med_script_models.size == 3, "Expected 3 bc_hesco_barrier_med script_models linked to 1 script_brushmodel, got " + bc_hesco_barrier_med_script_models.size);
-			bc_hesco_barrier_med_script_brushmodel.forge_children = bc_hesco_barrier_med_script_models;
-
-			level.FORGE_MODELS["bc_hesco_barrier_med"][level.FORGE_MODELS["bc_hesco_barrier_med"].size] = bc_hesco_barrier_med_script_brushmodel;
-		}
-	}
-
-	if (getdvar("mapname") == "mp_bog")
-	{
-		level.FORGE_MODELS["arch"][level.FORGE_MODELS["arch"].size] = getentbyorigin((3461, -149, 176));
-	}
-
-	if (getdvar("mapname") == "mp_cargoship")
-	{
-		level.FORGE_MODELS["fuel_tanker"][level.FORGE_MODELS["fuel_tanker"].size] = getentbyorigin((1300, 61, 104));
-	}
-
-	if (getdvar("mapname") == "mp_countdown")
-	{
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-573, 2956, 32));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-574, 2958, 35));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-581, 2961, -18));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-568, 2953, -18));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-505, 2918, -37));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-506, 2918, 82));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-474, 2900, 36));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-439, 2880, 82));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-505, 2918, -11));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-439, 2880, -12));
-	}
-
-	if (getdvar("mapname") == "mp_farm")
-	{
-		level.FORGE_MODELS["pipe"] = getEntArray("gas_station", "targetname");
-	}
-
-	if (getdvar("mapname") == "mp_showdown")
-	{
-		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-1040, 74, 82), 1);
-		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-1040, 74, 82), 2);
-		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-778, 684, 82), 1);
-		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-778, 684, 82), 2);
-	}
-
-	// capture the starting positions
-	for (i = 0; i < level.FORGE_MODELS.size; i++)
-	{
-		modelName = getarraykeys(level.FORGE_MODELS)[i];
-		for (j = 0; j < level.FORGE_MODELS[modelName].size; j++)
-		{
-			modelEnt = level.FORGE_MODELS[modelName][j];
-			modelEnt.startOrigin = modelEnt.origin;
-			modelEnt.startAngles = modelEnt.angles;
-			modelEnt.forge_enabled = true;
-		}
-	}
-}
-
-/**
- * Finds the nth entity with the specified origin.
- *
- * @param origin - The target origin to match.
- * @param matchNumber - (Optional) The 1-based position of the match to return. Defaults to 1.
- * @returns The entity at the specified matchNumber, or undefined if not found.
- */
-getentbyorigin(origin, matchNumber)
-{
-	if (!isdefined(matchNumber))
-		matchNumber = 1;
-
-	matchCount = 0;
-
-	ents = getentarray();
-	for (i = 0; i < ents.size; i++)
-	{
-		if (ents[i].origin == origin)
-		{
-			matchCount++;
-			if (matchCount == matchNumber)
-				return ents[i];
-		}
-	}
 }
