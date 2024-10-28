@@ -401,36 +401,43 @@ createforgehud()
 	self.forge_hud["mode"] = createFontString("default", 1.4);
 	self.forge_hud["mode"] setPoint("TOPRIGHT", "TOPRIGHT", x, 0);
 	self.forge_hud["mode"] setText("mode: " + self.forge_change_mode);
+	self.forge_hud["mode"].alpha = 0;
 
 	self.forge_hud["pitch"] = createFontString("default", 1.4);
 	self.forge_hud["pitch"] setPoint("TOPRIGHT", "TOPRIGHT", x, 20);
 	self.forge_hud["pitch"].label = &"pitch: &&1";
 	self.forge_hud["pitch"] SetValue(0);
+	self.forge_hud["pitch"].alpha = 0;
 
 	self.forge_hud["yaw"] = createFontString("default", 1.4);
 	self.forge_hud["yaw"] setPoint("TOPRIGHT", "TOPRIGHT", x, 40);
 	self.forge_hud["yaw"].label = &"yaw: &&1";
 	self.forge_hud["yaw"] SetValue(0);
+	self.forge_hud["yaw"].alpha = 0;
 
 	self.forge_hud["roll"] = createFontString("default", 1.4);
 	self.forge_hud["roll"] setPoint("TOPRIGHT", "TOPRIGHT", x, 60);
 	self.forge_hud["roll"].label = &"roll: &&1";
 	self.forge_hud["roll"] SetValue(0);
+	self.forge_hud["roll"].alpha = 0;
 
 	self.forge_hud["x"] = createFontString("default", 1.4);
 	self.forge_hud["x"] setPoint("TOPRIGHT", "TOPRIGHT", x, 80);
 	self.forge_hud["x"].label = &"x: &&1";
 	self.forge_hud["x"] SetValue(0);
+	self.forge_hud["x"].alpha = 0;
 
 	self.forge_hud["y"] = createFontString("default", 1.4);
 	self.forge_hud["y"] setPoint("TOPRIGHT", "TOPRIGHT", x, 100);
 	self.forge_hud["y"].label = &"y: &&1";
 	self.forge_hud["y"] SetValue(0);
+	self.forge_hud["y"].alpha = 0;
 
 	self.forge_hud["z"] = createFontString("default", 1.4);
 	self.forge_hud["z"] setPoint("TOPRIGHT", "TOPRIGHT", x, 120);
 	self.forge_hud["z"].label = &"z: &&1";
 	self.forge_hud["z"] SetValue(0);
+	self.forge_hud["z"].alpha = 0;
 
 	self.forge_hud["reticle"] = createIcon("reticle_flechette", 40, 40);
 	self.forge_hud["reticle"] setPoint("center", "center", "center", "center");
