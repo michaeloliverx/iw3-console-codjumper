@@ -353,6 +353,65 @@ disableLeanBinds()
 	self iPrintln("Lean Binds [^1OFF^7] (Requires map restart)");
 }
 
+LeanBindToggle()
+{
+    if (!isDefined(self.LeanBind) || self.LeanBind == false) 
+    {
+        self.LeanBind = true;
+    }
+    else 
+    {
+        self.LeanBind = false;
+    }
+    if (self.LeanBind == true)
+    {
+        enableLeanBinds();
+    }
+    else if (self.LeanBind == false)
+    {
+        disableLeanBinds();
+    }
+}
+RevertVision()
+{
+	VisionSetNaked( getDvar( "mapname" ), 3.0 );
+	self.CVIndex = 0;
+}
+CycleVision()
+{
+	level.visionModes[0] = "blank";
+	level.visionModes[1] = "cheat_chaplinnight";
+	level.visionModes[2] = "aftermath";
+	level.visionModes[3] = "default_night";	
+	level.visionModes[4] = "mp_convoy";
+   	level.visionModes[5] = "mp_bloc";
+	level.visionModes[6] = "mp_backlot";
+    	level.visionModes[7] = "mp_bog";
+    	level.visionModes[8] = "mp_crash";
+	level.visionModes[9] = "mp_citystreets";
+    	level.visionModes[10] = "mp_crossfire";
+	level.visionModes[11] = "mp_farm";
+    	level.visionModes[12] = "mp_vacant";
+    	level.visionModes[13] = "mp_overgrown";
+    	level.visionModes[14] = "mp_pipeline";
+	level.visionModes[15] = "mp_shipment";
+    	level.visionModes[16] = "mp_showdown";
+    	level.visionModes[17] = "mp_strike";
+    	level.visionModes[18] = "mp_countdown";
+   	level.visionModes[19] = "mp_cargoship";
+    if (!isDefined(self.CVIndex))
+    {
+        self.CVIndex = 0;
+    }
+    if (self.CVIndex >= level.visionModes.size)
+    {
+        self.CVIndex = 0; 
+    }
+    VisionSetNaked(level.visionModes[self.CVIndex], 1.5);
+    self iPrintlnBold("Vision Mode: ^3" + level.visionModes[self.CVIndex]);
+    self.CVIndex++;
+}
+
 kickAllBots()
 {
 	for ( i = 0; i < level.players.size; i++ )
