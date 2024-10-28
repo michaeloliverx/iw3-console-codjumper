@@ -561,8 +561,36 @@ forgestart()
 							wait 0.25;
 							// break;
 						}
-						// mp_bog
-						else if (focusedEnt.classname == "script_brushmodel" && (focusedEnt.targetname == "arch_before" || "pipe_shootable" || "gas_station"))
+						// clone bc_hesco_barrier_med. requires 4 entities
+						else if (isdefined(focusedEnt.model) && focusedEnt.model == "bc_hesco_barrier_med" && isdefined(focusedEnt.forge_parent))
+						{
+							// spawn collision
+							script_brushmodel = spawn("script_model", focusedEnt.forge_parent.origin);
+							script_brushmodel.angles = focusedEnt.forge_parent.angles;
+							script_brushmodel clonebrushmodeltoscriptmodel(focusedEnt.forge_parent);
+
+							// spawn visual and link to collision
+							ents = getentarray("script_model", "classname");
+							for (i = 0; i < ents.size; i++)
+							{
+								if (ents[i].model == "bc_hesco_barrier_med" && isdefined(ents[i].forge_parent) && ents[i].forge_parent == focusedEnt.forge_parent)
+								{
+									script_model = spawn("script_model", ents[i].origin);
+									script_model setmodel("bc_hesco_barrier_med");
+									script_model.angles = ents[i].angles;
+
+									script_model.forge_parent = script_brushmodel;
+									script_model linkto(script_brushmodel);
+								}
+							}
+							script_brushmodel linkto(self);
+							focusedEnt = script_brushmodel; // so HUD updates correctly
+							pickedUpEnt = script_brushmodel;
+							self iprintln("Cloned and picked up " + getdisplayname(script_brushmodel));
+							wait 0.25;
+						}
+						
+						else if (focusedEnt.classname == "script_brushmodel" && (focusedEnt.targetname == "arch_before" || focusedEnt.targetname == "pipe_shootable" || focusedEnt.targetname == "gas_station"))
 						{
 							script_brushmodel = spawn("script_model", focusedEnt.origin);
 							script_brushmodel.angles = focusedEnt.angles;
@@ -746,6 +774,7 @@ forgestart()
 // Add a way to delete entities
 // Add a x,y movement mode
 // add better datastructure for forge models, cloned objects don't inherit classname and targetnames etc
+// prevent exiting forge while holding an object
 
 
 ufoend()
