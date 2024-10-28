@@ -367,29 +367,46 @@ getPlayerFromName(playerName)
 			return level.players[i];
 }
 
-createforgehud()
+getForgeInstructionsText(state)
 {
 	instructions = [];
-	instructions[instructions.size] = "[{+smoke}] [{+frag}] Decrease/Increase";
-	instructions[instructions.size] = "While holding [{+activate}]:";
-	instructions[instructions.size] = "[{+smoke}] Next mode";
-	instructions[instructions.size] = "[{+frag}] Prev mode";
 
-	instructions[instructions.size] = "[{+attack}] Pick up/Drop";
-	if(level.xenon)
-		instructions[instructions.size] = "[{+breath_sprint}] Clone object";
+	if (!isdefined(state))
+	{
+		instructions[instructions.size] = "[{+activate}] Hold for more options";
+	}
+	else if (state == "FOCUSED")
+	{
+		instructions[instructions.size] = "[{+activate}] Hold for more options";
+		instructions[instructions.size] = "[{+smoke}] Decrease";
+		instructions[instructions.size] = "[{+frag}] Increase";
+	}
+	else if (state == "HOLD_X")
+	{
+		instructions[instructions.size] = "[{+smoke}] Next mode";
+		instructions[instructions.size] = "[{+frag}] Prev mode";
 
-	instructions[instructions.size] = "[{+speed_throw}] Exit Forge";
-	instructions[instructions.size] = "[{+melee}] Switch to UFO mode";
+		instructions[instructions.size] = "[{+speed_throw}] Exit Forge";
+		instructions[instructions.size] = "[{+attack}] Pick up/Drop";
+		if (level.xenon)
+			instructions[instructions.size] = "[{+breath_sprint}] Clone object";
+
+		instructions[instructions.size] = "[{+melee}] Switch to UFO mode";
+	}
 
 	instructionsString = "";
 	for (i = 0; i < instructions.size; i++)
 		instructionsString += instructions[i] + "\n";
 
+	return instructionsString;
+}
+
+createforgehud()
+{
 	self.forge_hud = [];
 	self.forge_hud["instructions"] = createFontString("default", 1.4);
 	self.forge_hud["instructions"] setPoint("TOPLEFT", "TOPLEFT", -30, -20);
-	self.forge_hud["instructions"] setText(instructionsString);
+	self.forge_hud["instructions"] setText(getForgeInstructionsText());
 
 	x = 30;
 
@@ -401,36 +418,43 @@ createforgehud()
 	self.forge_hud["mode"] = createFontString("default", 1.4);
 	self.forge_hud["mode"] setPoint("TOPRIGHT", "TOPRIGHT", x, 0);
 	self.forge_hud["mode"] setText("mode: " + self.forge_change_mode);
+	self.forge_hud["mode"].alpha = 0;
 
 	self.forge_hud["pitch"] = createFontString("default", 1.4);
 	self.forge_hud["pitch"] setPoint("TOPRIGHT", "TOPRIGHT", x, 20);
 	self.forge_hud["pitch"].label = &"pitch: &&1";
 	self.forge_hud["pitch"] SetValue(0);
+	self.forge_hud["pitch"].alpha = 0;
 
 	self.forge_hud["yaw"] = createFontString("default", 1.4);
 	self.forge_hud["yaw"] setPoint("TOPRIGHT", "TOPRIGHT", x, 40);
 	self.forge_hud["yaw"].label = &"yaw: &&1";
 	self.forge_hud["yaw"] SetValue(0);
+	self.forge_hud["yaw"].alpha = 0;
 
 	self.forge_hud["roll"] = createFontString("default", 1.4);
 	self.forge_hud["roll"] setPoint("TOPRIGHT", "TOPRIGHT", x, 60);
 	self.forge_hud["roll"].label = &"roll: &&1";
 	self.forge_hud["roll"] SetValue(0);
+	self.forge_hud["roll"].alpha = 0;
 
 	self.forge_hud["x"] = createFontString("default", 1.4);
 	self.forge_hud["x"] setPoint("TOPRIGHT", "TOPRIGHT", x, 80);
 	self.forge_hud["x"].label = &"x: &&1";
 	self.forge_hud["x"] SetValue(0);
+	self.forge_hud["x"].alpha = 0;
 
 	self.forge_hud["y"] = createFontString("default", 1.4);
 	self.forge_hud["y"] setPoint("TOPRIGHT", "TOPRIGHT", x, 100);
 	self.forge_hud["y"].label = &"y: &&1";
 	self.forge_hud["y"] SetValue(0);
+	self.forge_hud["y"].alpha = 0;
 
 	self.forge_hud["z"] = createFontString("default", 1.4);
 	self.forge_hud["z"] setPoint("TOPRIGHT", "TOPRIGHT", x, 120);
 	self.forge_hud["z"].label = &"z: &&1";
 	self.forge_hud["z"] SetValue(0);
+	self.forge_hud["z"].alpha = 0;
 
 	self.forge_hud["reticle"] = createIcon("reticle_flechette", 40, 40);
 	self.forge_hud["reticle"] setPoint("center", "center", "center", "center");
@@ -494,6 +518,7 @@ forgestart()
 		// HOLD X actions
 		while (self usebuttonpressed())
 		{
+			self.forge_hud["instructions"] setText(getForgeInstructionsText("HOLD_X"));
 			// freeze controls to allow meleebuttonpressed while in spectator
 			self freezecontrols(true);
 			if (self meleebuttonpressed())
@@ -509,12 +534,20 @@ forgestart()
 				}
 				else
 				{
-					self thread destroyforgehud();
-					self.spectator_mode = "ufo";
-					self setClientDvar("player_spectateSpeedScale", 1.5);
-					self iprintln("UFO mode");
-					wait 0.25;
-					break;
+					if (isdefined(pickedUpEnt))
+					{
+						self iprintln("Can't switch to UFO while holding an object");
+						wait 0.1;
+					}
+					else
+					{
+						self thread destroyforgehud();
+						self.spectator_mode = "ufo";
+						self setClientDvar("player_spectateSpeedScale", 1.5);
+						self iprintln("UFO mode");
+						wait 0.25;
+						break;
+					}
 				}
 				wait 0.05;
 			}
@@ -526,10 +559,15 @@ forgestart()
 				// CLONE OBJECT
 				if (self holdbreathbuttonpressed())
 				{
-					if (isdefined(focusedEnt))
+					if (isdefined(pickedUpEnt))
+					{
+						self iprintln("Can't clone while holding an object");
+						wait 0.1;
+					}
+					else if (isdefined(focusedEnt))
 					{
 						cloned_object = self cloneObject(focusedEnt);
-						if(isdefined(cloned_object))
+						if (isdefined(cloned_object))
 						{
 							cloned_object linkto(self);
 							pickedUpEnt = cloned_object;
@@ -549,11 +587,19 @@ forgestart()
 				// exit forge
 				if (self adsButtonPressed())
 				{
-					self thread destroyforgehud();
-					self ufocontrolsOFF();
-					self freezecontrols(false);
-					self iprintln("Forge mode OFF");
-					return;
+					if (isdefined(pickedUpEnt))
+					{
+						self iprintln("Can't exit while holding an object");
+						wait 0.1;
+					}
+					else
+					{
+						self thread destroyforgehud();
+						self ufocontrolsOFF();
+						self freezecontrols(false);
+						self iprintln("Forge mode OFF");
+						return;
+					}
 				}
 
 				// pick up or drop ent
@@ -643,7 +689,14 @@ forgestart()
 			}
 
 			// update hud
+
+			if (isdefined(focusedEnt))
+				self.forge_hud["instructions"] setText(getForgeInstructionsText("FOCUSED"));
+			else
+				self.forge_hud["instructions"] setText(getForgeInstructionsText());
+
 			self.forge_hud["entities"] SetValue(getentarray().size);
+
 			if (isdefined(focusedEnt))
 			{
 				self.forge_hud["pitch"] SetValue(focusedEnt.angles[0]);
