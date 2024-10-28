@@ -3875,8 +3875,6 @@ Callback_StartGameType()
 	if ( !level.console )
 		thread maps\mp\gametypes\_quickmessages::init();
 
-	thread maps\mp\gametypes\dom::init();
-
 	stringNames = getArrayKeys( game["strings"] );
 	for ( index = 0; index < stringNames.size; index++ )
 		precacheString( game["strings"][stringNames[index]] );
