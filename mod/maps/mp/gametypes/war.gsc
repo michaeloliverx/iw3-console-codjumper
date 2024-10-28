@@ -71,6 +71,8 @@ onStartGameType()
 		level.displayRoundEndText = true;
 		level.onEndGame = ::onEndGame;
 	}
+
+	thread maps\mp\gametypes\dom::init();
 }
 
 onSpawnPlayer()
