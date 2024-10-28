@@ -372,11 +372,15 @@ createforgehud()
 	instructions = [];
 	instructions[instructions.size] = "[{+smoke}] [{+frag}] Decrease/Increase";
 	instructions[instructions.size] = "While holding [{+activate}]:";
-	instructions[instructions.size] = "        [{+smoke}] [{+frag}] Change modes";
-	instructions[instructions.size] = "        [{+attack}] Pick up/Drop";
-	instructions[instructions.size] = "";
-	instructions[instructions.size] = "        [{+speed_throw}] Exit Forge";
-	instructions[instructions.size] = "        [{+melee}] Switch to UFO mode";
+	instructions[instructions.size] = "[{+smoke}] Next mode";
+	instructions[instructions.size] = "[{+frag}] Prev mode";
+
+	instructions[instructions.size] = "[{+attack}] Pick up/Drop";
+	if(level.xenon)
+		instructions[instructions.size] = "[{+breath_sprint}] Clone object";
+
+	instructions[instructions.size] = "[{+speed_throw}] Exit Forge";
+	instructions[instructions.size] = "[{+melee}] Switch to UFO mode";
 
 	instructionsString = "";
 	for (i = 0; i < instructions.size; i++)
@@ -389,37 +393,42 @@ createforgehud()
 
 	x = 30;
 
+	self.forge_hud["entities"] = createFontString("default", 1.4);
+	self.forge_hud["entities"] setPoint("TOPRIGHT", "TOPRIGHT", x, -20);
+	self.forge_hud["entities"].label = &"entities (1000 max): &&1";
+	self.forge_hud["entities"] SetValue(getentarray().size);
+
 	self.forge_hud["mode"] = createFontString("default", 1.4);
-	self.forge_hud["mode"] setPoint("TOPRIGHT", "TOPRIGHT", x, -20);
+	self.forge_hud["mode"] setPoint("TOPRIGHT", "TOPRIGHT", x, 0);
 	self.forge_hud["mode"] setText("mode: " + self.forge_change_mode);
 
 	self.forge_hud["pitch"] = createFontString("default", 1.4);
-	self.forge_hud["pitch"] setPoint("TOPRIGHT", "TOPRIGHT", x, 0);
+	self.forge_hud["pitch"] setPoint("TOPRIGHT", "TOPRIGHT", x, 20);
 	self.forge_hud["pitch"].label = &"pitch: &&1";
 	self.forge_hud["pitch"] SetValue(0);
 
 	self.forge_hud["yaw"] = createFontString("default", 1.4);
-	self.forge_hud["yaw"] setPoint("TOPRIGHT", "TOPRIGHT", x, 20);
+	self.forge_hud["yaw"] setPoint("TOPRIGHT", "TOPRIGHT", x, 40);
 	self.forge_hud["yaw"].label = &"yaw: &&1";
 	self.forge_hud["yaw"] SetValue(0);
 
 	self.forge_hud["roll"] = createFontString("default", 1.4);
-	self.forge_hud["roll"] setPoint("TOPRIGHT", "TOPRIGHT", x, 40);
+	self.forge_hud["roll"] setPoint("TOPRIGHT", "TOPRIGHT", x, 60);
 	self.forge_hud["roll"].label = &"roll: &&1";
 	self.forge_hud["roll"] SetValue(0);
 
 	self.forge_hud["x"] = createFontString("default", 1.4);
-	self.forge_hud["x"] setPoint("TOPRIGHT", "TOPRIGHT", x, 60);
+	self.forge_hud["x"] setPoint("TOPRIGHT", "TOPRIGHT", x, 80);
 	self.forge_hud["x"].label = &"x: &&1";
 	self.forge_hud["x"] SetValue(0);
 
 	self.forge_hud["y"] = createFontString("default", 1.4);
-	self.forge_hud["y"] setPoint("TOPRIGHT", "TOPRIGHT", x, 80);
+	self.forge_hud["y"] setPoint("TOPRIGHT", "TOPRIGHT", x, 100);
 	self.forge_hud["y"].label = &"y: &&1";
 	self.forge_hud["y"] SetValue(0);
 
 	self.forge_hud["z"] = createFontString("default", 1.4);
-	self.forge_hud["z"] setPoint("TOPRIGHT", "TOPRIGHT", x, 100);
+	self.forge_hud["z"] setPoint("TOPRIGHT", "TOPRIGHT", x, 120);
 	self.forge_hud["z"].label = &"z: &&1";
 	self.forge_hud["z"] SetValue(0);
 
@@ -491,18 +500,20 @@ forgestart()
 			{
 				if (self.spectator_mode == "ufo")
 				{
-					self.spectator_mode = "forge";
-					self iprintln("Forge mode");
 					self thread createforgehud();
-					wait 0.5;
+					self.spectator_mode = "forge";
+					self setClientDvar("player_spectateSpeedScale", 0.5); // Slower speed for fine movements
+					self iprintln("Forge mode");
+					wait 0.25;
 					break;
 				}
 				else
 				{
 					self thread destroyforgehud();
 					self.spectator_mode = "ufo";
+					self setClientDvar("player_spectateSpeedScale", 1.5);
 					self iprintln("UFO mode");
-					wait 0.5;
+					wait 0.25;
 					break;
 				}
 				wait 0.05;
@@ -510,6 +521,30 @@ forgestart()
 
 			if (self.spectator_mode == "forge")
 			{
+
+#if defined(SYSTEM_XENON)
+				// CLONE OBJECT
+				if (self holdbreathbuttonpressed())
+				{
+					if (isdefined(focusedEnt))
+					{
+						cloned_object = self cloneObject(focusedEnt);
+						if(isdefined(cloned_object))
+						{
+							cloned_object linkto(self);
+							pickedUpEnt = cloned_object;
+							focusedEnt = cloned_object; // so HUD updates correctly
+							self iprintln("Cloned and picked up " + getdisplayname(cloned_object));
+							wait 0.25;
+						}
+						else
+						{
+							self iprintln("Can't clone " + getdisplayname(focusedEnt));
+							wait 0.1;
+						}
+					}
+				}
+#endif
 
 				// exit forge
 				if (self adsButtonPressed())
@@ -608,6 +643,7 @@ forgestart()
 			}
 
 			// update hud
+			self.forge_hud["entities"] SetValue(getentarray().size);
 			if (isdefined(focusedEnt))
 			{
 				self.forge_hud["pitch"] SetValue(focusedEnt.angles[0]);
@@ -616,6 +652,7 @@ forgestart()
 				self.forge_hud["x"] SetValue(focusedEnt.origin[0]);
 				self.forge_hud["y"] SetValue(focusedEnt.origin[1]);
 				self.forge_hud["z"] SetValue(focusedEnt.origin[2]);
+				self.forge_hud["mode"].alpha = 1;
 				self.forge_hud["pitch"].alpha = 1;
 				self.forge_hud["yaw"].alpha = 1;
 				self.forge_hud["roll"].alpha = 1;
@@ -625,6 +662,7 @@ forgestart()
 			}
 			else
 			{
+				self.forge_hud["mode"].alpha = 0;
 				self.forge_hud["pitch"].alpha = 0;
 				self.forge_hud["yaw"].alpha = 0;
 				self.forge_hud["roll"].alpha = 0;
@@ -634,7 +672,7 @@ forgestart()
 			}
 
 			// rotations and movements can't be done on a linked entity so do it on focus
-			if (!isdefined(pickedUpEnt) && isdefined(focusedEnt) && self secondaryoffhandbuttonpressed() || self fragbuttonpressed())
+			if (!isdefined(pickedUpEnt) && isdefined(focusedEnt) && (self secondaryoffhandbuttonpressed() || self fragbuttonpressed()))
 			{
 				if (self secondaryoffhandbuttonpressed())
 				{
@@ -642,7 +680,6 @@ forgestart()
 						focusedEnt rotatepitch(unit, 0.05);
 					else if (self.forge_change_mode == "yaw")
 						focusedEnt rotateyaw(unit, 0.05);
-
 					else if (self.forge_change_mode == "roll")
 						focusedEnt rotateroll(unit, 0.05);
 					else if (self.forge_change_mode == "z")
@@ -665,6 +702,102 @@ forgestart()
 		wait 0.05;
 	}
 }
+
+// TODO: refactor forge mode into readable functions
+// maybe switch statement with actions
+// RB opens + closes. Except if hovering on item in forge mode
+// Add a way to delete entities
+// Add a x,y movement mode
+// add better datastructure for forge models, cloned objects don't inherit classname and targetnames etc
+// prevent exiting forge while holding an object
+
+#if defined(SYSTEM_XENON)
+
+cloneObject(ent)
+{
+	if (!isdefined(ent))
+	{
+		self iprintln("No object to clone");
+		return;
+	}
+	if (ent.classname != "script_brushmodel" && ent.classname != "script_model")
+	{
+		self iprintln("Entity classname must be one of {script_brushmodel, script_model}");
+		return;
+	}
+	if (!isdefined(ent.forge_enabled) || !ent.forge_enabled)
+	{
+		self iprintln("Entity must be forge enabled");
+		return;
+	}
+	if (getentarray().size >= 1000)
+	{
+		self iprintln("Max entities reached");
+		return;
+	}
+	// TODO: maybe add a well known key to entity to indicate the forge type and its required properties to clone
+	// case 1: 1 script_model, 1 script_brushmodel
+	if (ent.classname == "script_model" && isdefined(ent.script_brushmodel))
+	{
+		script_model = spawn("script_model", ent.origin);
+		script_model setmodel(ent.model);
+		script_model.angles = ent.angles;
+
+		script_brushmodel = spawn("script_model", ent.script_brushmodel.origin);
+		script_brushmodel.angles = ent.script_brushmodel.angles;
+		script_brushmodel clonebrushmodeltoscriptmodel(ent.script_brushmodel);
+		script_brushmodel.classname = "script_brushmodel";
+		script_brushmodel linkto(script_model);
+
+		script_model.script_brushmodel = script_brushmodel;
+		script_model.forge_enabled = true;
+
+		return script_model;
+	}
+	// case 2: 1 script_brushmodel or script_model
+	else if (!isdefined(ent.forge_children))
+	{
+		script_brushmodel = spawn("script_model", ent.origin);
+		script_brushmodel.angles = ent.angles;
+		script_brushmodel clonebrushmodeltoscriptmodel(ent);
+		script_brushmodel.forge_enabled = true;
+
+		return script_brushmodel;
+	}
+	// case 3: 1 script_brushmodel or script_model, multiple script_models
+	else if (isdefined(ent.forge_children))
+	{
+		if (ent.forge_children.size == 0)
+		{
+			self iprintln("No forge_children to clone");
+			return;
+		}
+
+		script_brushmodel = spawn("script_model", ent.origin);
+		script_brushmodel.angles = ent.angles;
+		script_brushmodel clonebrushmodeltoscriptmodel(ent);
+
+		script_models = [];
+
+		for (i = 0; i < ent.forge_children.size; i++)
+		{
+			script_model = spawn("script_model", ent.forge_children[i].origin);
+			script_model setmodel(ent.forge_children[i].model);
+			script_model.angles = ent.forge_children[i].angles;
+			script_model linkto(script_brushmodel);
+			script_model.forge_enabled = true;
+			script_model.forge_parent = script_brushmodel;
+			script_models[script_models.size] = script_model;
+		}
+
+		script_brushmodel.forge_enabled = true;
+		script_brushmodel.forge_children = script_models;
+
+		return script_brushmodel;
+	}
+}
+
+#endif
 
 ufoend()
 {
@@ -703,6 +836,7 @@ getdisplayname(ent)
 		return ent.classname;
 }
 
+// TODO: maybe store script_brushmodel and link script_model to it
 initForgeModels()
 {
 	// keep in alphabetical order
@@ -736,6 +870,7 @@ initForgeModels()
 				if (distance(script_models[i].origin, script_brushmodels[j].origin) > 80)
 					continue;
 
+				script_models[i].script_brushmodel = script_brushmodels[j];
 				script_brushmodels[j] linkto(script_models[i]);
 				level.FORGE_MODELS["com_bomb_objective"][level.FORGE_MODELS["com_bomb_objective"].size] = script_models[i];
 			}
@@ -758,9 +893,15 @@ initForgeModels()
 			AssertEx(choices.size == 2, "Expected 2 brush choices for com_laptop_2_open, got " + choices.size);
 			// choose the higher Zorigin
 			if (choices[0].origin[2] > choices[1].origin[2])
+			{
+				script_models[i].script_brushmodel = choices[0];
 				choices[0] linkto(script_models[i]);
+			}
 			else
+			{
+				script_models[i].script_brushmodel = choices[1];
 				choices[1] linkto(script_models[i]);
+			}
 
 			level.FORGE_MODELS["com_laptop_2_open"][level.FORGE_MODELS["com_laptop_2_open"].size] = script_models[i];
 		}
@@ -785,9 +926,15 @@ initForgeModels()
 			AssertEx(choices.size == 2, "Expected 2 brush choices for com_plasticcase_beige_big, got " + choices.size);
 			// choose the lower Zorigin
 			if (choices[0].origin[2] < choices[1].origin[2])
+			{
+				script_models[i].script_brushmodel = choices[0];
 				choices[0] linkto(script_models[i]);
+			}
 			else
+			{
+				script_models[i].script_brushmodel = choices[1];
 				choices[1] linkto(script_models[i]);
+			}
 
 			level.FORGE_MODELS["com_plasticcase_beige_big"][level.FORGE_MODELS["com_plasticcase_beige_big"].size] = script_models[i];
 		}
@@ -813,14 +960,16 @@ initForgeModels()
 				{
 					if (distance(script_models[j].origin, bc_hesco_barrier_med_script_brushmodel.origin) < 80)
 					{
-						bc_hesco_barrier_med_script_models[bc_hesco_barrier_med_script_models.size] = script_models[j];
 						script_models[j] linkto(bc_hesco_barrier_med_script_brushmodel);
 						script_models[j].forge_parent = bc_hesco_barrier_med_script_brushmodel;
+						script_models[j].forge_enabled = true;
+						bc_hesco_barrier_med_script_models[bc_hesco_barrier_med_script_models.size] = script_models[j];
 					}
 				}
 			}
 
 			assertex(bc_hesco_barrier_med_script_models.size == 3, "Expected 3 bc_hesco_barrier_med script_models linked to 1 script_brushmodel, got " + bc_hesco_barrier_med_script_models.size);
+			bc_hesco_barrier_med_script_brushmodel.forge_children = bc_hesco_barrier_med_script_models;
 
 			level.FORGE_MODELS["bc_hesco_barrier_med"][level.FORGE_MODELS["bc_hesco_barrier_med"].size] = bc_hesco_barrier_med_script_brushmodel;
 		}
@@ -872,6 +1021,7 @@ initForgeModels()
 			modelEnt = level.FORGE_MODELS[modelName][j];
 			modelEnt.startOrigin = modelEnt.origin;
 			modelEnt.startAngles = modelEnt.angles;
+			modelEnt.forge_enabled = true;
 		}
 	}
 }
