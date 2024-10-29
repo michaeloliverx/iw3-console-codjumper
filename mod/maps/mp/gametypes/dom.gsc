@@ -18,17 +18,17 @@ initCJ()
 	level.MENU_SCROLL_TIME_SECONDS = 0.250;
 
 	level.THEMES = [];
-	level.THEMES["teal"] = rgbToNormalized((0, 128, 128));
-	level.THEMES["pink"] = rgbToNormalized((255, 25, 127));
-	level.THEMES["orangered"] = rgbToNormalized((255, 69, 0));
-	level.THEMES["gold"] = rgbToNormalized((255, 215, 0));
 	level.THEMES["blue"] = rgbToNormalized((0, 0, 255));
 	level.THEMES["deepskyblue"] = rgbToNormalized((0, 191, 255));
-	level.THEMES["purple"] = rgbToNormalized((90, 0, 208));
+	level.THEMES["gold"] = rgbToNormalized((255, 215, 0));
 	level.THEMES["green"] = rgbToNormalized((0, 208, 98));
 	level.THEMES["maroon"] = rgbToNormalized((128, 0, 0));
+	level.THEMES["orangered"] = rgbToNormalized((255, 69, 0));
+	level.THEMES["pink"] = rgbToNormalized((255, 25, 127));
+	level.THEMES["purple"] = rgbToNormalized((90, 0, 208));
 	level.THEMES["salmon"] = rgbToNormalized((250, 128, 114));
 	level.THEMES["silver"] = rgbToNormalized((192, 192, 192));
+	level.THEMES["teal"] = rgbToNormalized((0, 128, 128));
 
 	level.DVARS = [];
 
@@ -204,7 +204,7 @@ generateMenu()
 	// Theme menu
 	self addMenu("theme_menu", "main_menu");
 	themes = getarraykeys(level.THEMES);
-	for (i = 0; i < themes.size; i++)
+	for (i = themes.size - 1; i >= 0; i--) // reverse order to display the dvars in the order they are defined
 		self addMenuOption("theme_menu", themes[i], ::menuAction, "CHANGE_THEME", themes[i]);
 
 	// Main menu
