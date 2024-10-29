@@ -1,3 +1,7 @@
+/**
+ * NOTE: shader width and height cannot be floats otherwise the shader will not be displayed.
+ */
+
 #include maps\mp\gametypes\_hud_util;
 
 main()
@@ -25,6 +29,40 @@ initCJ()
 	level.THEMES["maroon"] = rgbToNormalized((128, 0, 0));
 	level.THEMES["salmon"] = rgbToNormalized((250, 128, 114));
 	level.THEMES["silver"] = rgbToNormalized((192, 192, 192));
+
+	level.DVARS = [];
+
+	level.DVARS["cg_fov"] = spawnstruct();
+	level.DVARS["cg_fov"].type = "slider";
+	level.DVARS["cg_fov"].name = "cg_fov";
+	level.DVARS["cg_fov"].default_value = 65;
+	level.DVARS["cg_fov"].min = 65;
+	level.DVARS["cg_fov"].max = 90;
+	level.DVARS["cg_fov"].step = 1;
+
+	level.DVARS["cg_fovScale"] = spawnstruct();
+	level.DVARS["cg_fovScale"].type = "slider";
+	level.DVARS["cg_fovScale"].name = "cg_fovScale";
+	level.DVARS["cg_fovScale"].default_value = 1;
+	level.DVARS["cg_fovScale"].min = 0.2;
+	level.DVARS["cg_fovScale"].max = 2;
+	level.DVARS["cg_fovScale"].step = 0.1;
+
+	level.DVARS["cg_thirdPersonAngle"] = spawnstruct();
+	level.DVARS["cg_thirdPersonAngle"].type = "slider";
+	level.DVARS["cg_thirdPersonAngle"].name = "cg_thirdPersonAngle";
+	level.DVARS["cg_thirdPersonAngle"].default_value = 356;
+	level.DVARS["cg_thirdPersonAngle"].min = -180;
+	level.DVARS["cg_thirdPersonAngle"].max = 360;
+	level.DVARS["cg_thirdPersonAngle"].step = 1;
+
+	level.DVARS["cg_thirdPersonRange"] = spawnstruct();
+	level.DVARS["cg_thirdPersonRange"].type = "slider";
+	level.DVARS["cg_thirdPersonRange"].name = "cg_thirdPersonRange";
+	level.DVARS["cg_thirdPersonRange"].default_value = 120;
+	level.DVARS["cg_thirdPersonRange"].min = 0;
+	level.DVARS["cg_thirdPersonRange"].max = 1024;
+	level.DVARS["cg_thirdPersonRange"].step = 1;
 
 	level.hardcoreMode = true;												  // Disable HUD elements
 	level.MAP_CENTER_GROUND_ORIGIN = getent("sab_bomb", "targetname").origin; // sab_bomb is always placed in the center of the map
@@ -153,6 +191,16 @@ addMenuOption(menuKey, label, func, param1, param2, param3)
  */
 generateMenu()
 {
+	// DVAR menu
+	self addMenu("dvar_menu", "main_menu");
+	dvars = getarraykeys(level.DVARS);
+	for (i = dvars.size - 1; i >= 0; i--) // reverse order to display the dvars in the order they are defined
+	{
+		dvar = level.DVARS[dvars[i]];
+		if (dvar.type == "slider")
+			self addMenuOption("dvar_menu", dvar.name, ::dvarSlider, dvar);
+	}
+
 	// Theme menu
 	self addMenu("theme_menu", "main_menu");
 	themes = getarraykeys(level.THEMES);
@@ -161,8 +209,8 @@ generateMenu()
 
 	// Main menu
 	self addMenu("main_menu");
+	self addMenuOption("main_menu", "DVAR Menu", ::menuAction, "CHANGE_MENU", "dvar_menu");
 	self addMenuOption("main_menu", "Theme Menu", ::menuAction, "CHANGE_MENU", "theme_menu");
-	self addMenuOption("main_menu", "Unknown Menu", ::menuAction, "CHANGE_MENU", "does_not_exist");
 }
 
 menuKeyExists(menuKey)
@@ -503,5 +551,201 @@ replenishAmmo()
 		if (isdefined(currentWeapon))
 			self giveMaxAmmo(currentWeapon);
 		wait 1;
+	}
+}
+
+clientdvar_get(dvar)
+{
+	if (!isdefined(self.clientdvars))
+		self.clientdvars = [];
+
+	if (!isdefined(self.clientdvars[dvar.name]))
+		return dvar.default_value;
+
+	return self.clientdvars[dvar.name];
+}
+
+clientdvar_set(dvar, value)
+{
+	if (!isdefined(self.clientdvars))
+		self.clientdvars = [];
+
+	self.clientdvars[dvar.name] = value;
+
+	msg = dvar.name + " set to " + value;
+	if (value == dvar.default_value)
+		msg += " [DEFAULT]";
+
+	self iprintln(msg);
+}
+
+isDvarStructValid(dvar)
+{
+	// all must have a name, type
+	if (!isdefined(dvar) || !isdefined(dvar.type) || !isdefined(dvar.name))
+		return false;
+
+	// type specific checks
+	if (dvar.type == "slider")
+	{
+		if (!isdefined(dvar.default_value) || !isdefined(dvar.min) || !isdefined(dvar.max) || !isdefined(dvar.step))
+			return false;
+	}
+	else if (dvar.type == "boolean")
+	{
+		if (!isdefined(dvar.default_value))
+			return false;
+	}
+	return true;
+}
+
+// Function to calculate and update the cursor position based on dvar value
+updateCursorPosition(dvar, dvarValue, sliderCursor, centerXPosition, railWidth, cursorWidth)
+{
+	// Calculate normalized position (0 to 1) on the rail
+	normalizedPosition = (dvarValue - dvar.min) / (dvar.max - dvar.min);
+	// Calculate actual x position on the rail
+	sliderCursor.x = centerXPosition + int(normalizedPosition * (railWidth - cursorWidth));
+}
+
+// TODO: more options
+// - reset to default
+// - add a label to the slider?
+// - ignore main menu button presses when the slider controls are open
+dvarSlider(dvar)
+{
+	self endon("disconnect");
+	self endon("end_respawn");
+
+	self menuAction("CLOSE");
+
+	if (!isDvarStructValid(dvar))
+	{
+		self iprintln("^1dvar is missing required fields");
+		return;
+	}
+	if (dvar.type != "slider")
+	{
+		self iprintln("^1dvar type is not a slider");
+		return;
+	}
+
+	// call this on a fresh game to get the default value
+	// self iprintln("DEFAULT GAME VALUE " + dvar.name + " " + getdvar(dvar.name));
+
+	// -- Background
+	backgroundWidth = level.SCREEN_MAX_WIDTH;
+	backgroundHeight = 50;
+	centerYPosition = (level.SCREEN_MAX_HEIGHT - backgroundHeight) / 2;
+
+	sliderBackground = newClientHudElem(self);
+	sliderBackground.elemType = "icon";
+	sliderBackground.children = [];
+	sliderBackground.color = (0, 0, 0);
+	sliderBackground.alpha = 0.5;
+	sliderBackground setParent(level.uiParent);
+	sliderBackground setShader("white", backgroundWidth, backgroundHeight);
+	sliderBackground.x = 0;
+	sliderBackground.y = centerYPosition;
+	sliderBackground.alignX = "left";
+	sliderBackground.alignY = "top";
+	sliderBackground.horzAlign = "fullscreen";
+	sliderBackground.vertAlign = "fullscreen";
+
+	// -- Rail
+	railWidth = int(level.SCREEN_MAX_WIDTH * 0.75);
+	railHeight = 4;
+	centerXPosition = (level.SCREEN_MAX_WIDTH - railWidth) / 2;
+	centerYPosition = (level.SCREEN_MAX_HEIGHT - railHeight) / 2;
+
+	sliderRail = newClientHudElem(self);
+	sliderRail.elemType = "icon";
+	sliderRail.children = [];
+	sliderRail.color = (1, 1, 1);
+	sliderRail.alpha = 0.75;
+	sliderRail setParent(level.uiParent);
+	sliderRail setShader("white", railWidth, railHeight);
+	sliderRail.x = centerXPosition;
+	sliderRail.y = centerYPosition;
+	sliderRail.alignX = "left";
+	sliderRail.alignY = "top";
+	sliderRail.horzAlign = "fullscreen";
+	sliderRail.vertAlign = "fullscreen";
+
+	// -- Cursor
+	cursorWidth = 3;
+	cursorHeight = int(backgroundHeight / 2);
+	// Start position aligned with the beginning of the rail
+	cursorStartXPosition = centerXPosition; // This aligns it to the start of the rail
+	// Centered vertically with respect to the rail
+	cursorYPosition = centerYPosition - (cursorHeight - railHeight) / 2;
+
+	sliderCursor = newClientHudElem(self);
+	sliderCursor.elemType = "icon";
+	sliderCursor.children = [];
+	sliderCursor.color = self.themeColor; // Use the theme color
+	sliderCursor.alpha = 0;				  // Hide the cursor initially
+	sliderCursor setParent(level.uiParent);
+	sliderCursor setShader("white", cursorWidth, cursorHeight);
+	sliderCursor.x = cursorStartXPosition;
+	sliderCursor.y = cursorYPosition;
+	sliderCursor.alignX = "left";
+	sliderCursor.alignY = "top";
+	sliderCursor.horzAlign = "fullscreen";
+	sliderCursor.vertAlign = "fullscreen";
+
+	dvarValue = self clientdvar_get(dvar);
+
+	// Initialize cursor position based on the default dvar value
+	updateCursorPosition(dvar, dvarValue, sliderCursor, centerXPosition, railWidth, cursorWidth);
+
+	sliderCursor.alpha = 1; // Show the cursor after it has been positioned
+
+	sliderValue = createFontString("default", 3);
+	sliderValue setPoint("CENTER", "CENTER", 0, -50);
+	sliderValue SetValue(dvarValue);
+
+	for (;;)
+	{
+		if (self fragbuttonpressed() || self secondaryoffhandbuttonpressed())
+		{
+			if (self fragbuttonpressed())
+			{
+				dvarValue += dvar.step;
+				if (dvarValue > dvar.max)
+				{
+					dvarValue = dvar.min; // Wrap around to min
+				}
+			}
+			else if (self secondaryoffhandbuttonpressed())
+			{
+				dvarValue -= dvar.step;
+				if (dvarValue < dvar.min)
+				{
+					dvarValue = dvar.max; // Wrap around to max
+				}
+			}
+
+			updateCursorPosition(dvar, dvarValue, sliderCursor, centerXPosition, railWidth, cursorWidth);
+			self setclientdvar(dvar.name, dvarValue);
+			sliderValue SetValue(dvarValue);
+			self clientdvar_set(dvar, dvarValue);
+
+			wait 0.05; // Prevent rapid firing
+		}
+		else if (self meleebuttonpressed())
+		{
+			self clientdvar_set(dvar, dvarValue);
+
+			sliderBackground destroy();
+			sliderRail destroy();
+			sliderCursor destroy();
+			sliderValue destroy();
+
+			self menuAction("OPEN");
+			return;
+		}
+
+		wait 0.05;
 	}
 }
