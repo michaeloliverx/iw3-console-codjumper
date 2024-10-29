@@ -11,10 +11,7 @@ initCJ()
 	level.SCREEN_MAX_WIDTH = 640;
 	level.SCREEN_MAX_HEIGHT = 480;
 
-	level.MENU_WIDTH = int(level.SCREEN_MAX_WIDTH * 0.2); // force int because shaders dimensions won't work with floats
 	level.MENU_SCROLL_TIME_SECONDS = 0.250;
-	level.MENU_TEXT_PADDING_LEFT = 5;
-	level.MENU_SCROLLER_ALPHA = 0.7;
 
 	level.THEMES = [];
 	level.THEMES["teal"] = rgbToNormalized((0, 128, 128));
@@ -200,15 +197,18 @@ getMenuText()
  */
 initMenuHudElem()
 {
+	menuWidth = int(level.SCREEN_MAX_WIDTH * 0.2); // force int because shaders dimensions won't work with floats
+	menuTextPaddingLeft = 5;
+	menuScrollerAlpha = 0.7;
+
 	menuBackground = newClientHudElem(self);
 	menuBackground.elemType = "icon";
 	menuBackground.children = [];
-	menuBackground.sort = 1;
 	menuBackground.color = (0, 0, 0);
 	menuBackground.alpha = 0.5;
 	menuBackground setParent(level.uiParent);
-	menuBackground setShader("white", level.MENU_WIDTH, level.SCREEN_MAX_HEIGHT);
-	menuBackground.x = level.SCREEN_MAX_WIDTH - level.MENU_WIDTH;
+	menuBackground setShader("white", menuWidth, level.SCREEN_MAX_HEIGHT);
+	menuBackground.x = level.SCREEN_MAX_WIDTH - menuWidth;
 	menuBackground.y = 0;
 	menuBackground.alignX = "left";
 	menuBackground.alignY = "top";
@@ -216,15 +216,16 @@ initMenuHudElem()
 	menuBackground.vertAlign = "fullscreen";
 	self.menuBackground = menuBackground;
 
+	leftBorderWidth = 2;
+
 	menuBorderLeft = newClientHudElem(self);
 	menuBorderLeft.elemType = "icon";
 	menuBorderLeft.children = [];
-	menuBorderLeft.sort = 2;
 	menuBorderLeft.color = self.themeColor;
-	menuBorderLeft.alpha = level.MENU_SCROLLER_ALPHA;
+	menuBorderLeft.alpha = level.menuScrollerAlpha;
 	menuBorderLeft setParent(level.uiParent);
-	menuBorderLeft setShader("white", 2, level.SCREEN_MAX_HEIGHT);
-	menuBorderLeft.x = (level.SCREEN_MAX_WIDTH - level.MENU_WIDTH);
+	menuBorderLeft setShader("white", leftBorderWidth, level.SCREEN_MAX_HEIGHT);
+	menuBorderLeft.x = (level.SCREEN_MAX_WIDTH - menuWidth);
 	menuBorderLeft.y = 0;
 	menuBorderLeft.alignX = "left";
 	menuBorderLeft.alignY = "top";
@@ -235,12 +236,11 @@ initMenuHudElem()
 	menuScroller = newClientHudElem(self);
 	menuScroller.elemType = "icon";
 	menuScroller.children = [];
-	menuScroller.sort = 2;
 	menuScroller.color = self.themeColor;
-	menuScroller.alpha = level.MENU_SCROLLER_ALPHA;
+	menuScroller.alpha = level.menuScrollerAlpha;
 	menuScroller setParent(level.uiParent);
-	menuScroller setShader("white", level.MENU_WIDTH, int(level.fontHeight * 1.5));
-	menuScroller.x = level.SCREEN_MAX_WIDTH - level.MENU_WIDTH;
+	menuScroller setShader("white", menuWidth, int(level.fontHeight * 1.5));
+	menuScroller.x = level.SCREEN_MAX_WIDTH - menuWidth;
 	menuScroller.y = int(level.SCREEN_MAX_HEIGHT * 0.15);
 	menuScroller.alignX = "left";
 	menuScroller.alignY = "top";
@@ -253,10 +253,9 @@ initMenuHudElem()
 	menuTextFontElem.font = "default";
 	menuTextFontElem.fontscale = 1.5;
 	menuTextFontElem.children = [];
-	menuTextFontElem.sort = 3;
 	menuTextFontElem setParent(level.uiParent);
 	menuTextFontElem settext(getMenuText());
-	menuTextFontElem.x = (level.SCREEN_MAX_WIDTH - level.MENU_WIDTH) + level.MENU_TEXT_PADDING_LEFT;
+	menuTextFontElem.x = (level.SCREEN_MAX_WIDTH - menuWidth) + menuTextPaddingLeft;
 	menuTextFontElem.y = int(level.SCREEN_MAX_HEIGHT * 0.15);
 	menuTextFontElem.alignX = "left";
 	menuTextFontElem.alignY = "top";
@@ -271,9 +270,8 @@ initMenuHudElem()
 	menuHeaderFontElem.glowColor = self.themeColor;
 	menuHeaderFontElem.glowAlpha = 1;
 	menuHeaderFontElem.children = [];
-	menuHeaderFontElem.sort = 3;
 	menuHeaderFontElem setParent(level.uiParent);
-	menuHeaderFontElem.x = (level.SCREEN_MAX_WIDTH - level.MENU_WIDTH) + level.MENU_TEXT_PADDING_LEFT;
+	menuHeaderFontElem.x = (level.SCREEN_MAX_WIDTH - menuWidth) + menuTextPaddingLeft;
 	menuHeaderFontElem.y = int(level.SCREEN_MAX_HEIGHT * 0.025);
 	menuHeaderFontElem.alignX = "left";
 	menuHeaderFontElem.alignY = "top";
@@ -289,16 +287,32 @@ initMenuHudElem()
 	menuHeaderAuthorFontElem.glowColor = self.themeColor;
 	menuHeaderAuthorFontElem.glowAlpha = 0.1;
 	menuHeaderAuthorFontElem.children = [];
-	menuHeaderAuthorFontElem.sort = 3;
 	menuHeaderAuthorFontElem setParent(level.uiParent);
-	menuHeaderAuthorFontElem.x = (level.SCREEN_MAX_WIDTH - level.MENU_WIDTH) + level.MENU_TEXT_PADDING_LEFT;
+	menuHeaderAuthorFontElem.x = (level.SCREEN_MAX_WIDTH - menuWidth) + menuTextPaddingLeft;
 	menuHeaderAuthorFontElem.y = int(level.SCREEN_MAX_HEIGHT * 0.075);
 	menuHeaderAuthorFontElem.alignX = "left";
 	menuHeaderAuthorFontElem.alignY = "top";
 	menuHeaderAuthorFontElem.horzAlign = "fullscreen";
 	menuHeaderAuthorFontElem.vertAlign = "fullscreen";
-	menuHeaderAuthorFontElem settext("v1.0.0    --> by mo");
+	menuHeaderAuthorFontElem settext("by mo");
 	self.menuHeaderAuthorFontElem = menuHeaderAuthorFontElem;
+
+	menuVersionFontElem = newClientHudElem(self);
+	menuVersionFontElem.elemType = "font";
+	menuVersionFontElem.font = "default";
+	menuVersionFontElem.fontscale = 1.4;
+	menuVersionFontElem.color = (1, 1, 1);
+	menuVersionFontElem.alpha = 0.5;
+	menuVersionFontElem.children = [];
+	menuVersionFontElem setParent(level.uiParent);
+	menuVersionFontElem.x = (level.SCREEN_MAX_WIDTH - menuWidth) + menuTextPaddingLeft;
+	menuVersionFontElem.y = int(level.SCREEN_MAX_HEIGHT - (level.fontHeight * menuVersionFontElem.fontscale) - menuTextPaddingLeft);
+	menuVersionFontElem.alignX = "left";
+	menuVersionFontElem.alignY = "top";
+	menuVersionFontElem.horzAlign = "fullscreen";
+	menuVersionFontElem.vertAlign = "fullscreen";
+	menuVersionFontElem settext("v1.0.0");
+	self.menuVersionFontElem = menuVersionFontElem;
 }
 
 /**
@@ -358,6 +372,7 @@ menuAction(action, param1)
 		self.menuTextFontElem destroy();
 		self.menuHeaderFontElem destroy();
 		self.menuHeaderAuthorFontElem destroy();
+		self.menuVersionFontElem destroy();
 		self.menuOpen = false;
 		self freezecontrols(false);
 		break;
