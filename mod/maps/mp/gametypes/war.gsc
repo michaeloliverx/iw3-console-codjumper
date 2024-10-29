@@ -3,17 +3,17 @@
 
 main()
 {
-	if(getdvar("mapname") == "mp_background")
+	if (getdvar("mapname") == "mp_background")
 		return;
-	
+
 	maps\mp\gametypes\_globallogic::init();
 	maps\mp\gametypes\_callbacksetup::SetupCallbacks();
 	maps\mp\gametypes\_globallogic::SetupCallbacks();
 
-	maps\mp\gametypes\_globallogic::registerTimeLimitDvar( "war", 10, 0, 1440 );
-	maps\mp\gametypes\_globallogic::registerScoreLimitDvar( "war", 500, 0, 5000 );
-	maps\mp\gametypes\_globallogic::registerRoundLimitDvar( "war", 1, 0, 10 );
-	maps\mp\gametypes\_globallogic::registerNumLivesDvar( "war", 0, 0, 10 );
+	maps\mp\gametypes\_globallogic::registerTimeLimitDvar("war", 10, 0, 1440);
+	maps\mp\gametypes\_globallogic::registerScoreLimitDvar("war", 500, 0, 5000);
+	maps\mp\gametypes\_globallogic::registerRoundLimitDvar("war", 1, 0, 10);
+	maps\mp\gametypes\_globallogic::registerNumLivesDvar("war", 0, 0, 10);
 
 	level.teamBased = true;
 	level.onStartGameType = ::onStartGameType;
@@ -26,31 +26,31 @@ onStartGameType()
 {
 	setClientNameMode("auto_change");
 
-	maps\mp\gametypes\_globallogic::setObjectiveText( "allies", "CodJumper" );
-	maps\mp\gametypes\_globallogic::setObjectiveText( "axis", "CodJumper" );
-	
-	if ( level.splitscreen )
+	maps\mp\gametypes\_globallogic::setObjectiveText("allies", "CodJumper");
+	maps\mp\gametypes\_globallogic::setObjectiveText("axis", "CodJumper");
+
+	if (level.splitscreen)
 	{
-		maps\mp\gametypes\_globallogic::setObjectiveScoreText( "allies", &"OBJECTIVES_WAR" );
-		maps\mp\gametypes\_globallogic::setObjectiveScoreText( "axis", &"OBJECTIVES_WAR" );
+		maps\mp\gametypes\_globallogic::setObjectiveScoreText("allies", &"OBJECTIVES_WAR");
+		maps\mp\gametypes\_globallogic::setObjectiveScoreText("axis", &"OBJECTIVES_WAR");
 	}
 	else
 	{
-		maps\mp\gametypes\_globallogic::setObjectiveScoreText( "allies", &"OBJECTIVES_WAR_SCORE" );
-		maps\mp\gametypes\_globallogic::setObjectiveScoreText( "axis", &"OBJECTIVES_WAR_SCORE" );
+		maps\mp\gametypes\_globallogic::setObjectiveScoreText("allies", &"OBJECTIVES_WAR_SCORE");
+		maps\mp\gametypes\_globallogic::setObjectiveScoreText("axis", &"OBJECTIVES_WAR_SCORE");
 	}
-	maps\mp\gametypes\_globallogic::setObjectiveHintText( "allies", &"OBJECTIVES_WAR_HINT" );
-	maps\mp\gametypes\_globallogic::setObjectiveHintText( "axis", &"OBJECTIVES_WAR_HINT" );
-			
-	level.spawnMins = ( 0, 0, 0 );
-	level.spawnMaxs = ( 0, 0, 0 );	
-	maps\mp\gametypes\_spawnlogic::placeSpawnPoints( "mp_tdm_spawn_allies_start" );
-	maps\mp\gametypes\_spawnlogic::placeSpawnPoints( "mp_tdm_spawn_axis_start" );
-	maps\mp\gametypes\_spawnlogic::addSpawnPoints( "allies", "mp_tdm_spawn" );
-	maps\mp\gametypes\_spawnlogic::addSpawnPoints( "axis", "mp_tdm_spawn" );
-	
-	level.mapCenter = maps\mp\gametypes\_spawnlogic::findBoxCenter( level.spawnMins, level.spawnMaxs );
-	setMapCenter( level.mapCenter );
+	maps\mp\gametypes\_globallogic::setObjectiveHintText("allies", &"OBJECTIVES_WAR_HINT");
+	maps\mp\gametypes\_globallogic::setObjectiveHintText("axis", &"OBJECTIVES_WAR_HINT");
+
+	level.spawnMins = (0, 0, 0);
+	level.spawnMaxs = (0, 0, 0);
+	maps\mp\gametypes\_spawnlogic::placeSpawnPoints("mp_tdm_spawn_allies_start");
+	maps\mp\gametypes\_spawnlogic::placeSpawnPoints("mp_tdm_spawn_axis_start");
+	maps\mp\gametypes\_spawnlogic::addSpawnPoints("allies", "mp_tdm_spawn");
+	maps\mp\gametypes\_spawnlogic::addSpawnPoints("axis", "mp_tdm_spawn");
+
+	level.mapCenter = maps\mp\gametypes\_spawnlogic::findBoxCenter(level.spawnMins, level.spawnMaxs);
+	setMapCenter(level.mapCenter);
 
 	allowed[0] = "dm";
 	allowed[1] = "war";
@@ -63,27 +63,26 @@ onStartGameType()
 	allowed[8] = "hardpoint";
 	level.displayRoundEndText = false;
 	maps\mp\gametypes\_gameobjects::main(allowed);
-	
+
 	// elimination style
-	if ( level.roundLimit != 1 && level.numLives )
+	if (level.roundLimit != 1 && level.numLives)
 	{
 		level.overrideTeamScore = true;
 		level.displayRoundEndText = true;
 		level.onEndGame = ::onEndGame;
 	}
 
-	thread maps\mp\gametypes\dom::init();
+	thread maps\mp\gametypes\dom::initCJ();
 }
 
 onSpawnPlayer()
 {
-	spawnPoints = maps\mp\gametypes\_spawnlogic::getTeamSpawnPoints( self.pers["team"] );
-	spawnPoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_DM( spawnPoints );
-	self spawn( spawnPoint.origin, spawnPoint.angles );
+	spawnPoints = maps\mp\gametypes\_spawnlogic::getTeamSpawnPoints(self.pers["team"]);
+	spawnPoint = maps\mp\gametypes\_spawnlogic::getSpawnpoint_DM(spawnPoints);
+	self spawn(spawnPoint.origin, spawnPoint.angles);
 }
 
-
-onEndGame( winningTeam )
+onEndGame(winningTeam)
 {
 	return;
 }
