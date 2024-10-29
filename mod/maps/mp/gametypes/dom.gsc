@@ -49,8 +49,19 @@ onPlayerConnect()
 	{
 		level waittill("connected", player);
 
-		player setClientDvar("loc_warnings", 0);	// Disable unlocalized warnings
-		player setClientDvar("compassSize", 0.001); // Hide compass
+		player setclientdvar("loc_warnings", 0);				  // Disable unlocalized warnings
+		player setclientdvar("compassSize", 0.001);				  // Hide compass
+		player setclientdvar("player_view_pitch_up", 89.9);		  // Allow looking straight up
+		player setclientdvar("ui_ConnectScreenTextGlowColor", 0); // Remove glow color applied to the mode and map name strings on the connect screen
+		player setclientdvar("cg_descriptiveText", 0);			  // Disable spectator button icons
+		player setclientdvar("player_spectateSpeedScale", 1.5);	  // Faster movement in spectator
+
+		// developer dvars
+		player setclientdvar("developer", 1);
+		player setclientdvar("developer_script", 1);
+		player setclientdvar("con_minicon", 1);
+		player setclientdvar("con_miniconlines", 20);
+		player setclientdvar("con_minicontime", 10);
 
 		player thread onPlayerSpawned();
 	}
