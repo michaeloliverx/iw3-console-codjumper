@@ -72,5 +72,38 @@ onPlayerSpawned()
 	for (;;)
 	{
 		self waittill("spawned_player");
+		self initLoadout();
+		self thread replenishAmmo();
+	}
+}
+
+/**
+ * Set the player's loadout.
+ */
+initLoadout()
+{
+	self takeallweapons();
+	self giveweapon("deserteagle_mp");
+	self giveWeapon("rpg_mp");
+	self setactionslot(3, "weapon", "rpg_mp");
+
+	wait 0.05;
+	self switchtoweapon("deserteagle_mp");
+}
+
+/**
+ * Constantly replace the players ammo.
+ */
+replenishAmmo()
+{
+	self endon("end_respawn");
+	self endon("disconnect");
+
+	for (;;)
+	{
+		currentWeapon = self getCurrentWeapon(); // undefined if the player is mantling or on a ladder
+		if (isdefined(currentWeapon))
+			self giveMaxAmmo(currentWeapon);
+		wait 1;
 	}
 }
