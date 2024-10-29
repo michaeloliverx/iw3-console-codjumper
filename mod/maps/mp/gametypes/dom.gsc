@@ -26,6 +26,18 @@ initCJ()
 
 	setDvar("sv_botsPressAttackBtn", 0); // Prevent testclients from pressing attack button
 
+	// prevent dynents from moving from bullets / explosions
+	setdvar("dynEnt_active", 0);
+	setdvar("dynEnt_bulletForce", 0);
+	setdvar("dynEnt_explodeForce", 0);
+	setdvar("dynEnt_explodeMaxEnts", 0);
+	setdvar("dynEnt_explodeMinForce", 9999999999);
+	setdvar("dynEnt_explodeSpinScale", 0);
+	setdvar("dynEnt_explodeUpbias", 0);
+	setdvar("dynEntPieces_angularVelocity", 0);
+	setdvar("dynEntPieces_impactForce", 0);
+	setdvar("dynEntPieces_velocity", 0);
+
 	AmbientStop(); // Stop all ambient sounds
 
 	level thread onPlayerConnect();
