@@ -49,6 +49,7 @@ onPlayerConnect()
 	{
 		level waittill("connected", player);
 
+		player setClientDvar("loc_warnings", 0);	// Disable unlocalized warnings
 		player setClientDvar("compassSize", 0.001); // Hide compass
 
 		player thread onPlayerSpawned();
