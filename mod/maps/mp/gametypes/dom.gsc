@@ -18,6 +18,7 @@ initCJ()
 	setDvar("scr_showperksonspawn", 0);							 // Don't show perks on spawn, also has the side effect of not creating the 6 (3 text + 3 icon) HUD elements
 	setDvar("scr_game_hardpoints", 0);							 // Disable killstreaks
 	setDvar("player_sprintUnlimited", 1);						 // Unlimited sprint
+	setDvar("player_footstepsThreshhold", 50000);				 // Disable footsteps sounds TODO: disable jump sounds
 	setDvar("jump_slowdownEnable", 0);							 // Disable jump slowdown
 
 	// Remove fall damage
