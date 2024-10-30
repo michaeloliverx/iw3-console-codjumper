@@ -32,10 +32,23 @@ initCJ()
 
 	level.DVARS = [];
 
-	level.DVARS["cg_drawgun"] = spawnstruct();
-	level.DVARS["cg_drawgun"].type = "boolean";
-	level.DVARS["cg_drawgun"].name = "cg_drawgun";
-	level.DVARS["cg_drawgun"].default_value = 1;
+	level.DVARS["bg_bobMax"] = spawnstruct();
+	level.DVARS["bg_bobMax"].type = "slider";
+	level.DVARS["bg_bobMax"].name = "bg_bobMax";
+	level.DVARS["bg_bobMax"].default_value = 8;
+	level.DVARS["bg_bobMax"].min = 0;
+	level.DVARS["bg_bobMax"].max = 36;
+	level.DVARS["bg_bobMax"].step = 1;
+
+	level.DVARS["cg_drawGun"] = spawnstruct();
+	level.DVARS["cg_drawGun"].type = "boolean";
+	level.DVARS["cg_drawGun"].name = "cg_drawGun";
+	level.DVARS["cg_drawGun"].default_value = 1;
+
+	level.DVARS["cg_drawSpectatorMessages"] = spawnstruct();
+	level.DVARS["cg_drawSpectatorMessages"].type = "boolean";
+	level.DVARS["cg_drawSpectatorMessages"].name = "cg_drawSpectatorMessages";
+	level.DVARS["cg_drawSpectatorMessages"].default_value = 1;
 
 	level.DVARS["cg_fov"] = spawnstruct();
 	level.DVARS["cg_fov"].type = "slider";
@@ -224,6 +237,7 @@ generateMenu()
 {
 	// DVAR menu
 	self addMenu("dvar_menu", "main_menu");
+	self addMenuOption("dvar_menu", "Reset All", ::resetAllClientDvars);
 	dvars = getarraykeys(level.DVARS);
 	for (i = dvars.size - 1; i >= 0; i--) // reverse order to display the dvars in the order they are defined
 	{
@@ -803,4 +817,14 @@ booleanDvarToggle(dvar)
 		self clientdvar_set(dvar, 1);
 	else
 		self clientdvar_set(dvar, 0);
+}
+
+resetAllClientDvars()
+{
+	dvars = getarraykeys(level.DVARS);
+	for (i = 0; i < dvars.size; i++)
+	{
+		dvar = level.DVARS[dvars[i]];
+		self clientdvar_set(dvar, dvar.default_value);
+	}
 }
