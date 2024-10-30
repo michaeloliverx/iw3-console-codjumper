@@ -289,10 +289,7 @@ generateMenu()
 
 	// CJ menu
 	self addMenu("cj_menu", "main_menu");
-	// maybe allow changing position of the HUD elements
-	self addMenuOption("cj_menu", "Distance HUD", ::toggleDistanceMeasurementHUD);
-	self addMenuOption("cj_menu", "Height HUD", ::emptyFunc);
-	self addMenuOption("cj_menu", "Speed HUD", ::emptyFunc);
+	// self addMenuOption("cj_menu", "Load Previous Position", ::emptyFunc);
 	self addMenuOption("cj_menu", "RPG Switch", ::emptyFunc);
 
 	// DVAR menu
@@ -318,6 +315,13 @@ generateMenu()
 	self addMenuOption("filmtweaks_menu", "Blue Sky", ::setFilmTweaksPreset, "blue_sky");
 	self addMenuOption("filmtweaks_menu", "Green Sky", ::setFilmTweaksPreset, "green_sky");
 	self addMenuOption("filmtweaks_menu", "Pink Sky", ::setFilmTweaksPreset, "pink_sky");
+
+	// HUD menu
+	// maybe allow changing position of the HUD elements
+	self addMenu("hud_menu", "main_menu");
+	self addMenuOption("hud_menu", "Distance HUD", ::toggleHUDType, "distance");
+	self addMenuOption("hud_menu", "Speed HUD", ::toggleHUDType, "speed");
+	self addMenuOption("hud_menu", "Z Origin HUD", ::toggleHUDType, "z_origin");
 
 	// Loadout menu
 	self addMenu("loadout_menu", "main_menu");
@@ -345,6 +349,7 @@ generateMenu()
 	self addMenuOption("main_menu", "DVAR Menu", ::menuAction, "CHANGE_MENU", "dvar_menu");
 	self addMenuOption("main_menu", "Filmtweaks Menu", ::menuAction, "CHANGE_MENU", "filmtweaks_menu");
 	self addMenuOption("main_menu", "Game Objects Menu", ::menuAction, "CHANGE_MENU", "game_objects_menu");
+	self addMenuOption("main_menu", "HUD Menu", ::menuAction, "CHANGE_MENU", "hud_menu");
 	self addMenuOption("main_menu", "Loadout Menu", ::menuAction, "CHANGE_MENU", "loadout_menu");
 	self addMenuOption("main_menu", "Map Menu", ::menuAction, "CHANGE_MENU", "map_menu");
 	self addMenuOption("main_menu", "Theme Menu", ::menuAction, "CHANGE_MENU", "theme_menu");

@@ -101,33 +101,36 @@ setFilmTweaksPreset(preset)
 	self iprintln("Film tweaks set to ^2" + preset);
 }
 
-toggleDistanceMeasurementHUD()
+toggleHUDType(type)
 {
-	// self notify("end_distance_measurement");
-
 	if (!isdefined(self.meterHUD))
 		self.meterHUD = [];
 
-	if (!isdefined(self.meterHUD["distance"]))
+	// not defined means OFF
+	if (!isdefined(self.meterHUD[type]))
 	{
-		self thread startDistanceMeasurement();
+		if (type == "distance")
+			self thread startDistanceHUD();
+		else if (type == "speed")
+			self thread startSpeedHUD();
+		else if (type == "z_origin")
+			self thread startZOriginHUD();
 	}
 	else
 	{
-		self notify("end_distance_measurement");
-		self.meterHUD["distance"] destroy();
+		self notify("end_hud_" + type);
+		self.meterHUD[type] destroy();
 	}
 }
 
-startDistanceMeasurement()
+startDistanceHUD()
 {
 	self endon("disconnect");
-	self endon("end_respawn");
-	// self endon("end_distance_measurement");
+	self endon("end_hud_distance");
 
 	fontScale = 1.4;
 	x = 62;
-	y = 36;
+	y = 10;
 
 	self.meterHUD["distance"] = createFontString("small", fontScale);
 	self.meterHUD["distance"] setPoint("BOTTOMRIGHT", "BOTTOMRIGHT", x, y);
@@ -156,6 +159,53 @@ startDistanceMeasurement()
 
 		distance = distance(origin, endpos);
 		self.meterHUD["distance"] setValue(distance);
+
+		wait 0.05;
+	}
+}
+
+startSpeedHUD()
+{
+	self endon("disconnect");
+	self endon("end_hud_speed");
+
+	fontScale = 1.4;
+	x = 62;
+	y = 22;
+	alpha = 0.5;
+
+	self.meterHUD["speed"] = createFontString("small", fontScale);
+	self.meterHUD["speed"] setPoint("BOTTOMRIGHT", "BOTTOMRIGHT", x, y);
+	self.meterHUD["speed"].alpha = alpha;
+	self.meterHUD["speed"].label = &"speed:&&1";
+
+	for (;;)
+	{
+		velocity3D = self getVelocity();
+		horizontalSpeed2D = int(sqrt(velocity3D[0] * velocity3D[0] + velocity3D[1] * velocity3D[1]));
+		self.meterHUD["speed"] setValue(horizontalSpeed2D);
+
+		wait 0.05;
+	}
+}
+
+startZOriginHUD()
+{
+	self endon("disconnect");
+	self endon("end_hud_z_origin");
+
+	fontScale = 1.4;
+	x = 62;
+	y = 36;
+
+	self.meterHUD["z_origin"] = createFontString("small", fontScale);
+	self.meterHUD["z_origin"] setPoint("BOTTOMRIGHT", "BOTTOMRIGHT", x, y);
+	self.meterHUD["z_origin"].alpha = 0.5;
+	self.meterHUD["z_origin"].label = &"z:&&1";
+
+	for (;;)
+	{
+		self.meterHUD["z_origin"] setValue(self.origin[2]);
 
 		wait 0.05;
 	}
