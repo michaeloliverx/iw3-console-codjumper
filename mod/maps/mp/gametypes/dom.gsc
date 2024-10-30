@@ -1,5 +1,19 @@
 /**
+ *
  * NOTE: shader width and height cannot be floats otherwise the shader will not be displayed.
+ *
+ * Codes for colors:
+ * ^0 = Black
+ * ^1 = Red
+ * ^2 = Green
+ * ^3 = Yellow
+ * ^4 = Blue
+ * ^5 = Cyan
+ * ^6 = Pink
+ * ^7 = White/Default
+ * ^8 = Gray
+ * ^9 = Gray/Map Default
+ *
  */
 
 #include maps\mp\gametypes\_hud_util;
@@ -17,9 +31,34 @@ initCJ()
 
 	level.MENU_SCROLL_TIME_SECONDS = 0.250;
 
+	// Alphabetically sorted by the value
+	level.MAPNAMES = [];
+	level.MAPNAMES["mp_ambush"] = "Ambush";
+	level.MAPNAMES["mp_backlot"] = "Backlot";
+	level.MAPNAMES["mp_bloc"] = "Bloc";
+	level.MAPNAMES["mp_bog"] = "Bog";
+	level.MAPNAMES["mp_broadcast"] = "Broadcast";
+	level.MAPNAMES["mp_carentan"] = "Chinatown";
+	level.MAPNAMES["mp_countdown"] = "Countdown";
+	level.MAPNAMES["mp_crash"] = "Crash";
+	level.MAPNAMES["mp_creek"] = "Creek";
+	level.MAPNAMES["mp_crossfire"] = "Crossfire";
+	level.MAPNAMES["mp_citystreets"] = "District";
+	level.MAPNAMES["mp_farm"] = "Downpour";
+	level.MAPNAMES["mp_killhouse"] = "Killhouse";
+	level.MAPNAMES["mp_overgrown"] = "Overgrown";
+	level.MAPNAMES["mp_pipeline"] = "Pipeline";
+	level.MAPNAMES["mp_shipment"] = "Shipment";
+	level.MAPNAMES["mp_showdown"] = "Showdown";
+	level.MAPNAMES["mp_strike"] = "Strike";
+	level.MAPNAMES["mp_vacant"] = "Vacant";
+	level.MAPNAMES["mp_wetlands"] = "Wet Work";
+	if (level.xenon)
+		level.MAPNAMES["mp_crash_snow"] = "Winter Crash";
+
 	level.THEMES = [];
 	level.THEMES["blue"] = rgbToNormalized((0, 0, 255));
-	level.THEMES["deepskyblue"] = rgbToNormalized((0, 191, 255));
+	level.THEMES["skyblue"] = rgbToNormalized((0, 191, 255));
 	level.THEMES["gold"] = rgbToNormalized((255, 215, 0));
 	level.THEMES["green"] = rgbToNormalized((0, 208, 98));
 	level.THEMES["maroon"] = rgbToNormalized((128, 0, 0));
@@ -235,9 +274,25 @@ addMenuOption(menuKey, label, func, param1, param2, param3)
  */
 generateMenu()
 {
+
+	// Bind menu
+	self addMenu("bind_menu", "main_menu");
+	self addMenuOption("bind_menu", "Jumpcrouch", ::emptyFunc);
+	self addMenuOption("bind_menu", "Lean", ::emptyFunc);
+
+	// Bot menu
+	self addMenu("bot_menu", "main_menu");
+	self addMenuOption("bot_menu", "Spawn Bot", ::emptyFunc);
+
+	// CJ menu
+	self addMenu("cj_menu", "main_menu");
+	self addMenuOption("cj_menu", "Distance Measurement", ::emptyFunc);
+	self addMenuOption("cj_menu", "RPG Switch", ::emptyFunc);
+	self addMenuOption("cj_menu", "SpeedHeight Meter", ::emptyFunc); // maybe allow changing position
+
 	// DVAR menu
 	self addMenu("dvar_menu", "main_menu");
-	self addMenuOption("dvar_menu", "Reset All", ::resetAllClientDvars);
+	self addMenuOption("dvar_menu", "^1Reset All^7", ::resetAllClientDvars);
 	dvars = getarraykeys(level.DVARS);
 	for (i = dvars.size - 1; i >= 0; i--) // reverse order to display the dvars in the order they are defined
 	{
@@ -248,6 +303,27 @@ generateMenu()
 			self addMenuOption("dvar_menu", dvar.name, ::booleanDvarToggle, dvar);
 	}
 
+	// Filmtweaks menu
+	self addMenu("filmtweaks_menu", "main_menu");
+	self addMenuOption("filmtweaks_menu", "^1Reset All^7", ::emptyFunc);
+	self addMenuOption("filmtweaks_menu", "Blue Sky", ::emptyFunc);
+	self addMenuOption("filmtweaks_menu", "Berry", ::emptyFunc);
+	self addMenuOption("filmtweaks_menu", "Green Sky", ::emptyFunc);
+	self addMenuOption("filmtweaks_menu", "Pink Sky", ::emptyFunc);
+	self addMenuOption("filmtweaks_menu", "Black & White", ::emptyFunc);
+
+	// Loadout menu
+	self addMenu("loadout_menu", "main_menu");
+	self addMenuOption("loadout_menu", "Primary Weapon", ::emptyFunc);
+	self addMenuOption("loadout_menu", "Secondary Weapon", ::emptyFunc);
+	self addMenuOption("loadout_menu", "Camo Menu", ::emptyFunc);
+
+	// Map menu
+	self addMenu("map_menu", "main_menu");
+	maps = getarraykeys(level.MAPNAMES);
+	for (i = maps.size - 1; i >= 0; i--) // reverse order to display the maps in the order they are defined
+		self addMenuOption("map_menu", level.MAPNAMES[maps[i]], ::changeMap, maps[i]);
+
 	// Theme menu
 	self addMenu("theme_menu", "main_menu");
 	themes = getarraykeys(level.THEMES);
@@ -256,8 +332,20 @@ generateMenu()
 
 	// Main menu
 	self addMenu("main_menu");
+	self addMenuOption("main_menu", "Bind Menu", ::menuAction, "CHANGE_MENU", "bind_menu");
+	self addMenuOption("main_menu", "Bot Menu", ::menuAction, "CHANGE_MENU", "bot_menu");
+	self addMenuOption("main_menu", "CJ Menu", ::menuAction, "CHANGE_MENU", "cj_menu");
 	self addMenuOption("main_menu", "DVAR Menu", ::menuAction, "CHANGE_MENU", "dvar_menu");
+	self addMenuOption("main_menu", "Filmtweaks Menu", ::menuAction, "CHANGE_MENU", "filmtweaks_menu");
+	self addMenuOption("main_menu", "Game Objects Menu", ::menuAction, "CHANGE_MENU", "game_objects_menu");
+	self addMenuOption("main_menu", "Loadout Menu", ::menuAction, "CHANGE_MENU", "loadout_menu");
+	self addMenuOption("main_menu", "Map Menu", ::menuAction, "CHANGE_MENU", "map_menu");
 	self addMenuOption("main_menu", "Theme Menu", ::menuAction, "CHANGE_MENU", "theme_menu");
+}
+
+emptyFunc()
+{
+	self iprintln("^1Not implemented yet");
 }
 
 menuKeyExists(menuKey)
@@ -292,7 +380,7 @@ getMenuText()
  */
 initMenuHudElem()
 {
-	menuWidth = int(level.SCREEN_MAX_WIDTH * 0.2); // force int because shaders dimensions won't work with floats
+	menuWidth = int(level.SCREEN_MAX_WIDTH * 0.25); // force int because shaders dimensions won't work with floats
 	menuTextPaddingLeft = 5;
 	menuScrollerAlpha = 0.7;
 
@@ -827,4 +915,10 @@ resetAllClientDvars()
 		dvar = level.DVARS[dvars[i]];
 		self clientdvar_set(dvar, dvar.default_value);
 	}
+}
+
+changeMap(mapname)
+{
+	// TODO: kick all testclients
+	Map(mapname);
 }
