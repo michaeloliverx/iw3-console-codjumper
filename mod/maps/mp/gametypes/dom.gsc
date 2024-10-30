@@ -32,6 +32,11 @@ initCJ()
 
 	level.DVARS = [];
 
+	level.DVARS["cg_drawgun"] = spawnstruct();
+	level.DVARS["cg_drawgun"].type = "boolean";
+	level.DVARS["cg_drawgun"].name = "cg_drawgun";
+	level.DVARS["cg_drawgun"].default_value = 1;
+
 	level.DVARS["cg_fov"] = spawnstruct();
 	level.DVARS["cg_fov"].type = "slider";
 	level.DVARS["cg_fov"].name = "cg_fov";
@@ -48,6 +53,11 @@ initCJ()
 	level.DVARS["cg_fovScale"].max = 2;
 	level.DVARS["cg_fovScale"].step = 0.1;
 
+	level.DVARS["cg_thirdPerson"] = spawnstruct();
+	level.DVARS["cg_thirdPerson"].type = "boolean";
+	level.DVARS["cg_thirdPerson"].name = "cg_thirdPerson";
+	level.DVARS["cg_thirdPerson"].default_value = 0;
+
 	level.DVARS["cg_thirdPersonAngle"] = spawnstruct();
 	level.DVARS["cg_thirdPersonAngle"].type = "slider";
 	level.DVARS["cg_thirdPersonAngle"].name = "cg_thirdPersonAngle";
@@ -63,6 +73,27 @@ initCJ()
 	level.DVARS["cg_thirdPersonRange"].min = 0;
 	level.DVARS["cg_thirdPersonRange"].max = 1024;
 	level.DVARS["cg_thirdPersonRange"].step = 1;
+
+	level.DVARS["r_dof_enable"] = spawnstruct();
+	level.DVARS["r_dof_enable"].type = "boolean";
+	level.DVARS["r_dof_enable"].name = "r_dof_enable";
+	level.DVARS["r_dof_enable"].default_value = 1;
+
+	level.DVARS["r_fog"] = spawnstruct();
+	level.DVARS["r_fog"].type = "boolean";
+	level.DVARS["r_fog"].name = "r_fog";
+	level.DVARS["r_fog"].default_value = 1;
+
+	level.DVARS["r_zfar"] = spawnstruct();
+	level.DVARS["r_zfar"].type = "slider";
+	level.DVARS["r_zfar"].name = "r_zfar";
+	level.DVARS["r_zfar"].default_value = 0;
+	level.DVARS["r_zfar"].min = 0;
+	level.DVARS["r_zfar"].max = 4000;
+	level.DVARS["r_zfar"].step = 500;
+
+	// loop through and verify all dvars are valid
+	// raise an error if any are invalid
 
 	level.hardcoreMode = true;												  // Disable HUD elements
 	level.MAP_CENTER_GROUND_ORIGIN = getent("sab_bomb", "targetname").origin; // sab_bomb is always placed in the center of the map
@@ -199,6 +230,8 @@ generateMenu()
 		dvar = level.DVARS[dvars[i]];
 		if (dvar.type == "slider")
 			self addMenuOption("dvar_menu", dvar.name, ::dvarSlider, dvar);
+		else if (dvar.type == "boolean")
+			self addMenuOption("dvar_menu", dvar.name, ::booleanDvarToggle, dvar);
 	}
 
 	// Theme menu
@@ -572,6 +605,8 @@ clientdvar_set(dvar, value)
 
 	self.clientdvars[dvar.name] = value;
 
+	self setclientdvar(dvar.name, value);
+
 	msg = dvar.name + " set to " + value;
 	if (value == dvar.default_value)
 		msg += " [DEFAULT]";
@@ -727,7 +762,6 @@ dvarSlider(dvar)
 			}
 
 			updateCursorPosition(dvar, dvarValue, sliderCursor, centerXPosition, railWidth, cursorWidth);
-			self setclientdvar(dvar.name, dvarValue);
 			sliderValue SetValue(dvarValue);
 			self clientdvar_set(dvar, dvarValue);
 
@@ -748,4 +782,25 @@ dvarSlider(dvar)
 
 		wait 0.05;
 	}
+}
+
+booleanDvarToggle(dvar)
+{
+	if (!isDvarStructValid(dvar))
+	{
+		self iprintln("^1dvar is missing required fields");
+		return;
+	}
+	if (dvar.type != "boolean")
+	{
+		self iprintln("^1dvar type is not a boolean");
+		return;
+	}
+
+	dvarValue = self clientdvar_get(dvar);
+
+	if (dvarValue == 0)
+		self clientdvar_set(dvar, 1);
+	else
+		self clientdvar_set(dvar, 0);
 }
