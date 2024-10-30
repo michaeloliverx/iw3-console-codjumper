@@ -289,9 +289,11 @@ generateMenu()
 
 	// CJ menu
 	self addMenu("cj_menu", "main_menu");
-	self addMenuOption("cj_menu", "Distance Measurement", ::emptyFunc);
+	// maybe allow changing position of the HUD elements
+	self addMenuOption("cj_menu", "Distance HUD", ::toggleDistanceMeasurementHUD);
+	self addMenuOption("cj_menu", "Height HUD", ::emptyFunc);
+	self addMenuOption("cj_menu", "Speed HUD", ::emptyFunc);
 	self addMenuOption("cj_menu", "RPG Switch", ::emptyFunc);
-	self addMenuOption("cj_menu", "SpeedHeight Meter", ::emptyFunc); // maybe allow changing position
 
 	// DVAR menu
 	self addMenu("dvar_menu", "main_menu");

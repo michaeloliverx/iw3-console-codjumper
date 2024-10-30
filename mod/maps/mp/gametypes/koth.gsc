@@ -1,3 +1,5 @@
+#include maps\mp\gametypes\_hud_util;
+
 setFilmTweaksPreset(preset)
 {
 	switch (preset)
@@ -97,4 +99,64 @@ setFilmTweaksPreset(preset)
 		break;
 	}
 	self iprintln("Film tweaks set to ^2" + preset);
+}
+
+toggleDistanceMeasurementHUD()
+{
+	// self notify("end_distance_measurement");
+
+	if (!isdefined(self.meterHUD))
+		self.meterHUD = [];
+
+	if (!isdefined(self.meterHUD["distance"]))
+	{
+		self thread startDistanceMeasurement();
+	}
+	else
+	{
+		self notify("end_distance_measurement");
+		self.meterHUD["distance"] destroy();
+	}
+}
+
+startDistanceMeasurement()
+{
+	self endon("disconnect");
+	self endon("end_respawn");
+	// self endon("end_distance_measurement");
+
+	fontScale = 1.4;
+	x = 62;
+	y = 36;
+
+	self.meterHUD["distance"] = createFontString("small", fontScale);
+	self.meterHUD["distance"] setPoint("BOTTOMRIGHT", "BOTTOMRIGHT", x, y);
+	self.meterHUD["distance"].alpha = 0.5;
+	self.meterHUD["distance"].label = &"distance:&&1";
+
+	for (;;)
+	{
+		// trace using the player's eye position
+		// but measure distance from the player's origin
+		angles = self getPlayerAngles();
+		origin = self.origin;
+
+		stance = self getStance();
+		if (stance == "prone")
+			eye = self.origin + (0, 0, 11);
+		else if (stance == "crouch")
+			eye = self.origin + (0, 0, 40);
+		else
+			eye = self.origin + (0, 0, 60);
+
+		start = eye;
+		end = start + maps\mp\_utility::vector_scale(anglestoforward(angles), 999999);
+
+		endpos = PhysicsTrace(start, end);
+
+		distance = distance(origin, endpos);
+		self.meterHUD["distance"] setValue(distance);
+
+		wait 0.05;
+	}
 }
