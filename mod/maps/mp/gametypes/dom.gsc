@@ -16,6 +16,7 @@
  *
  */
 
+#include maps\mp\gametypes\koth;
 #include maps\mp\gametypes\_hud_util;
 
 main()
@@ -125,6 +126,8 @@ initCJ()
 	level.DVARS["cg_thirdPersonRange"].min = 0;
 	level.DVARS["cg_thirdPersonRange"].max = 1024;
 	level.DVARS["cg_thirdPersonRange"].step = 1;
+
+	// r_blur ?
 
 	level.DVARS["r_dof_enable"] = spawnstruct();
 	level.DVARS["r_dof_enable"].type = "boolean";
@@ -305,12 +308,14 @@ generateMenu()
 
 	// Filmtweaks menu
 	self addMenu("filmtweaks_menu", "main_menu");
-	self addMenuOption("filmtweaks_menu", "^1Reset All^7", ::emptyFunc);
-	self addMenuOption("filmtweaks_menu", "Blue Sky", ::emptyFunc);
-	self addMenuOption("filmtweaks_menu", "Berry", ::emptyFunc);
-	self addMenuOption("filmtweaks_menu", "Green Sky", ::emptyFunc);
-	self addMenuOption("filmtweaks_menu", "Pink Sky", ::emptyFunc);
-	self addMenuOption("filmtweaks_menu", "Black & White", ::emptyFunc);
+	self addMenuOption("filmtweaks_menu", "^1Reset^7", ::setFilmTweaksPreset);
+	self addMenuOption("filmtweaks_menu", "Art 1", ::setFilmTweaksPreset, "art_1");
+	self addMenuOption("filmtweaks_menu", "Art 2", ::setFilmTweaksPreset, "art_2");
+	self addMenuOption("filmtweaks_menu", "Art 3", ::setFilmTweaksPreset, "art_3");
+	self addMenuOption("filmtweaks_menu", "Art 4", ::setFilmTweaksPreset, "art_4");
+	self addMenuOption("filmtweaks_menu", "Blue Sky", ::setFilmTweaksPreset, "blue_sky");
+	self addMenuOption("filmtweaks_menu", "Green Sky", ::setFilmTweaksPreset, "green_sky");
+	self addMenuOption("filmtweaks_menu", "Pink Sky", ::setFilmTweaksPreset, "pink_sky");
 
 	// Loadout menu
 	self addMenu("loadout_menu", "main_menu");
