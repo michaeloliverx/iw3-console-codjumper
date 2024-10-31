@@ -710,6 +710,7 @@ initBot()
 
 	wait 0.5;
 
+	bot.class = level.defaultClass;
 	bot.pers["class"] = level.defaultClass;
 	bot [[level.spawnClient]]();
 
