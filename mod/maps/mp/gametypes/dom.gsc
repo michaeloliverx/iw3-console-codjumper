@@ -219,7 +219,7 @@ onPlayerSpawned()
 	{
 		self waittill("spawned_player");
 		self thread watchbuttons();
-		self initLoadout();
+		self setupLoadoutCJ();
 		self thread replenishAmmo();
 	}
 }
@@ -323,11 +323,71 @@ generateMenu()
 	self addMenuOption("hud_menu", "Speed HUD", ::toggleHUDType, "speed");
 	self addMenuOption("hud_menu", "Z Origin HUD", ::toggleHUDType, "z_origin");
 
+	// Assault Rifles menu
+	self addMenu("assault_rifles_menu", "loadout_menu");
+	self addMenuOption("assault_rifles_menu", "AK47", ::replaceWeapon, "ak47_mp");
+	self addMenuOption("assault_rifles_menu", "G3", ::replaceWeapon, "g3_mp");
+	self addMenuOption("assault_rifles_menu", "G36C", ::replaceWeapon, "g36c_mp");
+	self addMenuOption("assault_rifles_menu", "M14", ::replaceWeapon, "m14_mp");
+	self addMenuOption("assault_rifles_menu", "M16A4", ::replaceWeapon, "m16_mp");
+	self addMenuOption("assault_rifles_menu", "M4A1", ::replaceWeapon, "m4_mp");
+	self addMenuOption("assault_rifles_menu", "MP44", ::replaceWeapon, "mp44_mp");
+
+	// LMGs menu
+	self addMenu("lmgs_menu", "loadout_menu");
+	self addMenuOption("lmgs_menu", "M249 SAW", ::replaceWeapon, "saw_mp");
+	self addMenuOption("lmgs_menu", "M60E4", ::replaceWeapon, "m60e4_mp");
+	self addMenuOption("lmgs_menu", "RPD", ::replaceWeapon, "rpd_mp");
+
+	// Pistols menu
+	self addMenu("pistols_menu", "loadout_menu");
+	self addMenuOption("pistols_menu", "Colt 45", ::replaceWeapon, "colt45_mp");
+	self addMenuOption("pistols_menu", "Desert Eagle", ::replaceWeapon, "deserteagle_mp");
+	self addMenuOption("pistols_menu", "Desert Eagle Gold", ::replaceWeapon, "deserteaglegold_mp");
+	self addMenuOption("pistols_menu", "M9 Beretta", ::replaceWeapon, "beretta_mp");
+	self addMenuOption("pistols_menu", "USP .45", ::replaceWeapon, "usp_mp");
+
+	// Shotguns menu
+	self addMenu("shotguns_menu", "loadout_menu");
+	self addMenuOption("shotguns_menu", "M1014", ::replaceWeapon, "m1014_mp");
+	self addMenuOption("shotguns_menu", "Winchester 1200", ::replaceWeapon, "winchester1200_mp");
+
+	// SMGs menu
+	self addMenu("smgs_menu", "loadout_menu");
+	self addMenuOption("smgs_menu", "AK74u", ::replaceWeapon, "ak74u_mp");
+	self addMenuOption("smgs_menu", "Mini-Uzi", ::replaceWeapon, "uzi_mp");
+	self addMenuOption("smgs_menu", "MP5", ::replaceWeapon, "mp5_mp");
+	self addMenuOption("smgs_menu", "P90", ::replaceWeapon, "p90_mp");
+	self addMenuOption("smgs_menu", "Skorpion", ::replaceWeapon, "skorpion_mp");
+
+	// Sniper Rifles menu
+	self addMenu("sniper_rifles_menu", "loadout_menu");
+	self addMenuOption("sniper_rifles_menu", "Barrett .50cal", ::replaceWeapon, "barrett_mp");
+	self addMenuOption("sniper_rifles_menu", "Dragunov", ::replaceWeapon, "dragunov_mp");
+	self addMenuOption("sniper_rifles_menu", "M21", ::replaceWeapon, "m21_mp");
+	self addMenuOption("sniper_rifles_menu", "M40A3", ::replaceWeapon, "m40a3_mp");
+	self addMenuOption("sniper_rifles_menu", "R700", ::replaceWeapon, "remington700_mp");
+
+	// Camo menu
+	self addMenu("camo_menu", "loadout_menu");
+	self addMenuOption("camo_menu", "^1Reset^7", ::giveCamo, 0);
+	self addMenuOption("camo_menu", "Desert", ::giveCamo, 1);
+	self addMenuOption("camo_menu", "Woodland", ::giveCamo, 2);
+	self addMenuOption("camo_menu", "Digital", ::giveCamo, 3);
+	self addMenuOption("camo_menu", "Blue Tiger", ::giveCamo, 5);
+	self addMenuOption("camo_menu", "Red Tiger", ::giveCamo, 4);
+	self addMenuOption("camo_menu", "Gold", ::giveCamo, 6);
+
 	// Loadout menu
 	self addMenu("loadout_menu", "main_menu");
-	self addMenuOption("loadout_menu", "Primary Weapon", ::emptyFunc);
-	self addMenuOption("loadout_menu", "Secondary Weapon", ::emptyFunc);
-	self addMenuOption("loadout_menu", "Camo Menu", ::emptyFunc);
+	self addMenuOption("loadout_menu", "Assault Rifles", ::menuAction, "CHANGE_MENU", "assault_rifles_menu");
+	self addMenuOption("loadout_menu", "LMGs", ::menuAction, "CHANGE_MENU", "lmgs_menu");
+	self addMenuOption("loadout_menu", "Pistols", ::menuAction, "CHANGE_MENU", "pistols_menu");
+	self addMenuOption("loadout_menu", "Shotguns", ::menuAction, "CHANGE_MENU", "shotguns_menu");
+	self addMenuOption("loadout_menu", "SMGs", ::menuAction, "CHANGE_MENU", "smgs_menu");
+	self addMenuOption("loadout_menu", "Sniper Rifles", ::menuAction, "CHANGE_MENU", "sniper_rifles_menu");
+	self addMenuOption("loadout_menu", "Camo Menu", ::menuAction, "CHANGE_MENU", "camo_menu");
+	self addMenuOption("loadout_menu", "Sleight of Hand", ::toggleFastReload);
 
 	// Map menu
 	self addMenu("map_menu", "main_menu");
@@ -667,21 +727,112 @@ watchbuttons()
 	}
 }
 
-/**
- * Set the player's loadout.
- */
-initLoadout()
+toggleFastReload()
 {
-	self takeallweapons();
-	self giveweapon("mp5_mp");
-	self giveweapon("deserteagle_mp");
+	self.cjLoadout.fastReload = !self.cjLoadout.fastReload;
+	if (self.cjLoadout.fastReload)
+		self iprintln("Fast reload [^2ON^7]");
+	else
+		self iprintln("Fast reload [^1OFF^7]");
+
+	self setupLoadoutCJ(false);
+}
+
+giveCamo(index)
+{
+	self.cjLoadout.primaryCamoIndex = index;
+	self.cjLoadout.incomingWeapon = self.cjLoadout.primary;
+	self setupLoadoutCJ(false);
+}
+
+replaceWeapon(weapon)
+{
+	if (weaponClass(weapon) != "pistol")
+	{
+		self.cjLoadout.primary = weapon;
+		self.cjLoadout.primaryCamoIndex = 0;
+	}
+	else
+		self.cjLoadout.sidearm = weapon;
+
+	self.cjLoadout.incomingWeapon = weapon;
+	self setupLoadoutCJ();
+}
+
+/**
+ * Sets up the loadout for the player.
+ */
+setupLoadoutCJ(printInfo)
+{
+
+	if (!isdefined(printInfo))
+		printInfo = true;
+
+	// default loadout
+	if (!isdefined(self.cjLoadout))
+	{
+		self.cjLoadout = spawnstruct();
+		self.cjLoadout.primary = "mp5_mp";
+		self.cjLoadout.primaryCamoIndex = 0;
+		self.cjLoadout.sidearm = "deserteaglegold_mp";
+		self.cjLoadout.fastReload = false;
+		self.cjLoadout.incomingWeapon = undefined;
+	}
+
+	self clearPerks();
+	self takeAllWeapons();
+
+	// wait 0.05;
+
+	self giveWeapon(self.cjLoadout.primary, self.cjLoadout.primaryCamoIndex);
+	self giveWeapon(self.cjLoadout.sidearm);
+
 	self giveWeapon("rpg_mp");
-	self setactionslot(3, "weapon", "rpg_mp");
+
+	if (self.cjLoadout.fastReload)
+		self setPerk("specialty_fastreload");
+
+	self SetActionSlot(3, "weapon", "rpg_mp");
 
 	wait 0.05;
-	self switchtoweapon("deserteagle_mp");
 
-	// specialty_quieter
+	// Switch to the appropriate weapon
+	if (isdefined(self.cjLoadout.incomingWeapon) && weaponClass(self.cjLoadout.incomingWeapon) != "pistol")
+		self switchtoweapon(self.cjLoadout.primary);
+	else
+		self switchtoweapon(self.cjLoadout.sidearm);
+
+	self.cjLoadout.incomingWeapon = undefined;
+
+	// Adjust move speed based on primary weapon type
+	moveSpeedScalePercentage = 100;
+	// Taken from maps\mp\gametypes\_class::giveLoadout
+	switch (weaponClass(self.cjLoadout.primary))
+	{
+	case "rifle":
+		self setMoveSpeedScale(0.95);
+		moveSpeedScalePercentage = 95;
+		break;
+	case "pistol":
+		self setMoveSpeedScale(1.0);
+		break;
+	case "mg":
+		self setMoveSpeedScale(0.875);
+		moveSpeedScalePercentage = 87.5;
+		break;
+	case "smg":
+		self setMoveSpeedScale(1.0);
+		break;
+	case "spread":
+		self setMoveSpeedScale(1.0);
+		break;
+	default:
+		self setMoveSpeedScale(1.0);
+		break;
+	}
+
+	if (printInfo)
+		self iprintln("Move speed scale: " + moveSpeedScalePercentage + " percent");
 }
 
 /**
