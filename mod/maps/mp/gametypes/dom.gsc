@@ -707,6 +707,8 @@ watchbuttons()
 	self endon("disconnect");
 	self endon("death");
 
+	self thread watchNightVisionButton();
+
 	for (;;)
 	{
 		if (!self isMenuOpen())
@@ -714,6 +716,11 @@ watchbuttons()
 			if (self adsbuttonpressed() && self meleebuttonpressed())
 			{
 				menuAction("OPEN");
+				wait 0.2;
+			}
+			else if (self nightVisionButtonPressed())
+			{
+				self iprintln("nightVisionButtonPressed");
 				wait 0.2;
 			}
 		}
@@ -809,6 +816,7 @@ setupLoadoutCJ(printInfo)
 	if (self.cjLoadout.fastReload)
 		self setPerk("specialty_fastreload");
 
+	self SetActionSlot(1, "nightvision");
 	self SetActionSlot(3, "weapon", "rpg_mp");
 
 	wait 0.05;

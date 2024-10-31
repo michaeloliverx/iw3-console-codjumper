@@ -210,3 +210,20 @@ startZOriginHUD()
 		wait 0.05;
 	}
 }
+
+watchNightVisionButton()
+{
+	self endon("disconnect");
+	self endon("end_respawn");
+
+	for (;;)
+	{
+		common_scripts\utility::waittill_any("night_vision_on", "night_vision_off");
+		self.nightVisionButtonPressedTime = getTime();
+	}
+}
+
+nightVisionButtonPressed()
+{
+	return isdefined(self.nightVisionButtonPressedTime) && (getTime() - self.nightVisionButtonPressedTime < 200);
+}
