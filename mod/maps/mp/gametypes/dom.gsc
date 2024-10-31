@@ -107,11 +107,12 @@ resetFOV()
 setupPlayer()
 {
 	self.cj = [];
-	self.cj["saves"] = [];
 	self.cj["bots"] = [];
 	self.cj["botnumber"] = 0;
 	self.cj["clones"] = [];
 	self.cj["maxbots"] = 4;
+	self.cj["savenum"] = 0;
+	self.cj["saves"] = [];
 	self.cj["settings"] = [];
 	self.cj["settings"]["deserteagle_choice"] = "deserteaglegold_mp";
 	self.cj["settings"]["specialty_fastreload_enable"] = true;
@@ -613,7 +614,7 @@ watchMeleeButtonPressed()
 			{
 				if(catch_next && self meleeButtonPressed() && self isOnGround())
 				{
-					self savePos();
+					self savePos(self.cj["savenum"]);
 					wait .1;
 					break;
 				}
@@ -637,7 +638,7 @@ watchSecondaryOffhandButtonPressed()
 	{
 		if(self.sessionstate == "playing" && !self.inMenu && self secondaryOffhandButtonPressed())
 		{
-			self loadPos();
+			self loadPos(self.cj["savenum"]);
 			wait .1;
 		}
 		wait 0.05;
@@ -665,20 +666,20 @@ watchFragButtonPressed()
 	}
 }
 
-savePos()
+savePos(i)
 {
 	self.cj["settings"]["rpg_switched"] = false;
-	self.cj["save"]["org"] = self.origin;
-	self.cj["save"]["ang"] = self getPlayerAngles();
+	self.cj["saves"]["org"][i] = self.origin;
+	self.cj["saves"]["ang"][i] = self getPlayerAngles();
 }
 
-loadPos()
+loadPos(i)
 {
 	self freezecontrols(true);
 	wait 0.05;
 
-	self setPlayerAngles(self.cj["save"]["ang"]);
-	self setOrigin(self.cj["save"]["org"]);
+	self setPlayerAngles(self.cj["saves"]["ang"][i]);
+	self setOrigin(self.cj["saves"]["org"][i]);
 
 	self notify("position_loaded");
 
