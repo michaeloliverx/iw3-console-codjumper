@@ -897,6 +897,8 @@ ufocontrolsOFF()
 
 	self allowSpectateTeam("freelook", false);
 	self.sessionstate = "playing";
+
+	self freezeControls(false);
 }
 
 getdisplayname(ent)
