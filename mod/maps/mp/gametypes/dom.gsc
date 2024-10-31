@@ -195,19 +195,36 @@ onPlayerConnect()
 	{
 		level waittill("connected", player);
 
+		// // developer dvars
+		// player setclientdvar("developer", 1);
+		// player setclientdvar("developer_script", 1);
+		// player setclientdvar("con_minicon", 1);
+		// player setclientdvar("con_miniconlines", 20);
+		// player setclientdvar("con_minicontime", 10);
+
 		player setclientdvar("loc_warnings", 0);				  // Disable unlocalized warnings
 		player setclientdvar("compassSize", 0.001);				  // Hide compass
 		player setclientdvar("player_view_pitch_up", 89.9);		  // Allow looking straight up
 		player setclientdvar("ui_ConnectScreenTextGlowColor", 0); // Remove glow color applied to the mode and map name strings on the connect screen
 		player setclientdvar("cg_descriptiveText", 0);			  // Disable spectator button icons
 		player setclientdvar("player_spectateSpeedScale", 1.5);	  // Faster movement in spectator
+		player setClientDvar("aim_automelee_range", 0);			  // Remove melee lunge
+		player setClientDvar("clanname", "");					  // Remove clan tag
+		player setClientDvar("motd", "CodJumper");
+		player setClientDvars("aim_slowdown_enabled", 0, "aim_lockon_enabled", 0);		  // Disable autoaim for enemy players
+		player setClientDvars("cg_enemyNameFadeIn", 0, "cg_enemyNameFadeOut", 0);		  // Hide enemy player names
+		player setClientDvars("cg_overheadRankSize", 0, "cg_overheadIconSize", 0);		  // Hide overhead rank and icon
+		player setClientDvar("cg_scoreboardPingText", 1);								  // Show ping in scoreboard
+		player setClientDvar("cg_chatHeight", 0);										  // prevent people from freezing consoles via say command
+		player setClientDvar("nightVisionDisableEffects", 1);							  // Remove nightvision fx
+		player setClientDvars("g_TeamName_Allies", "Jumpers", "g_TeamName_Axis", "Bots"); // Set team names
+		player setClientDvars("fx_enable", 0);											  // Disable FX
 
-		// developer dvars
-		player setclientdvar("developer", 1);
-		player setclientdvar("developer_script", 1);
-		player setclientdvar("con_minicon", 1);
-		player setclientdvar("con_miniconlines", 20);
-		player setclientdvar("con_minicontime", 10);
+		// Remove objective waypoints on screen
+		player setClientDvar("waypointIconWidth", 0.1);
+		player setClientDvar("waypointIconHeight", 0.1);
+		player setClientDvar("waypointOffscreenPointerWidth", 0.1);
+		player setClientDvar("waypointOffscreenPointerHeight", 0.1);
 
 		player thread onPlayerSpawned();
 	}
