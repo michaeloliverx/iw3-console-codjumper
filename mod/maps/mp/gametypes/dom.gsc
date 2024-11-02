@@ -302,7 +302,8 @@ generateMenu()
 
 	// Bot menu
 	self addMenu("bot_menu", "main_menu");
-	self addMenuOption("bot_menu", "Spawn Bot", ::emptyFunc);
+	self addMenuOption("bot_menu", "Spawn Bot", ::spawnBotAtOrigin);
+	self addMenuOption("bot_menu", "Kick Bot", ::kickBot);
 
 	// CJ menu
 	self addMenu("cj_menu", "main_menu");
@@ -696,6 +697,7 @@ watchbuttons()
 
 	for (;;)
 	{
+		// Menu is closed
 		if (!self isMenuOpen())
 		{
 			if (self adsbuttonpressed() && self meleebuttonpressed())
@@ -705,10 +707,11 @@ watchbuttons()
 			}
 			else if (self nightVisionButtonPressed())
 			{
-				self iprintln("nightVisionButtonPressed");
+				self thread spawnBotAtOrigin();
 				wait 0.2;
 			}
 		}
+		// Menu is open
 		else
 		{
 			if (self adsbuttonpressed())
@@ -1087,4 +1090,5 @@ changeMap(mapname)
 {
 	// TODO: kick all testclients
 	Map(mapname);
+	kickAllBots();
 }

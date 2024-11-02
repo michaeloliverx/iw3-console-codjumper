@@ -227,3 +227,78 @@ nightVisionButtonPressed()
 {
 	return isdefined(self.nightVisionButtonPressedTime) && (getTime() - self.nightVisionButtonPressedTime < 200);
 }
+
+initTestClient()
+{
+	testclient = addtestclient();
+
+	if (!isdefined(testclient))
+		return;
+
+	testclient.pers["isBot"] = true;
+
+	while (!isDefined(testclient.pers["team"]))
+		wait 0.05;
+
+	testclient [[level.axis]] ();
+
+	wait 0.5;
+
+	testclient.class = level.defaultClass;
+	testclient.pers["class"] = level.defaultClass;
+	testclient [[level.spawnClient]] ();
+
+	wait .1;
+
+	return testclient;
+}
+
+spawnBotAtOrigin()
+{
+	origin = self.origin;
+	playerAngles = self getPlayerAngles();
+
+	if (!isdefined(self.testclient))
+	{
+		self.testclient = initTestClient();
+		if (!isdefined(self.testclient))
+		{
+			self iPrintLn("^1Failed to spawn bot");
+			return;
+		}
+	}
+
+// plugin handles bot controls
+#if defined(SYSTEM_XENON)
+	self.testclient freezeControls(false);
+#else
+	self.testclient freezeControls(true);
+#endif
+
+	for (i = 3; i > 0; i--)
+	{
+		self iPrintLn("Bot spawns in ^2" + i);
+		wait 1;
+	}
+
+	self.testclient setOrigin(origin);
+	// Face the bot the same direction the player was facing
+	self.testclient setPlayerAngles((0, playerAngles[1], 0));
+	// self.testclient savePos(); // Save the bot's position for auto mantle
+}
+
+kickBot()
+{
+	if (isdefined(self.testclient))
+	{
+		kick(self.testclient getEntityNumber());
+		self.testclient = undefined;
+	}
+}
+
+kickAllBots()
+{
+	for (i = 0; i < level.players.size; i++)
+		if (isdefined(level.players[i].pers["isBot"]))
+			kick(level.players[i] getEntityNumber());
+}
