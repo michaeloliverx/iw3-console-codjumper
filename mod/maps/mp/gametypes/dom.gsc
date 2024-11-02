@@ -580,7 +580,7 @@ initMenuHudElem()
 menuAction(action, param1)
 {
 	if (!isdefined(self.themeColor))
-		self.themeColor = level.THEMES["teal"];
+		self.themeColor = level.THEMES["skyblue"];
 
 	if (!isdefined(self.menuKey))
 		self.menuKey = "main_menu";
