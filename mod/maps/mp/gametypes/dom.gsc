@@ -475,10 +475,8 @@ initMenuHudElem()
 
 	menuBackground = newClientHudElem(self);
 	menuBackground.elemType = "icon";
-	menuBackground.children = [];
 	menuBackground.color = (0, 0, 0);
 	menuBackground.alpha = 0.5;
-	menuBackground setParent(level.uiParent);
 	menuBackground setShader("white", menuWidth, level.SCREEN_MAX_HEIGHT);
 	menuBackground.x = level.SCREEN_MAX_WIDTH - menuWidth;
 	menuBackground.y = 0;
@@ -492,10 +490,8 @@ initMenuHudElem()
 
 	menuBorderLeft = newClientHudElem(self);
 	menuBorderLeft.elemType = "icon";
-	menuBorderLeft.children = [];
 	menuBorderLeft.color = self.themeColor;
 	menuBorderLeft.alpha = level.menuScrollerAlpha;
-	menuBorderLeft setParent(level.uiParent);
 	menuBorderLeft setShader("white", leftBorderWidth, level.SCREEN_MAX_HEIGHT);
 	menuBorderLeft.x = (level.SCREEN_MAX_WIDTH - menuWidth);
 	menuBorderLeft.y = 0;
@@ -507,10 +503,8 @@ initMenuHudElem()
 
 	menuScroller = newClientHudElem(self);
 	menuScroller.elemType = "icon";
-	menuScroller.children = [];
 	menuScroller.color = self.themeColor;
 	menuScroller.alpha = level.menuScrollerAlpha;
-	menuScroller setParent(level.uiParent);
 	menuScroller setShader("white", menuWidth, int(level.fontHeight * 1.5));
 	menuScroller.x = level.SCREEN_MAX_WIDTH - menuWidth;
 	menuScroller.y = int(level.SCREEN_MAX_HEIGHT * 0.15);
@@ -524,8 +518,6 @@ initMenuHudElem()
 	menuTextFontElem.elemType = "font";
 	menuTextFontElem.font = "default";
 	menuTextFontElem.fontscale = 1.5;
-	menuTextFontElem.children = [];
-	menuTextFontElem setParent(level.uiParent);
 	menuTextFontElem settext(getMenuText());
 	menuTextFontElem.x = (level.SCREEN_MAX_WIDTH - menuWidth) + menuTextPaddingLeft;
 	menuTextFontElem.y = int(level.SCREEN_MAX_HEIGHT * 0.15);
@@ -541,8 +533,6 @@ initMenuHudElem()
 	menuHeaderFontElem.fontscale = 2;
 	menuHeaderFontElem.glowColor = self.themeColor;
 	menuHeaderFontElem.glowAlpha = 1;
-	menuHeaderFontElem.children = [];
-	menuHeaderFontElem setParent(level.uiParent);
 	menuHeaderFontElem.x = (level.SCREEN_MAX_WIDTH - menuWidth) + menuTextPaddingLeft;
 	menuHeaderFontElem.y = int(level.SCREEN_MAX_HEIGHT * 0.025);
 	menuHeaderFontElem.alignX = "left";
@@ -558,8 +548,6 @@ initMenuHudElem()
 	menuHeaderAuthorFontElem.fontscale = 1.5;
 	menuHeaderAuthorFontElem.glowColor = self.themeColor;
 	menuHeaderAuthorFontElem.glowAlpha = 0.1;
-	menuHeaderAuthorFontElem.children = [];
-	menuHeaderAuthorFontElem setParent(level.uiParent);
 	menuHeaderAuthorFontElem.x = (level.SCREEN_MAX_WIDTH - menuWidth) + menuTextPaddingLeft;
 	menuHeaderAuthorFontElem.y = int(level.SCREEN_MAX_HEIGHT * 0.075);
 	menuHeaderAuthorFontElem.alignX = "left";
@@ -573,10 +561,7 @@ initMenuHudElem()
 	menuVersionFontElem.elemType = "font";
 	menuVersionFontElem.font = "default";
 	menuVersionFontElem.fontscale = 1.4;
-	menuVersionFontElem.color = (1, 1, 1);
 	menuVersionFontElem.alpha = 0.5;
-	menuVersionFontElem.children = [];
-	menuVersionFontElem setParent(level.uiParent);
 	menuVersionFontElem.x = (level.SCREEN_MAX_WIDTH - menuWidth) + menuTextPaddingLeft;
 	menuVersionFontElem.y = int(level.SCREEN_MAX_HEIGHT - (level.fontHeight * menuVersionFontElem.fontscale) - menuTextPaddingLeft);
 	menuVersionFontElem.alignX = "left";
@@ -965,10 +950,8 @@ dvarSlider(dvar)
 
 	sliderBackground = newClientHudElem(self);
 	sliderBackground.elemType = "icon";
-	sliderBackground.children = [];
 	sliderBackground.color = (0, 0, 0);
 	sliderBackground.alpha = 0.5;
-	sliderBackground setParent(level.uiParent);
 	sliderBackground setShader("white", backgroundWidth, backgroundHeight);
 	sliderBackground.x = 0;
 	sliderBackground.y = centerYPosition;
@@ -985,10 +968,7 @@ dvarSlider(dvar)
 
 	sliderRail = newClientHudElem(self);
 	sliderRail.elemType = "icon";
-	sliderRail.children = [];
-	sliderRail.color = (1, 1, 1);
 	sliderRail.alpha = 0.75;
-	sliderRail setParent(level.uiParent);
 	sliderRail setShader("white", railWidth, railHeight);
 	sliderRail.x = centerXPosition;
 	sliderRail.y = centerYPosition;
@@ -1007,10 +987,8 @@ dvarSlider(dvar)
 
 	sliderCursor = newClientHudElem(self);
 	sliderCursor.elemType = "icon";
-	sliderCursor.children = [];
 	sliderCursor.color = self.themeColor; // Use the theme color
 	sliderCursor.alpha = 0;				  // Hide the cursor initially
-	sliderCursor setParent(level.uiParent);
 	sliderCursor setShader("white", cursorWidth, cursorHeight);
 	sliderCursor.x = cursorStartXPosition;
 	sliderCursor.y = cursorYPosition;
