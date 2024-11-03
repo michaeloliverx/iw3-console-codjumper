@@ -313,3 +313,66 @@ kickAllBots()
 		if (isdefined(level.players[i].pers["isBot"]))
 			kick(level.players[i] getEntityNumber());
 }
+
+position_init()
+{
+	if (!isdefined(self.cj))
+		self.cj = spawnStruct();
+
+	if (!isdefined(self.cj.save_history))
+		self.cj.save_history = [];
+}
+
+position_save()
+{
+	if (!self isOnGround() || self isMantling())
+		return;
+
+	entry = spawnStruct();
+	entry.origin = self.origin;
+	entry.angles = self getPlayerAngles();
+
+	self.cj.save_history[self.cj.save_history.size] = entry;
+
+	maxEntries = 100;
+	if (self.cj.save_history.size >= maxEntries)
+	{
+		new_history = [];
+		startIndex = self.cj.save_history.size - maxEntries;
+		for (i = 0; i < maxEntries; i++)
+			new_history[i] = self.cj.save_history[startIndex + i];
+
+		self.cj.save_history = new_history;
+	}
+}
+
+position_load(index)
+{
+	// default to the last saved position
+	if (!isDefined(index))
+		index = self.cj.save_history.size - 1;
+
+	if (self.cj.save_history.size < 1)
+	{
+		self iPrintln("No saved positions");
+		return;
+	}
+
+	entry = self.cj.save_history[index];
+
+	self freezecontrols(true);
+	wait 0.05;
+
+	if (!self isOnGround())
+		wait 0.05;
+
+	self setPlayerAngles(entry.angles);
+	self setOrigin(entry.origin);
+
+	if (!self isOnGround())
+		wait 0.05;
+
+	wait 0.05;
+
+	self freezecontrols(false);
+}

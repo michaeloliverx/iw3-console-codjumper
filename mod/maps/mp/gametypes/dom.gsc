@@ -195,6 +195,8 @@ onPlayerConnect()
 	{
 		level waittill("connected", player);
 
+		player position_init();
+
 		// // developer dvars
 		// player setclientdvar("developer", 1);
 		// player setclientdvar("developer_script", 1);
@@ -712,7 +714,13 @@ watchbuttons()
 			}
 			else if (self ButtonPressedTwice("melee"))
 			{
-				self iprintln("meleeButtonPressedTwice");
+				self position_save();
+				wait 0.2;
+			}
+			else if (self buttonPressed("smoke"))
+			{
+				self position_load();
+				wait 0.2;
 			}
 		}
 		// Menu is open
