@@ -252,21 +252,23 @@ initMenuOpts()
 	self addOpt("loadout_menu", "Sleight of Hand", ::toggleFastReload);
 	self addOpt("loadout_menu", "RPG Switch", ::toggleRPGSwitch);
 
-	self addOpt("main", "3rd Person", ::toggleThirdPerson);
-	self addOpt("main", "cg_drawgun", ::toggleShowGun);
-	self addOpt("main", "Player names", ::togglePlayerNames);
-	self addOpt("main", "Gun bob", ::toggleGunBob);
-	self addOpt("main", "Spectator buttons", ::toggleSpectatorButtons);
-	self addOpt("main", "Speed + Height meter", ::toggleSpeedometerHudElem);
-	self addOpt("main", "Jump Crouch", ::toggleJumpCrouch);
-	self addOpt("main", "Lean Toggle", ::LeanBindToggle);
-	self addOpt("main", "FOV", ::toggleFOV);
-	self addOpt("main", "r_zfar", ::toggle_r_zfar);
-	self addOpt("main", "Fog", ::toggle_r_fog);
-	self addOpt("main", "Depth of field", ::toggle_r_dof_enable);
-	self addOpt("main", "Cycle Visions", ::CycleVision);
-	self addOpt("main", "Revert Vision", ::RevertVision);
-	self addOpt("main", "Look straight down", ::toggle_look_straight_down);
+	self addOpt("main", "Player Settings", ::subMenu, "player_settings");
+	self addMenu("player_settings", "Player Settings", "main");
+	self addOpt("player_settings", "3rd Person", ::toggleThirdPerson);
+	self addOpt("player_settings", "cg_drawGun", ::toggleShowGun);
+	self addOpt("player_settings", "Player Names", ::togglePlayerNames);
+	self addOpt("player_settings", "Gun Bob", ::toggleGunBob);
+	self addOpt("player_settings", "Spectator Buttons", ::toggleSpectatorButtons);
+	self addOpt("player_settings", "Speed + Height Meter", ::toggleSpeedometerHudElem);
+	self addOpt("player_settings", "Jump Crouch", ::toggleJumpCrouch);
+	self addOpt("player_settings", "Lean Toggle", ::LeanBindToggle);
+	self addOpt("player_settings", "FOV", ::toggleFOV);
+	self addOpt("player_settings", "r_zfar", ::toggle_r_zfar);
+	self addOpt("player_settings", "Fog", ::toggle_r_fog);
+	self addOpt("player_settings", "Depth of Field", ::toggle_r_dof_enable);
+	self addOpt("player_settings", "Cycle Visions", ::CycleVision);
+	self addOpt("player_settings", "Revert Vision", ::RevertVision);
+	self addOpt("player_settings", "Look Straight Down", ::toggle_look_straight_down);
 
 	// Bot submenu
 	self addOpt("main", "Bot Menu", ::subMenu, "bot_menu");
