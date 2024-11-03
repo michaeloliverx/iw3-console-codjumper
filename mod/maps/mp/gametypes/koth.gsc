@@ -90,12 +90,23 @@ setFilmTweaksPreset(preset)
 			"r_filmTweakBrightness", 0.5,
 			"r_gamma", 0.8);
 		break;
-
 	default:
 		// TODO: find out default values for all (each might be map specific)
 		self setclientdvars(
 			"r_filmUseTweaks", 0,
-			"r_filmTweakEnable", 0);
+			"r_filmTweakEnable", 0,
+			"r_filmTweakBrightness", 0.5,
+			"r_filmTweakDesaturation", 0.2,
+			"r_filmTweakLightTint", "1.1 1.05 0.85",
+			"r_filmTweakDarkTint", "0.7 0.85 1",
+			"r_specularColorScale", 1,
+			"r_lightTweakSunColor", "1 0.921569 0.878431 1", // differs on each map
+			"r_gamma", 1,
+			"r_blur", 0,
+			"r_desaturation", 1,
+			"r_lightTweakSunLight", 1.3 // differs on each map
+
+		);
 		break;
 	}
 	self iprintln("Film tweaks set to ^2" + preset);

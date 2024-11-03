@@ -425,7 +425,7 @@ generateMenu()
 	self addMenuOption("main_menu", "Bot Menu", ::menuAction, "CHANGE_MENU", "bot_menu");
 	self addMenuOption("main_menu", "CJ Menu", ::menuAction, "CHANGE_MENU", "cj_menu");
 	self addMenuOption("main_menu", "DVAR Menu", ::menuAction, "CHANGE_MENU", "dvar_menu");
-	self addMenuOption("main_menu", "Filmtweaks Menu", ::menuAction, "CHANGE_MENU", "filmtweaks_menu");
+	// self addMenuOption("main_menu", "Filmtweaks Menu", ::menuAction, "CHANGE_MENU", "filmtweaks_menu");	// hide for now until it's can easily reset all to default
 	self addMenuOption("main_menu", "Game Objects Menu", ::menuAction, "CHANGE_MENU", "game_objects_menu");
 	self addMenuOption("main_menu", "HUD Menu", ::menuAction, "CHANGE_MENU", "hud_menu");
 	self addMenuOption("main_menu", "Loadout Menu", ::menuAction, "CHANGE_MENU", "loadout_menu");
