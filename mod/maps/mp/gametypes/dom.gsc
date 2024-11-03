@@ -259,12 +259,13 @@ initMenuOpts()
 	self addOpt("main", "Spectator buttons", ::toggleSpectatorButtons);
 	self addOpt("main", "Speed + Height meter", ::toggleSpeedometerHudElem);
 	self addOpt("main", "Jump Crouch", ::toggleJumpCrouch);
-	self addOpt("main", "Lean ON", ::enableLeanBinds);
-	self addOpt("main", "Lean OFF", ::disableLeanBinds);
+	self addOpt("main", "Lean Toggle", ::LeanBindToggle);
 	self addOpt("main", "FOV", ::toggleFOV);
 	self addOpt("main", "r_zfar", ::toggle_r_zfar);
 	self addOpt("main", "Fog", ::toggle_r_fog);
 	self addOpt("main", "Depth of field", ::toggle_r_dof_enable);
+	self addOpt("main", "Cycle Visions", ::CycleVision);
+	self addOpt("main", "Revert Vision", ::RevertVision);
 	self addOpt("main", "Look straight down", ::toggle_look_straight_down);
 
 	// Bot submenu
