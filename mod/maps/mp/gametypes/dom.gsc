@@ -700,36 +700,40 @@ watchbuttons()
 		// Menu is closed
 		if (!self isMenuOpen())
 		{
-			if (self adsbuttonpressed() && self meleebuttonpressed())
+			if (self buttonPressed("ads") && self buttonPressed("melee"))
 			{
 				menuAction("OPEN");
 				wait 0.2;
 			}
-			else if (self nightVisionButtonPressed())
+			else if (self buttonPressed("nightvision"))
 			{
 				self thread spawnBotAtOrigin();
 				wait 0.2;
+			}
+			else if (self ButtonPressedTwice("melee"))
+			{
+				self iprintln("meleeButtonPressedTwice");
 			}
 		}
 		// Menu is open
 		else
 		{
-			if (self adsbuttonpressed())
+			if (self buttonPressed("ads"))
 			{
 				menuAction("UP");
 				wait 0.2;
 			}
-			else if (self attackbuttonpressed())
+			else if (self buttonPressed("attack"))
 			{
 				menuAction("DOWN");
 				wait 0.2;
 			}
-			else if (self meleebuttonpressed())
+			else if (self buttonPressed("melee"))
 			{
 				menuAction("BACK");
 				wait 0.2;
 			}
-			else if (self usebuttonpressed())
+			else if (self buttonPressed("use"))
 			{
 				menuAction("SELECT");
 				wait 0.2;
@@ -737,6 +741,58 @@ watchbuttons()
 		}
 		wait 0.05;
 	}
+}
+
+buttonPressed(button)
+{
+	switch (ToLower(button))
+	{
+	case "ads":
+		return self adsbuttonpressed();
+	case "attack":
+		return self attackbuttonpressed();
+	case "frag":
+		return self fragbuttonpressed();
+	// case "HOLD_BREATH":
+	// 	return self holdbreathbuttonpressed();
+	// 	break;
+	// case "JUMP":
+	// 	return self jumpbuttonpressed();
+	// 	break;
+	case "melee":
+		return self meleebuttonpressed();
+	case "nightvision":
+		return self nightvisionbuttonpressed();
+	case "smoke":
+		return self secondaryoffhandbuttonpressed();
+	case "use":
+		return self usebuttonpressed();
+	default:
+		self iprintln("^1Unknown button " + button);
+		return false;
+	}
+}
+
+/**
+ * Check if the a button is pressed twice in 500ms.
+ */
+buttonPressedTwice(button)
+{
+	if (self buttonPressed(button))
+	{
+		has_released = false;
+
+		for (elapsed_time = 0; elapsed_time < 0.5; elapsed_time += 0.05)
+		{
+			if (has_released && self buttonPressed(button))
+				return true;
+			else if (!self buttonPressed(button))
+				has_released = true;
+
+			wait 0.05;
+		}
+	}
+	return false;
 }
 
 toggleFastReload()
