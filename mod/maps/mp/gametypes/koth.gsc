@@ -969,3 +969,11 @@ getdisplayname(ent)
 	else
 		return ent.classname;
 }
+
+setSaveIndex()
+{
+	i = self.cj["savenum"];
+	self.cj["savenum"] = (i + 1) % 10;
+
+	self iPrintln("Position " + (self.cj["savenum"] + 1) + " set");
+}

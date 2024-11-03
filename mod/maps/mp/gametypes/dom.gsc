@@ -254,6 +254,7 @@ initMenuOpts()
 
 	self addOpt("main", "Player Settings", ::subMenu, "player_settings");
 	self addMenu("player_settings", "Player Settings", "main");
+	self addOpt("player_settings", "Set Save Index", ::setSaveIndex);
 	self addOpt("player_settings", "3rd Person", ::toggleThirdPerson);
 	self addOpt("player_settings", "cg_drawGun", ::toggleShowGun);
 	self addOpt("player_settings", "Player Names", ::togglePlayerNames);
