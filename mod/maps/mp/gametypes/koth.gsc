@@ -376,3 +376,28 @@ position_load(index)
 
 	self freezecontrols(false);
 }
+
+ufo_controls_on()
+{
+	self setClientDvar("player_view_pitch_up", 89.9);	// allow looking straight up
+	self setClientDvar("player_view_pitch_down", 89.9); // allow looking straight down
+
+	self allowSpectateTeam("freelook", true);
+	self.sessionstate = "spectator";
+}
+
+ufo_controls_off()
+{
+	self setClientDvar("player_view_pitch_down", 70);
+
+	self allowSpectateTeam("freelook", false);
+	self.sessionstate = "playing";
+}
+
+ufo_controls_toggle()
+{
+	if (self.sessionstate == "spectator")
+		self ufo_controls_off();
+	else
+		self ufo_controls_on();
+}

@@ -722,6 +722,11 @@ watchbuttons()
 				self position_load();
 				wait 0.2;
 			}
+			else if(self buttonPressed("frag"))
+			{
+				self ufo_controls_toggle();
+				wait 0.2;
+			}
 		}
 		// Menu is open
 		else
