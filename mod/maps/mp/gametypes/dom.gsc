@@ -40,9 +40,6 @@ initCJ()
 	level.MAPNAMES = get_maps();
 	level.PLAYER_MODELS = get_player_models();
 
-	// loop through and verify all dvars are valid
-	// raise an error if any are invalid
-
 	level.hardcoreMode = true;												  // Disable HUD elements
 	level.MAP_CENTER_GROUND_ORIGIN = getent("sab_bomb", "targetname").origin; // sab_bomb is always placed in the center of the map
 
@@ -90,37 +87,6 @@ onPlayerConnect()
 
 		player cj_player_init_once();
 
-		// // developer dvars
-		// player setclientdvar("developer", 1);
-		// player setclientdvar("developer_script", 1);
-		// player setclientdvar("con_minicon", 1);
-		// player setclientdvar("con_miniconlines", 20);
-		// player setclientdvar("con_minicontime", 10);
-
-		player setclientdvar("loc_warnings", 0);				  // Disable unlocalized warnings
-		player setclientdvar("compassSize", 0.001);				  // Hide compass
-		player setclientdvar("player_view_pitch_up", 89.9);		  // Allow looking straight up
-		player setclientdvar("ui_ConnectScreenTextGlowColor", 0); // Remove glow color applied to the mode and map name strings on the connect screen
-		player setclientdvar("cg_descriptiveText", 0);			  // Disable spectator button icons
-		player setclientdvar("player_spectateSpeedScale", 1.5);	  // Faster movement in spectator
-		player setClientDvar("aim_automelee_range", 0);			  // Remove melee lunge
-		player setClientDvar("clanname", "");					  // Remove clan tag
-		player setClientDvar("motd", "CodJumper");
-		player setClientDvars("aim_slowdown_enabled", 0, "aim_lockon_enabled", 0);		  // Disable autoaim for enemy players
-		player setClientDvars("cg_enemyNameFadeIn", 0, "cg_enemyNameFadeOut", 0);		  // Hide enemy player names
-		player setClientDvars("cg_overheadRankSize", 0, "cg_overheadIconSize", 0);		  // Hide overhead rank and icon
-		player setClientDvar("cg_scoreboardPingText", 1);								  // Show ping in scoreboard
-		player setClientDvar("cg_chatHeight", 0);										  // prevent people from freezing consoles via say command
-		player setClientDvar("nightVisionDisableEffects", 1);							  // Remove nightvision fx
-		player setClientDvars("g_TeamName_Allies", "Jumpers", "g_TeamName_Axis", "Bots"); // Set team names
-		player setClientDvars("fx_enable", 0);											  // Disable FX
-
-		// Remove objective waypoints on screen
-		player setClientDvar("waypointIconWidth", 0.1);
-		player setClientDvar("waypointIconHeight", 0.1);
-		player setClientDvar("waypointOffscreenPointerWidth", 0.1);
-		player setClientDvar("waypointOffscreenPointerHeight", 0.1);
-
 		player thread onPlayerSpawned();
 	}
 }
@@ -131,8 +97,8 @@ onPlayerSpawned()
 	{
 		self waittill("spawned_player");
 		self thread watchbuttons();
-		self setupLoadoutCJ();
-		self thread replenishAmmo();
+		self cj_setup_loadout();
+		self thread replenish_ammo();
 	}
 }
 
@@ -753,14 +719,14 @@ toggleFastReload()
 	else
 		self iprintln("Fast reload [^1OFF^7]");
 
-	self setupLoadoutCJ(false);
+	self cj_setup_loadout(false);
 }
 
 giveCamo(index)
 {
 	self.cj["loadout"].primaryCamoIndex = index;
 	self.cj["loadout"].incomingWeapon = self.cj["loadout"].primary;
-	self setupLoadoutCJ(false);
+	self cj_setup_loadout(false);
 }
 
 replaceWeapon(weapon)
@@ -774,7 +740,7 @@ replaceWeapon(weapon)
 		self.cj["loadout"].sidearm = weapon;
 
 	self.cj["loadout"].incomingWeapon = weapon;
-	self setupLoadoutCJ();
+	self cj_setup_loadout();
 }
 
 cj_player_init_once()
@@ -793,12 +759,43 @@ cj_player_init_once()
 	self.cj["loadout"].incomingWeapon = undefined;
 
 	self.cj["save_history"] = [];
+
+	// // developer dvars
+	// self setclientdvar("developer", 1);
+	// self setclientdvar("developer_script", 1);
+	// self setclientdvar("con_minicon", 1);
+	// self setclientdvar("con_miniconlines", 20);
+	// self setclientdvar("con_minicontime", 10);
+
+	self setclientdvar("loc_warnings", 0);					// Disable unlocalized warnings
+	self setclientdvar("compassSize", 0.001);				// Hide compass
+	self setclientdvar("player_view_pitch_up", 89.9);		// Allow looking straight up
+	self setclientdvar("ui_ConnectScreenTextGlowColor", 0); // Remove glow color applied to the mode and map name strings on the connect screen
+	self setclientdvar("cg_descriptiveText", 0);			// Disable spectator button icons
+	self setclientdvar("player_spectateSpeedScale", 1.5);	// Faster movement in spectator
+	self setClientDvar("aim_automelee_range", 0);			// Remove melee lunge
+	self setClientDvar("clanname", "");						// Remove clan tag
+	self setClientDvar("motd", "CodJumper");
+	self setClientDvars("aim_slowdown_enabled", 0, "aim_lockon_enabled", 0);		// Disable autoaim for enemy players
+	self setClientDvars("cg_enemyNameFadeIn", 0, "cg_enemyNameFadeOut", 0);			// Hide enemy player names
+	self setClientDvars("cg_overheadRankSize", 0, "cg_overheadIconSize", 0);		// Hide overhead rank and icon
+	self setClientDvar("cg_scoreboardPingText", 1);									// Show ping in scoreboard
+	self setClientDvar("cg_chatHeight", 0);											// prevent people from freezing consoles via say command
+	self setClientDvar("nightVisionDisableEffects", 1);								// Remove nightvision fx
+	self setClientDvars("g_TeamName_Allies", "Jumpers", "g_TeamName_Axis", "Bots"); // Set team names
+	self setClientDvars("fx_enable", 0);											// Disable FX
+
+	// Remove objective waypoints on screen
+	self setClientDvar("waypointIconWidth", 0.1);
+	self setClientDvar("waypointIconHeight", 0.1);
+	self setClientDvar("waypointOffscreenPointerWidth", 0.1);
+	self setClientDvar("waypointOffscreenPointerHeight", 0.1);
 }
 
 /**
  * Sets up the loadout for the player.
  */
-setupLoadoutCJ(printInfo)
+cj_setup_loadout(printInfo)
 {
 
 	if (!isdefined(printInfo))
@@ -864,7 +861,7 @@ setupLoadoutCJ(printInfo)
 /**
  * Constantly replace the players ammo.
  */
-replenishAmmo()
+replenish_ammo()
 {
 	self endon("end_respawn");
 	self endon("disconnect");
