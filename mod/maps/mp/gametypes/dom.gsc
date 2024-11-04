@@ -28,6 +28,8 @@ main()
 
 initCJ()
 {
+	precacheShader("reticle_flechette");
+
 	// Virtual resolution for HUD elements; scaled to real monitor dimensions by the game engine
 	level.SCREEN_MAX_WIDTH = 640;
 	level.SCREEN_MAX_HEIGHT = 480;
@@ -39,6 +41,20 @@ initCJ()
 	level.FORGE_MODELS = get_forge_models();
 	level.MAPNAMES = get_maps();
 	level.PLAYER_MODELS = get_player_models();
+
+	level.FORGE_CHANGE_MODES[0] = "pitch";
+	level.FORGE_CHANGE_MODES[1] = "yaw";
+	level.FORGE_CHANGE_MODES[2] = "roll";
+	level.FORGE_CHANGE_MODES[3] = "z";
+
+	level.SPECTATOR_SPEEDS[0] = 0.05;
+	level.SPECTATOR_SPEEDS[1] = 0.1;
+	level.SPECTATOR_SPEEDS[2] = 0.2;
+	level.SPECTATOR_SPEEDS[3] = 0.4;
+	level.SPECTATOR_SPEEDS[4] = 0.8;
+	level.SPECTATOR_SPEEDS[5] = 1;
+	level.SPECTATOR_SPEEDS[6] = 1.5;
+	level.SPECTATOR_SPEEDS[7] = 3;
 
 	level.hardcoreMode = true;												  // Disable HUD elements
 	level.MAP_CENTER_GROUND_ORIGIN = getent("sab_bomb", "targetname").origin; // sab_bomb is always placed in the center of the map
@@ -96,7 +112,7 @@ onPlayerSpawned()
 	for (;;)
 	{
 		self waittill("spawned_player");
-		self thread watchbuttons();
+		self thread watch_buttons();
 		self cj_setup_loadout();
 		self thread replenish_ammo();
 	}
@@ -536,7 +552,7 @@ menuAction(action, param1)
 		self.menuHeaderFontElem destroy();
 		self.menuHeaderAuthorFontElem destroy();
 		self.menuVersionFontElem destroy();
-		self.menuOpen = false;
+		self.cj["menu_open"] = false;
 		self freezecontrols(false);
 		break;
 	case "BACK":
@@ -547,7 +563,7 @@ menuAction(action, param1)
 			self menuAction("CHANGE_MENU", self.menuOptions[self.menuKey].parent);
 		break;
 	case "OPEN":
-		self.menuOpen = true;
+		self.cj["menu_open"] = true;
 		self freezecontrols(true);
 		self generateMenu();
 		self initMenuHudElem();
@@ -582,18 +598,22 @@ menuAction(action, param1)
 	}
 }
 
-isMenuOpen()
+watchNightVisionButton()
 {
-	if (!isdefined(self.menuOpen))
-		self.menuOpen = false;
+	self endon("disconnect");
+	self endon("end_respawn");
 
-	return self.menuOpen;
+	for (;;)
+	{
+		common_scripts\utility::waittill_any("night_vision_on", "night_vision_off");
+		self.nightVisionButtonPressedTime = getTime();
+	}
 }
 
 /**
  * Main loop to watch for button presses.
  */
-watchbuttons()
+watch_buttons()
 {
 	self endon("disconnect");
 	self endon("end_respawn");
@@ -603,7 +623,7 @@ watchbuttons()
 	for (;;)
 	{
 		// Menu is closed
-		if (!self isMenuOpen())
+		if (!self.cj["menu_open"])
 		{
 			if (self button_pressed_twice("use"))
 			{
@@ -620,14 +640,14 @@ watchbuttons()
 				self position_save();
 				wait 0.2;
 			}
-			else if (self button_pressed("smoke"))
+			else if (self.sessionstate == "playing" && self button_pressed("smoke"))
 			{
 				self position_load();
 				wait 0.2;
 			}
 			else if (self button_pressed("frag"))
 			{
-				self ufo_controls_toggle();
+				self spectator_mode_toggle();
 				wait 0.2;
 			}
 		}
@@ -657,58 +677,6 @@ watchbuttons()
 		}
 		wait 0.05;
 	}
-}
-
-button_pressed(button)
-{
-	switch (ToLower(button))
-	{
-	case "ads":
-		return self adsbuttonpressed();
-	case "attack":
-		return self attackbuttonpressed();
-	case "frag":
-		return self fragbuttonpressed();
-	// case "HOLD_BREATH":
-	// 	return self holdbreathbuttonpressed();
-	// 	break;
-	// case "JUMP":
-	// 	return self jumpbuttonpressed();
-	// 	break;
-	case "melee":
-		return self meleebuttonpressed();
-	case "nightvision":
-		return self nightvisionbuttonpressed();
-	case "smoke":
-		return self secondaryoffhandbuttonpressed();
-	case "use":
-		return self usebuttonpressed();
-	default:
-		self iprintln("^1Unknown button " + button);
-		return false;
-	}
-}
-
-/**
- * Check if the a button is pressed twice in 500ms.
- */
-button_pressed_twice(button)
-{
-	if (self button_pressed(button))
-	{
-		has_released = false;
-
-		for (elapsed_time = 0; elapsed_time < 0.5; elapsed_time += 0.05)
-		{
-			if (has_released && self button_pressed(button))
-				return true;
-			else if (!self button_pressed(button))
-				has_released = true;
-
-			wait 0.05;
-		}
-	}
-	return false;
 }
 
 toggleFastReload()
@@ -747,6 +715,9 @@ cj_player_init_once()
 {
 	self.cj = [];
 
+	self.cj["menu_open"] = false;
+	// self.cj["menu_theme"] = level.THEMES["skyblue"];
+
 	self.cj["rpg_switch"] = false;
 	self.cj["rpg_switched"] = false;
 
@@ -759,6 +730,13 @@ cj_player_init_once()
 	self.cj["loadout"].incomingWeapon = undefined;
 
 	self.cj["save_history"] = [];
+
+	self.cj["spectator_mode"] = "ufo";
+	self.cj["spectator_speed_index"] = 4;
+	self.cj["forge_change_mode_index"] = 0;
+	self.cj["forge_change_unit"] = 1;
+	self.cj["forge_focused_ent"] = undefined;
+	self.cj["forge_pickedup_ent"] = undefined;
 
 	// // developer dvars
 	// self setclientdvar("developer", 1);

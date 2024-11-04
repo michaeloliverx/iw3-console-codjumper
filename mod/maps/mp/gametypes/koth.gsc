@@ -1,5 +1,62 @@
 #include maps\mp\gametypes\_hud_util;
 
+nightVisionButtonPressed()
+{
+	return isdefined(self.nightVisionButtonPressedTime) && (getTime() - self.nightVisionButtonPressedTime < 200);
+}
+
+button_pressed(button)
+{
+	switch (ToLower(button))
+	{
+	case "ads":
+		return self adsbuttonpressed();
+	case "attack":
+		return self attackbuttonpressed();
+	case "frag":
+		return self fragbuttonpressed();
+	// case "HOLD_BREATH":
+	// 	return self holdbreathbuttonpressed();
+	// 	break;
+	// case "JUMP":
+	// 	return self jumpbuttonpressed();
+	// 	break;
+	case "melee":
+		return self meleebuttonpressed();
+	case "nightvision":
+		return self nightvisionbuttonpressed();
+	case "smoke":
+		return self secondaryoffhandbuttonpressed();
+	case "use":
+		return self usebuttonpressed();
+	default:
+		self iprintln("^1Unknown button " + button);
+		return false;
+	}
+}
+
+/**
+ * Check if the a button is pressed twice in 500ms.
+ */
+button_pressed_twice(button)
+{
+	if (self button_pressed(button))
+	{
+		has_released = false;
+
+		for (elapsed_time = 0; elapsed_time < 0.5; elapsed_time += 0.05)
+		{
+			if (has_released && self button_pressed(button))
+				return true;
+			else if (!self button_pressed(button))
+				has_released = true;
+
+			wait 0.05;
+		}
+	}
+	return false;
+}
+
 setFilmTweaksPreset(preset)
 {
 	switch (preset)
@@ -222,23 +279,6 @@ startZOriginHUD()
 	}
 }
 
-watchNightVisionButton()
-{
-	self endon("disconnect");
-	self endon("end_respawn");
-
-	for (;;)
-	{
-		common_scripts\utility::waittill_any("night_vision_on", "night_vision_off");
-		self.nightVisionButtonPressedTime = getTime();
-	}
-}
-
-nightVisionButtonPressed()
-{
-	return isdefined(self.nightVisionButtonPressedTime) && (getTime() - self.nightVisionButtonPressedTime < 200);
-}
-
 initTestClient()
 {
 	testclient = addtestclient();
@@ -410,7 +450,7 @@ rpg_switch()
 	}
 }
 
-ufo_controls_on()
+spectator_controls_on()
 {
 	self setClientDvar("player_view_pitch_up", 89.9);	// allow looking straight up
 	self setClientDvar("player_view_pitch_down", 89.9); // allow looking straight down
@@ -419,7 +459,7 @@ ufo_controls_on()
 	self.sessionstate = "spectator";
 }
 
-ufo_controls_off()
+spectator_controls_off()
 {
 	self setClientDvar("player_view_pitch_down", 70);
 
@@ -427,10 +467,259 @@ ufo_controls_off()
 	self.sessionstate = "playing";
 }
 
-ufo_controls_toggle()
+spectator_switch_mode_active()
 {
-	if (self.sessionstate == "spectator")
-		self ufo_controls_off();
+	if (self.cj["spectator_mode"] == "forge")
+	{
+		self.cj["spectator_mode"] = "ufo";
+		wait 0.05;
+		self thread forge_start();
+		self iprintln("mode: UFO");
+	}
 	else
-		self ufo_controls_on();
+	{
+		self.cj["spectator_mode"] = "forge";
+		wait 0.05;
+		self thread ufo_start();
+		self iprintln("mode: Forge");
+	}
+}
+
+spectator_mode_toggle()
+{
+	if (self.sessionstate == "playing")
+	{
+		self spectator_controls_on();
+
+		if (self.cj["spectator_mode"] == "forge")
+			self thread forge_start();
+		else if (self.cj["spectator_mode"] == "ufo")
+			self thread ufo_start();
+	}
+	else if (self.sessionstate == "spectator")
+		self spectator_controls_off();
+}
+
+ufo_start()
+{
+	self endon("disconnect");
+	self endon("end_respawn");
+
+	while (self.sessionstate == "spectator" && self.cj["spectator_mode"] == "ufo")
+	{
+		// Extra controls
+		while (self button_pressed("use"))
+		{
+			// freeze controls to allow meleebuttonpressed while in spectator
+			self freezecontrols(true);
+			// Switch mode
+			if (self button_pressed("melee"))
+			{
+				self spectator_switch_mode_active();
+				wait 0.1;
+			}
+
+			else if (self button_pressed("smoke"))
+				self setplayerangles(self getPlayerAngles() - (0, 0, 1));
+			else if (self button_pressed("frag"))
+				self setplayerangles(self getPlayerAngles() + (0, 0, 1));
+
+			wait 0.05;
+		}
+		if (!self.cj["menu_open"])
+			self freezecontrols(false);
+
+		if (button_pressed("smoke"))
+		{
+			self cycle_spectator_speed();
+			wait 0.1;
+		}
+
+		wait 0.05;
+	}
+}
+
+cycle_spectator_speed()
+{
+	self.cj["spectator_speed_index"] += 1;
+	if (self.cj["spectator_speed_index"] >= level.SPECTATOR_SPEEDS.size)
+		self.cj["spectator_speed_index"] = 0;
+
+	speed = level.SPECTATOR_SPEEDS[self.cj["spectator_speed_index"]];
+	self setClientDvar("player_spectateSpeedScale", speed);
+	msg = "player_spectateSpeedScale " + speed;
+	if (speed == 1)
+		msg += " (default)";
+
+	self iprintln(msg);
+}
+
+// getForgeInstructionsText(state)
+// {
+// 	instructions = [];
+
+// 	if (!isdefined(state))
+// 	{
+// 		instructions[instructions.size] = "[{+activate}] Hold for more options";
+// 		instructions[instructions.size] = "[{+smoke}] Change speed";
+// 		instructions[instructions.size] = "[{+frag}] Exit";
+// 	}
+// 	else if (state == "FOCUSED")
+// 	{
+// 		instructions[instructions.size] = "[{+activate}] Hold for more options";
+// 		instructions[instructions.size] = "[{+smoke}] Decrease";
+// 		instructions[instructions.size] = "[{+frag}] Increase";
+// 	}
+// 	else if (state == "HOLD_X")
+// 	{
+// 		instructions[instructions.size] = "[{+smoke}] Next mode";
+// 		instructions[instructions.size] = "[{+frag}] Prev mode";
+
+// 		instructions[instructions.size] = "[{+speed_throw}] Exit Forge";
+// 		instructions[instructions.size] = "[{+attack}] Pick up/Drop";
+// 		if (level.xenon)
+// 			instructions[instructions.size] = "[{+breath_sprint}] Clone object";
+
+// 		instructions[instructions.size] = "[{+melee}] Switch to UFO mode";
+// 	}
+
+// 	instructionsString = "";
+// 	for (i = 0; i < instructions.size; i++)
+// 		instructionsString += instructions[i] + "\n";
+
+// 	return instructionsString;
+// }
+
+forge_start()
+{
+	self.forge_hud = [];
+	self.forge_hud["instructions"] = createFontString("default", 1.4);
+	self.forge_hud["instructions"] setPoint("TOPLEFT", "TOPLEFT", -30, -20);
+	self.forge_hud["instructions"] setText("");
+
+	x = 30;
+
+	self.forge_hud["entities"] = createFontString("default", 1.4);
+	self.forge_hud["entities"] setPoint("TOPRIGHT", "TOPRIGHT", x, -20);
+	self.forge_hud["entities"].label = &"entities (1000 max): &&1";
+	self.forge_hud["entities"] SetValue(getentarray().size);
+
+	self.forge_hud["mode"] = createFontString("default", 1.4);
+	self.forge_hud["mode"] setPoint("TOPRIGHT", "TOPRIGHT", x, 0);
+	self.forge_hud["mode"] setText("mode: " + level.FORGE_CHANGE_MODES[self.cj["forge_change_mode_index"]]);
+	self.forge_hud["mode"].alpha = 1;
+
+	self.forge_hud["pitch"] = createFontString("default", 1.4);
+	self.forge_hud["pitch"] setPoint("TOPRIGHT", "TOPRIGHT", x, 20);
+	self.forge_hud["pitch"].label = &"pitch: &&1";
+	self.forge_hud["pitch"] SetValue(0);
+	self.forge_hud["pitch"].alpha = 0;
+
+	self.forge_hud["yaw"] = createFontString("default", 1.4);
+	self.forge_hud["yaw"] setPoint("TOPRIGHT", "TOPRIGHT", x, 40);
+	self.forge_hud["yaw"].label = &"yaw: &&1";
+	self.forge_hud["yaw"] SetValue(0);
+	self.forge_hud["yaw"].alpha = 0;
+
+	self.forge_hud["roll"] = createFontString("default", 1.4);
+	self.forge_hud["roll"] setPoint("TOPRIGHT", "TOPRIGHT", x, 60);
+	self.forge_hud["roll"].label = &"roll: &&1";
+	self.forge_hud["roll"] SetValue(0);
+	self.forge_hud["roll"].alpha = 0;
+
+	self.forge_hud["x"] = createFontString("default", 1.4);
+	self.forge_hud["x"] setPoint("TOPRIGHT", "TOPRIGHT", x, 80);
+	self.forge_hud["x"].label = &"x: &&1";
+	self.forge_hud["x"] SetValue(0);
+	self.forge_hud["x"].alpha = 0;
+
+	self.forge_hud["y"] = createFontString("default", 1.4);
+	self.forge_hud["y"] setPoint("TOPRIGHT", "TOPRIGHT", x, 100);
+	self.forge_hud["y"].label = &"y: &&1";
+	self.forge_hud["y"] SetValue(0);
+	self.forge_hud["y"].alpha = 0;
+
+	self.forge_hud["z"] = createFontString("default", 1.4);
+	self.forge_hud["z"] setPoint("TOPRIGHT", "TOPRIGHT", x, 120);
+	self.forge_hud["z"].label = &"z: &&1";
+	self.forge_hud["z"] SetValue(0);
+	self.forge_hud["z"].alpha = 0;
+
+	self.forge_hud["reticle"] = createIcon("reticle_flechette", 40, 40);
+	self.forge_hud["reticle"] setPoint("center", "center", "center", "center");
+
+	while (self.sessionstate == "spectator" && self.cj["spectator_mode"] == "forge")
+	{
+		self.forge_hud["entities"] SetValue(getentarray().size);
+		self.forge_hud["mode"] setText("mode: " + level.FORGE_CHANGE_MODES[self.cj["forge_change_mode_index"]]);
+		// self.forge_hud["pitch"] SetValue(self getPlayerAngles()[0]);
+		// self.forge_hud["yaw"] SetValue(self getPlayerAngles()[1]);
+		// self.forge_hud["roll"] SetValue(self getPlayerAngles()[2]);
+		// self.forge_hud["x"] SetValue(self.origin[0]);
+		// self.forge_hud["y"] SetValue(self.origin[1]);
+		// self.forge_hud["z"] SetValue(self.origin[2]);
+
+		if (!isdefined(self.cj["forge_focused_ent"]) && !isdefined(self.cj["forge_pickedup_ent"]) && (self button_pressed("smoke") || self button_pressed("frag")))
+		{
+			if (self button_pressed("smoke"))
+				self forge_change_mode("prev");
+			else if (self button_pressed("frag"))
+				self forge_change_mode("next");
+			wait 0.1;
+		}
+
+		wait 0.05;
+	}
+
+	// self.forge_hud_destroy();
+}
+
+// forge_watch_buttons()
+// {
+// 	self endon("disconnect");
+// 	self endon("end_respawn");
+
+// 	// while (self.sessionstate == "spectator" && self.cj["spectator_mode"] == "forge")
+// 	// {
+// 	// 	if (!isdefined(self.cj["forge_focused_ent"]) || !isdefined(self.cj["forge_pickedup_ent"]))
+// 	// 	{
+// 	// 		if (button_pressed("smoke"))
+// 	// 		{
+// 	// 			self forge_change_mode("prev");
+// 	// 			wait 0.1;
+// 	// 		}
+// 	// 		else if (button_pressed("frag"))
+// 	// 		{
+// 	// 			self forge_change_mode("next");
+// 	// 			wait 0.1;
+// 	// 		}
+// 	// 	}
+
+// 	// 	wait 0.05;
+// 	// }
+// }
+
+forge_hud_destroy()
+{
+	huds = getarraykeys(self.forge_hud);
+	for (i = 0; i < huds.size; i++)
+		if (isdefined(self.forge_hud[huds[i]]))
+			self.forge_hud[huds[i]] destroy();
+}
+
+forge_change_mode(action)
+{
+	action = tolower(action);
+	index = self.cj["forge_change_mode_index"];
+	if (action == "prev")
+		index -= 1;
+	else if (action == "next")
+		index += 1;
+
+	if (index >= level.FORGE_CHANGE_MODES.size)
+		index = 0;
+	else if (index < 0)
+		index = level.FORGE_CHANGE_MODES.size - 1;
+
+	self.cj["forge_change_mode_index"] = index;
 }
