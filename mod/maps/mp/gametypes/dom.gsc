@@ -196,7 +196,7 @@ generateMenu()
 	// CJ menu
 	self addMenu("cj_menu", "main_menu");
 	// self addMenuOption("cj_menu", "Load Previous Position", ::emptyFunc);
-	self addMenuOption("cj_menu", "RPG Switch", ::emptyFunc);
+	self addMenuOption("cj_menu", "RPG Switch", ::toggle_rpg_switch);
 
 	// DVAR menu
 	self addMenu("dvar_menu", "main_menu");

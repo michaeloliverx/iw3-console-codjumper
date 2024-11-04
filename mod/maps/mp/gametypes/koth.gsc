@@ -360,12 +360,54 @@ position_load(index)
 	self setPlayerAngles(entry.angles);
 	self setOrigin(entry.origin);
 
-	if (!self isOnGround())
-		wait 0.05;
-
-	wait 0.05;
+	// pull out rpg on load if RPG switch is enabled
+	if (self.cj["rpg_switch"] && self.cj["rpg_switched"])
+	{
+		self SetWeaponAmmoClip("rpg_mp", 1);
+		self switchToWeapon("rpg_mp");
+		self.cj["rpg_switched"] = false;
+	}
 
 	self freezecontrols(false);
+}
+
+toggle_rpg_switch()
+{
+	if (self.cj["rpg_switch"])
+	{
+		self.cj["rpg_switch"] = false;
+		self iprintln("RPG Switch OFF");
+	}
+	else
+	{
+		self.cj["rpg_switch"] = true;
+		self iprintln("RPG Switch ON");
+		self thread rpg_switch();
+	}
+}
+
+rpg_switch()
+{
+	self endon("disconnect");
+	// self endon("rpg_switch_stop");
+
+	while (self.cj["rpg_switch"])
+	{
+		self waittill("weapon_fired");
+		if (self GetCurrentWeapon() == "rpg_mp")
+		{
+			self.cj["rpg_switched"] = true;
+
+			self switchToWeapon(self.cj["loadout"].sidearm);
+
+			wait 0.05;
+			// wait until the RPG is fully switched so the rocket doesn't appear in the barrel on screen
+			while (self GetCurrentWeapon() == "rpg_mp")
+				wait 0.05;
+
+			self SetWeaponAmmoClip("rpg_mp", 1);
+		}
+	}
 }
 
 ufo_controls_on()
