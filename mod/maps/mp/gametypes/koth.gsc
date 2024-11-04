@@ -956,6 +956,8 @@ ufocontrolsOFF()
 
 	self allowSpectateTeam("freelook", false);
 	self.sessionstate = "playing";
+
+	self freezeControls(false);
 }
 
 getdisplayname(ent)
@@ -966,4 +968,12 @@ getdisplayname(ent)
 		return ent.model;
 	else
 		return ent.classname;
+}
+
+setSaveIndex()
+{
+	i = self.cj["savenum"];
+	self.cj["savenum"] = (i + 1) % 10;
+
+	self iPrintln("Position " + (self.cj["savenum"] + 1) + " set");
 }
