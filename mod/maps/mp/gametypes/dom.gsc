@@ -88,7 +88,7 @@ onPlayerConnect()
 	{
 		level waittill("connected", player);
 
-		player position_init();
+		player cj_player_init_once();
 
 		// // developer dvars
 		// player setclientdvar("developer", 1);
@@ -747,8 +747,8 @@ button_pressed_twice(button)
 
 toggleFastReload()
 {
-	self.cjLoadout.fastReload = !self.cjLoadout.fastReload;
-	if (self.cjLoadout.fastReload)
+	self.cj["loadout"].fastReload = !self.cj["loadout"].fastReload;
+	if (self.cj["loadout"].fastReload)
 		self iprintln("Fast reload [^2ON^7]");
 	else
 		self iprintln("Fast reload [^1OFF^7]");
@@ -758,8 +758,8 @@ toggleFastReload()
 
 giveCamo(index)
 {
-	self.cjLoadout.primaryCamoIndex = index;
-	self.cjLoadout.incomingWeapon = self.cjLoadout.primary;
+	self.cj["loadout"].primaryCamoIndex = index;
+	self.cj["loadout"].incomingWeapon = self.cj["loadout"].primary;
 	self setupLoadoutCJ(false);
 }
 
@@ -767,14 +767,32 @@ replaceWeapon(weapon)
 {
 	if (weaponClass(weapon) != "pistol")
 	{
-		self.cjLoadout.primary = weapon;
-		self.cjLoadout.primaryCamoIndex = 0;
+		self.cj["loadout"].primary = weapon;
+		self.cj["loadout"].primaryCamoIndex = 0;
 	}
 	else
-		self.cjLoadout.sidearm = weapon;
+		self.cj["loadout"].sidearm = weapon;
 
-	self.cjLoadout.incomingWeapon = weapon;
+	self.cj["loadout"].incomingWeapon = weapon;
 	self setupLoadoutCJ();
+}
+
+cj_player_init_once()
+{
+	self.cj = [];
+
+	self.cj["rpg_switch"] = false;
+	self.cj["rpg_switched"] = false;
+
+	// Default loadout
+	self.cj["loadout"] = spawnstruct();
+	self.cj["loadout"].primary = "mp5_mp";
+	self.cj["loadout"].primaryCamoIndex = 0;
+	self.cj["loadout"].sidearm = "deserteaglegold_mp";
+	self.cj["loadout"].fastReload = false;
+	self.cj["loadout"].incomingWeapon = undefined;
+
+	self.cj["save_history"] = [];
 }
 
 /**
@@ -786,28 +804,17 @@ setupLoadoutCJ(printInfo)
 	if (!isdefined(printInfo))
 		printInfo = true;
 
-	// default loadout
-	if (!isdefined(self.cjLoadout))
-	{
-		self.cjLoadout = spawnstruct();
-		self.cjLoadout.primary = "mp5_mp";
-		self.cjLoadout.primaryCamoIndex = 0;
-		self.cjLoadout.sidearm = "deserteaglegold_mp";
-		self.cjLoadout.fastReload = false;
-		self.cjLoadout.incomingWeapon = undefined;
-	}
-
 	self clearPerks();
 	self takeAllWeapons();
 
 	// wait 0.05;
 
-	self giveWeapon(self.cjLoadout.primary, self.cjLoadout.primaryCamoIndex);
-	self giveWeapon(self.cjLoadout.sidearm);
+	self giveWeapon(self.cj["loadout"].primary, self.cj["loadout"].primaryCamoIndex);
+	self giveWeapon(self.cj["loadout"].sidearm);
 
 	self giveWeapon("rpg_mp");
 
-	if (self.cjLoadout.fastReload)
+	if (self.cj["loadout"].fastReload)
 		self setPerk("specialty_fastreload");
 
 	self SetActionSlot(1, "nightvision");
@@ -816,17 +823,17 @@ setupLoadoutCJ(printInfo)
 	wait 0.05;
 
 	// Switch to the appropriate weapon
-	if (isdefined(self.cjLoadout.incomingWeapon) && weaponClass(self.cjLoadout.incomingWeapon) != "pistol")
-		self switchtoweapon(self.cjLoadout.primary);
+	if (isdefined(self.cj["loadout"].incomingWeapon) && weaponClass(self.cj["loadout"].incomingWeapon) != "pistol")
+		self switchtoweapon(self.cj["loadout"].primary);
 	else
-		self switchtoweapon(self.cjLoadout.sidearm);
+		self switchtoweapon(self.cj["loadout"].sidearm);
 
-	self.cjLoadout.incomingWeapon = undefined;
+	self.cj["loadout"].incomingWeapon = undefined;
 
 	// Adjust move speed based on primary weapon type
 	moveSpeedScalePercentage = 100;
 	// Taken from maps\mp\gametypes\_class::giveLoadout
-	switch (weaponClass(self.cjLoadout.primary))
+	switch (weaponClass(self.cj["loadout"].primary))
 	{
 	case "rifle":
 		self setMoveSpeedScale(0.95);

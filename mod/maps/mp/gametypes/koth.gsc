@@ -314,15 +314,6 @@ kickAllBots()
 			kick(level.players[i] getEntityNumber());
 }
 
-position_init()
-{
-	if (!isdefined(self.cj))
-		self.cj = spawnStruct();
-
-	if (!isdefined(self.cj.save_history))
-		self.cj.save_history = [];
-}
-
 position_save()
 {
 	if (!self isOnGround() || self isMantling())
@@ -332,17 +323,17 @@ position_save()
 	entry.origin = self.origin;
 	entry.angles = self getPlayerAngles();
 
-	self.cj.save_history[self.cj.save_history.size] = entry;
+	self.cj["save_history"][self.cj["save_history"].size] = entry;
 
 	maxEntries = 100;
-	if (self.cj.save_history.size >= maxEntries)
+	if (self.cj["save_history"].size >= maxEntries)
 	{
 		new_history = [];
-		startIndex = self.cj.save_history.size - maxEntries;
+		startIndex = self.cj["save_history"].size - maxEntries;
 		for (i = 0; i < maxEntries; i++)
-			new_history[i] = self.cj.save_history[startIndex + i];
+			new_history[i] = self.cj["save_history"][startIndex + i];
 
-		self.cj.save_history = new_history;
+		self.cj["save_history"] = new_history;
 	}
 }
 
@@ -350,15 +341,15 @@ position_load(index)
 {
 	// default to the last saved position
 	if (!isDefined(index))
-		index = self.cj.save_history.size - 1;
+		index = self.cj["save_history"].size - 1;
 
-	if (self.cj.save_history.size < 1)
+	if (self.cj["save_history"].size < 1)
 	{
 		self iPrintln("No saved positions");
 		return;
 	}
 
-	entry = self.cj.save_history[index];
+	entry = self.cj["save_history"][index];
 
 	self freezecontrols(true);
 	wait 0.05;
