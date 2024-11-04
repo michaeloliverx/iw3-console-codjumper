@@ -702,27 +702,27 @@ watchbuttons()
 		// Menu is closed
 		if (!self isMenuOpen())
 		{
-			if (self buttonPressed("ads") && self buttonPressed("melee"))
+			if (self button_pressed("ads") && self button_pressed("melee"))
 			{
 				menuAction("OPEN");
 				wait 0.2;
 			}
-			else if (self buttonPressed("nightvision"))
+			else if (self button_pressed("nightvision"))
 			{
 				self thread spawnBotAtOrigin();
 				wait 0.2;
 			}
-			else if (self ButtonPressedTwice("melee"))
+			else if (self button_pressed_twice("melee"))
 			{
 				self position_save();
 				wait 0.2;
 			}
-			else if (self buttonPressed("smoke"))
+			else if (self button_pressed("smoke"))
 			{
 				self position_load();
 				wait 0.2;
 			}
-			else if(self buttonPressed("frag"))
+			else if(self button_pressed("frag"))
 			{
 				self ufo_controls_toggle();
 				wait 0.2;
@@ -731,22 +731,22 @@ watchbuttons()
 		// Menu is open
 		else
 		{
-			if (self buttonPressed("ads"))
+			if (self button_pressed("ads"))
 			{
 				menuAction("UP");
 				wait 0.2;
 			}
-			else if (self buttonPressed("attack"))
+			else if (self button_pressed("attack"))
 			{
 				menuAction("DOWN");
 				wait 0.2;
 			}
-			else if (self buttonPressed("melee"))
+			else if (self button_pressed("melee"))
 			{
 				menuAction("BACK");
 				wait 0.2;
 			}
-			else if (self buttonPressed("use"))
+			else if (self button_pressed("use"))
 			{
 				menuAction("SELECT");
 				wait 0.2;
@@ -756,7 +756,7 @@ watchbuttons()
 	}
 }
 
-buttonPressed(button)
+button_pressed(button)
 {
 	switch (ToLower(button))
 	{
@@ -789,17 +789,17 @@ buttonPressed(button)
 /**
  * Check if the a button is pressed twice in 500ms.
  */
-buttonPressedTwice(button)
+button_pressed_twice(button)
 {
-	if (self buttonPressed(button))
+	if (self button_pressed(button))
 	{
 		has_released = false;
 
 		for (elapsed_time = 0; elapsed_time < 0.5; elapsed_time += 0.05)
 		{
-			if (has_released && self buttonPressed(button))
+			if (has_released && self button_pressed(button))
 				return true;
-			else if (!self buttonPressed(button))
+			else if (!self button_pressed(button))
 				has_released = true;
 
 			wait 0.05;
