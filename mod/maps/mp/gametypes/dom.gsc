@@ -16,8 +16,10 @@
  *
  */
 
-#include maps\mp\gametypes\koth;
 #include maps\mp\gametypes\_hud_util;
+#include maps\mp\gametypes\koth;
+#include maps\mp\gametypes\sab;
+#include maps\mp\gametypes\sd;
 
 main()
 {
@@ -32,126 +34,9 @@ initCJ()
 
 	level.MENU_SCROLL_TIME_SECONDS = 0.250;
 
-	// Alphabetically sorted by the value
-	level.MAPNAMES = [];
-	level.MAPNAMES["mp_ambush"] = "Ambush";
-	level.MAPNAMES["mp_backlot"] = "Backlot";
-	level.MAPNAMES["mp_bloc"] = "Bloc";
-	level.MAPNAMES["mp_bog"] = "Bog";
-	level.MAPNAMES["mp_broadcast"] = "Broadcast";
-	level.MAPNAMES["mp_carentan"] = "Chinatown";
-	level.MAPNAMES["mp_countdown"] = "Countdown";
-	level.MAPNAMES["mp_crash"] = "Crash";
-	level.MAPNAMES["mp_creek"] = "Creek";
-	level.MAPNAMES["mp_crossfire"] = "Crossfire";
-	level.MAPNAMES["mp_citystreets"] = "District";
-	level.MAPNAMES["mp_farm"] = "Downpour";
-	level.MAPNAMES["mp_killhouse"] = "Killhouse";
-	level.MAPNAMES["mp_overgrown"] = "Overgrown";
-	level.MAPNAMES["mp_pipeline"] = "Pipeline";
-	level.MAPNAMES["mp_shipment"] = "Shipment";
-	level.MAPNAMES["mp_showdown"] = "Showdown";
-	level.MAPNAMES["mp_strike"] = "Strike";
-	level.MAPNAMES["mp_vacant"] = "Vacant";
-	level.MAPNAMES["mp_wetlands"] = "Wet Work";
-	if (level.xenon)
-		level.MAPNAMES["mp_crash_snow"] = "Winter Crash";
-
-	level.THEMES = [];
-	level.THEMES["blue"] = rgbToNormalized((0, 0, 255));
-	level.THEMES["skyblue"] = rgbToNormalized((0, 191, 255));
-	level.THEMES["gold"] = rgbToNormalized((255, 215, 0));
-	level.THEMES["green"] = rgbToNormalized((0, 208, 98));
-	level.THEMES["maroon"] = rgbToNormalized((128, 0, 0));
-	level.THEMES["orangered"] = rgbToNormalized((255, 69, 0));
-	level.THEMES["pink"] = rgbToNormalized((255, 25, 127));
-	level.THEMES["purple"] = rgbToNormalized((90, 0, 208));
-	level.THEMES["salmon"] = rgbToNormalized((250, 128, 114));
-	level.THEMES["silver"] = rgbToNormalized((192, 192, 192));
-	level.THEMES["teal"] = rgbToNormalized((0, 128, 128));
-
-	level.DVARS = [];
-
-	level.DVARS["bg_bobMax"] = spawnstruct();
-	level.DVARS["bg_bobMax"].type = "slider";
-	level.DVARS["bg_bobMax"].name = "bg_bobMax";
-	level.DVARS["bg_bobMax"].default_value = 8;
-	level.DVARS["bg_bobMax"].min = 0;
-	level.DVARS["bg_bobMax"].max = 36;
-	level.DVARS["bg_bobMax"].step = 1;
-
-	level.DVARS["cg_drawGun"] = spawnstruct();
-	level.DVARS["cg_drawGun"].type = "boolean";
-	level.DVARS["cg_drawGun"].name = "cg_drawGun";
-	level.DVARS["cg_drawGun"].default_value = 1;
-
-	level.DVARS["cg_drawSpectatorMessages"] = spawnstruct();
-	level.DVARS["cg_drawSpectatorMessages"].type = "boolean";
-	level.DVARS["cg_drawSpectatorMessages"].name = "cg_drawSpectatorMessages";
-	level.DVARS["cg_drawSpectatorMessages"].default_value = 1;
-
-	level.DVARS["cg_fov"] = spawnstruct();
-	level.DVARS["cg_fov"].type = "slider";
-	level.DVARS["cg_fov"].name = "cg_fov";
-	level.DVARS["cg_fov"].default_value = 65;
-	level.DVARS["cg_fov"].min = 65;
-	level.DVARS["cg_fov"].max = 90;
-	level.DVARS["cg_fov"].step = 1;
-
-	level.DVARS["cg_fovScale"] = spawnstruct();
-	level.DVARS["cg_fovScale"].type = "slider";
-	level.DVARS["cg_fovScale"].name = "cg_fovScale";
-	level.DVARS["cg_fovScale"].default_value = 1;
-	level.DVARS["cg_fovScale"].min = 0.2;
-	level.DVARS["cg_fovScale"].max = 2;
-	level.DVARS["cg_fovScale"].step = 0.1;
-
-	level.DVARS["cg_thirdPerson"] = spawnstruct();
-	level.DVARS["cg_thirdPerson"].type = "boolean";
-	level.DVARS["cg_thirdPerson"].name = "cg_thirdPerson";
-	level.DVARS["cg_thirdPerson"].default_value = 0;
-
-	level.DVARS["cg_thirdPersonAngle"] = spawnstruct();
-	level.DVARS["cg_thirdPersonAngle"].type = "slider";
-	level.DVARS["cg_thirdPersonAngle"].name = "cg_thirdPersonAngle";
-	level.DVARS["cg_thirdPersonAngle"].default_value = 356;
-	level.DVARS["cg_thirdPersonAngle"].min = -180;
-	level.DVARS["cg_thirdPersonAngle"].max = 360;
-	level.DVARS["cg_thirdPersonAngle"].step = 1;
-
-	level.DVARS["cg_thirdPersonRange"] = spawnstruct();
-	level.DVARS["cg_thirdPersonRange"].type = "slider";
-	level.DVARS["cg_thirdPersonRange"].name = "cg_thirdPersonRange";
-	level.DVARS["cg_thirdPersonRange"].default_value = 120;
-	level.DVARS["cg_thirdPersonRange"].min = 0;
-	level.DVARS["cg_thirdPersonRange"].max = 1024;
-	level.DVARS["cg_thirdPersonRange"].step = 1;
-
-	level.DVARS["r_blur"] = spawnstruct();
-	level.DVARS["r_blur"].type = "slider";
-	level.DVARS["r_blur"].name = "r_blur";
-	level.DVARS["r_blur"].default_value = 0;
-	level.DVARS["r_blur"].min = 0;
-	level.DVARS["r_blur"].max = 32;
-	level.DVARS["r_blur"].step = 0.2;
-
-	level.DVARS["r_dof_enable"] = spawnstruct();
-	level.DVARS["r_dof_enable"].type = "boolean";
-	level.DVARS["r_dof_enable"].name = "r_dof_enable";
-	level.DVARS["r_dof_enable"].default_value = 1;
-
-	level.DVARS["r_fog"] = spawnstruct();
-	level.DVARS["r_fog"].type = "boolean";
-	level.DVARS["r_fog"].name = "r_fog";
-	level.DVARS["r_fog"].default_value = 1;
-
-	level.DVARS["r_zfar"] = spawnstruct();
-	level.DVARS["r_zfar"].type = "slider";
-	level.DVARS["r_zfar"].name = "r_zfar";
-	level.DVARS["r_zfar"].default_value = 0;
-	level.DVARS["r_zfar"].min = 0;
-	level.DVARS["r_zfar"].max = 4000;
-	level.DVARS["r_zfar"].step = 500;
+	level.DVARS = get_dvars();
+	level.THEMES = get_themes();
+	level.MAPNAMES = get_maps();
 
 	// loop through and verify all dvars are valid
 	// raise an error if any are invalid
@@ -247,14 +132,6 @@ onPlayerSpawned()
 		self setupLoadoutCJ();
 		self thread replenishAmmo();
 	}
-}
-
-/**
- * Normalize RGB values (0-255) to (0-1).
- */
-rgbToNormalized(rgb)
-{
-	return (rgb[0] / 255, rgb[1] / 255, rgb[2] / 255);
 }
 
 /**

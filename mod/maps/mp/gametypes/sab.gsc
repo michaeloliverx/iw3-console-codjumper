@@ -1,7 +1,3 @@
-{
-	maps\mp\gametypes\war::main();
-}
-
 /**
  * Sets the origin of all spawnpoint entities to the specified origin.
  */
