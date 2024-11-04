@@ -743,6 +743,36 @@ forge_start()
 				wait 0.25;
 				break;
 			}
+			// rotations and movements can't be done on a linked entity so do it on focus
+			else if (!isdefined(self.cj["forge_pickedup_ent"]) && isdefined(self.cj["forge_focused_ent"]) && (self button_pressed("smoke") || self button_pressed("frag")))
+			{
+				unit = self.cj["forge_change_unit"];
+				mode = level.FORGE_CHANGE_MODES[self.cj["forge_change_mode_index"]];
+				if (self button_pressed("smoke"))
+				{
+					if (mode == "pitch")
+						self.cj["forge_focused_ent"] rotatepitch(unit, 0.05);
+					else if (mode == "yaw")
+						self.cj["forge_focused_ent"] rotateyaw(unit, 0.05);
+					else if (mode == "roll")
+						self.cj["forge_focused_ent"] rotateroll(unit, 0.05);
+					else if (mode == "z")
+						self.cj["forge_focused_ent"] movez(unit * -1, 0.05);
+				}
+				else if (self button_pressed("frag"))
+				{
+					if (mode == "z")
+						self.cj["forge_focused_ent"] movez(unit, 0.05);
+					if (mode == "pitch")
+						self.cj["forge_focused_ent"] rotatepitch(unit * -1, 0.05);
+					else if (mode == "yaw")
+						self.cj["forge_focused_ent"] rotateyaw(unit * -1, 0.05);
+					else if (mode == "roll")
+						self.cj["forge_focused_ent"] rotateroll(unit * -1, 0.05);
+					else if (mode == "z")
+						self.cj["forge_focused_ent"] movez(unit, 0.05);
+				}
+			}
 
 			wait 0.05;
 		}
@@ -759,28 +789,64 @@ forge_start()
 			wait 0.1;
 		}
 
-		if (self.cj["spectator_prevent_exit_requested"])
-		{
+		// if (self.cj["spectator_prevent_exit_requested"])
+		// {
 
-			if (isdefined(self.cj["forge_focused_ent"]))
-			{
-				// do nothing
-			}
-			else if (isdefined(self.cj["forge_pickedup_ent"]))
-				self iprintln("Can't exit while holding an object");
-			else
-			{
-				self.cj["spectator_prevent_exit_requested"] = false;
-				self spectator_controls_off();
-				return;
-			}
-		}
+		// 	if (isdefined(self.cj["forge_focused_ent"]))
+		// 	{
+		// 		// do nothing
+		// 	}
+		// 	else if (isdefined(self.cj["forge_pickedup_ent"]))
+		// 		self iprintln("Can't exit while holding an object");
+		// 	else
+		// 	{
+		// 		self.cj["spectator_prevent_exit_requested"] = false;
+		// 		self spectator_controls_off();
+		// 		return;
+		// 	}
+		// }
 
 		wait 0.05;
 	}
 
 	self forge_hud_destroy();
 }
+
+// move_object(ent, axis, unit, speed)
+// {
+// 	if (axis == "x")
+// 		ent movex(unit, speed);
+// 	else if (axis == "y")
+// 		ent movey(unit, speed);
+// 	else if (axis == "z")
+// 		ent movez(unit, speed);
+// }
+
+// rotate_object(ent, axis, unit, speed)
+// {
+// 	if (axis == "pitch")
+// 		ent rotatepitch(unit, speed);
+// 	else if (axis == "yaw")
+// 		ent rotateyaw(unit, speed);
+// 	else if (axis == "roll")
+// 		ent rotateroll(unit, speed);
+// }
+
+// transform_object(ent, axis, unit, speed)
+// {
+// 	if (axis == "x")
+// 		ent movex(unit, speed);
+// 	else if (axis == "y")
+// 		ent movey(unit, speed);
+// 	else if (axis == "z")
+// 		ent movez(unit, speed);
+// 	else if (axis == "pitch")
+// 		ent rotatepitch(unit, speed);
+// 	else if (axis == "yaw")
+// 		ent rotateyaw(unit, speed);
+// 	else if (axis == "roll")
+// 		ent rotateroll(unit, speed);
+// }
 
 getdisplayname(ent)
 {
