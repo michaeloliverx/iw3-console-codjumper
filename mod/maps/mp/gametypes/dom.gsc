@@ -693,7 +693,7 @@ isMenuOpen()
 watchbuttons()
 {
 	self endon("disconnect");
-	self endon("death");
+	self endon("end_respawn");
 
 	self thread watchNightVisionButton();
 
