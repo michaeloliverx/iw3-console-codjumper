@@ -702,7 +702,7 @@ watchbuttons()
 		// Menu is closed
 		if (!self isMenuOpen())
 		{
-			if (self button_pressed("ads") && self button_pressed("melee"))
+			if (self button_pressed_twice("use"))
 			{
 				menuAction("OPEN");
 				wait 0.2;
