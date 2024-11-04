@@ -38,6 +38,7 @@ initCJ()
 	level.THEMES = get_themes();
 	level.FORGE_MODELS = get_forge_models();
 	level.MAPNAMES = get_maps();
+	level.PLAYER_MODELS = get_player_models();
 
 	// loop through and verify all dvars are valid
 	// raise an error if any are invalid
@@ -340,6 +341,16 @@ generateMenu()
 	for (i = maps.size - 1; i >= 0; i--) // reverse order to display the maps in the order they are defined
 		self addMenuOption("map_menu", level.MAPNAMES[maps[i]], ::changeMap, maps[i]);
 
+	// Player model menu
+	self addMenu("player_model_menu", "main_menu");
+	keys = getarraykeys(level.PLAYER_MODELS);
+	for (i = keys.size - 1; i >= 0; i--) // reverse order to display the maps in the order they are defined
+	{
+		model = keys[i];
+		model_friendly_name = level.PLAYER_MODELS[model];
+		self addMenuOption("player_model_menu", model_friendly_name, ::change_player_model, model);
+	}
+
 	// Theme menu
 	self addMenu("theme_menu", "main_menu");
 	themes = getarraykeys(level.THEMES);
@@ -357,6 +368,7 @@ generateMenu()
 	self addMenuOption("main_menu", "HUD Menu", ::menuAction, "CHANGE_MENU", "hud_menu");
 	self addMenuOption("main_menu", "Loadout Menu", ::menuAction, "CHANGE_MENU", "loadout_menu");
 	self addMenuOption("main_menu", "Map Menu", ::menuAction, "CHANGE_MENU", "map_menu");
+	self addMenuOption("main_menu", "Player Model Menu", ::menuAction, "CHANGE_MENU", "player_model_menu");
 	self addMenuOption("main_menu", "Theme Menu", ::menuAction, "CHANGE_MENU", "theme_menu");
 }
 
