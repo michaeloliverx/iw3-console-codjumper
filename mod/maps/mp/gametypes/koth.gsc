@@ -473,14 +473,14 @@ spectator_switch_mode_active()
 	{
 		self.cj["spectator_mode"] = "ufo";
 		wait 0.05;
-		self thread forge_start();
+		self thread ufo_start();
 		self iprintln("mode: UFO");
 	}
 	else
 	{
 		self.cj["spectator_mode"] = "forge";
 		wait 0.05;
-		self thread ufo_start();
+		self thread forge_start();
 		self iprintln("mode: Forge");
 	}
 }
@@ -496,8 +496,9 @@ spectator_mode_toggle()
 		else if (self.cj["spectator_mode"] == "ufo")
 			self thread ufo_start();
 	}
+	// let each mode handle exiting
 	else if (self.sessionstate == "spectator")
-		self spectator_controls_off();
+		self.cj["spectator_prevent_exit_requested"] = true;
 }
 
 ufo_start()
@@ -510,6 +511,7 @@ ufo_start()
 		// Extra controls
 		while (self button_pressed("use"))
 		{
+			self.cj["spectator_prevent_exit_requested"] = false;
 			// freeze controls to allow meleebuttonpressed while in spectator
 			self freezecontrols(true);
 			// Switch mode
@@ -533,6 +535,12 @@ ufo_start()
 		{
 			self cycle_spectator_speed();
 			wait 0.1;
+		}
+		if (self.cj["spectator_prevent_exit_requested"])
+		{
+			self.cj["spectator_prevent_exit_requested"] = false;
+			self spectator_controls_off();
+			return;
 		}
 
 		wait 0.05;
@@ -648,19 +656,102 @@ forge_start()
 	self.forge_hud["reticle"] = createIcon("reticle_flechette", 40, 40);
 	self.forge_hud["reticle"] setPoint("center", "center", "center", "center");
 
+	unfocusedColor = (0.5, 0.5, 0.5); // gray for unfocused
+	focusedColor = (0, 1, 0);		  // green for focused
+	pickedUpColor = (1, 0, 0);		  // red for picked up
+
 	while (self.sessionstate == "spectator" && self.cj["spectator_mode"] == "forge")
 	{
 		self.forge_hud["entities"] SetValue(getentarray().size);
 		self.forge_hud["mode"] setText("mode: " + level.FORGE_CHANGE_MODES[self.cj["forge_change_mode_index"]]);
-		// self.forge_hud["pitch"] SetValue(self getPlayerAngles()[0]);
-		// self.forge_hud["yaw"] SetValue(self getPlayerAngles()[1]);
-		// self.forge_hud["roll"] SetValue(self getPlayerAngles()[2]);
-		// self.forge_hud["x"] SetValue(self.origin[0]);
-		// self.forge_hud["y"] SetValue(self.origin[1]);
-		// self.forge_hud["z"] SetValue(self.origin[2]);
+
+		if (isdefined(self.cj["forge_focused_ent"]))
+		{
+			self.forge_hud["pitch"] SetValue(self.cj["forge_focused_ent"].angles[0]);
+			self.forge_hud["yaw"] SetValue(self.cj["forge_focused_ent"].angles[1]);
+			self.forge_hud["roll"] SetValue(self.cj["forge_focused_ent"].angles[2]);
+			self.forge_hud["x"] SetValue(self.cj["forge_focused_ent"].origin[0]);
+			self.forge_hud["y"] SetValue(self.cj["forge_focused_ent"].origin[1]);
+			self.forge_hud["z"] SetValue(self.cj["forge_focused_ent"].origin[2]);
+
+			self.forge_hud["pitch"].alpha = 1;
+			self.forge_hud["yaw"].alpha = 1;
+			self.forge_hud["roll"].alpha = 1;
+			self.forge_hud["x"].alpha = 1;
+			self.forge_hud["y"].alpha = 1;
+			self.forge_hud["z"].alpha = 1;
+		}
+		else
+		{
+			self.forge_hud["pitch"].alpha = 0;
+			self.forge_hud["yaw"].alpha = 0;
+			self.forge_hud["roll"].alpha = 0;
+			self.forge_hud["x"].alpha = 0;
+			self.forge_hud["y"].alpha = 0;
+			self.forge_hud["z"].alpha = 0;
+		}
+
+		if (!isdefined(self.cj["forge_pickedup_ent"]))
+		{
+			forward = anglestoforward(self getplayerangles());
+			eye = self.origin + (0, 0, 10);
+			start = eye;
+			end = common_scripts\utility::vectorscale(forward, 9999);
+			trace = bullettrace(start, start + end, true, self);
+			if (isdefined(trace["entity"]))
+			{
+				ent = trace["entity"];
+				self.forge_hud["reticle"].color = focusedColor;
+				if (isdefined(ent.forge_parent))
+					ent = ent.forge_parent;
+
+				self.cj["forge_focused_ent"] = ent;
+			}
+			else
+			{
+				self.forge_hud["reticle"].color = unfocusedColor;
+				self.cj["forge_focused_ent"] = undefined;
+			}
+		}
+		else
+		{
+			self.forge_hud["reticle"].color = pickedUpColor;
+		}
+
+		while (self button_pressed("use"))
+		{
+			// freeze controls to allow using melee, attack and ads buttons while in spectator
+			self freezecontrols(true);
+
+			// pick up or drop ent
+			if (!isdefined(self.cj["forge_pickedup_ent"]) && isdefined(self.cj["forge_focused_ent"]) && self button_pressed("attack"))
+			{
+				ent = self.cj["forge_focused_ent"];
+				ent linkto(self);
+				self.cj["forge_pickedup_ent"] = self.cj["forge_focused_ent"];
+				self iprintln("Picked up " + getdisplayname(ent));
+				wait 0.25;
+				break;
+			}
+			else if (isdefined(self.cj["forge_pickedup_ent"]) && self button_pressed("attack"))
+			{
+				ent = self.cj["forge_pickedup_ent"];
+				ent unlink();
+				ent.origin = maps\mp\gametypes\sab::flat_origin(ent.origin); // snap to whole numbers
+				self.cj["forge_pickedup_ent"] = undefined;
+				self iprintln("Dropped " + getdisplayname(ent));
+				wait 0.25;
+				break;
+			}
+
+			wait 0.05;
+		}
+		if (!self.cj["menu_open"])
+			self freezecontrols(false);
 
 		if (!isdefined(self.cj["forge_focused_ent"]) && !isdefined(self.cj["forge_pickedup_ent"]) && (self button_pressed("smoke") || self button_pressed("frag")))
 		{
+			self.cj["spectator_prevent_exit_requested"] = false; // override exit request from frag button press
 			if (self button_pressed("smoke"))
 				self forge_change_mode("prev");
 			else if (self button_pressed("frag"))
@@ -668,36 +759,38 @@ forge_start()
 			wait 0.1;
 		}
 
+		if (self.cj["spectator_prevent_exit_requested"])
+		{
+
+			if (isdefined(self.cj["forge_focused_ent"]))
+			{
+				// do nothing
+			}
+			else if (isdefined(self.cj["forge_pickedup_ent"]))
+				self iprintln("Can't exit while holding an object");
+			else
+			{
+				self.cj["spectator_prevent_exit_requested"] = false;
+				self spectator_controls_off();
+				return;
+			}
+		}
+
 		wait 0.05;
 	}
 
-	// self.forge_hud_destroy();
+	self forge_hud_destroy();
 }
 
-// forge_watch_buttons()
-// {
-// 	self endon("disconnect");
-// 	self endon("end_respawn");
-
-// 	// while (self.sessionstate == "spectator" && self.cj["spectator_mode"] == "forge")
-// 	// {
-// 	// 	if (!isdefined(self.cj["forge_focused_ent"]) || !isdefined(self.cj["forge_pickedup_ent"]))
-// 	// 	{
-// 	// 		if (button_pressed("smoke"))
-// 	// 		{
-// 	// 			self forge_change_mode("prev");
-// 	// 			wait 0.1;
-// 	// 		}
-// 	// 		else if (button_pressed("frag"))
-// 	// 		{
-// 	// 			self forge_change_mode("next");
-// 	// 			wait 0.1;
-// 	// 		}
-// 	// 	}
-
-// 	// 	wait 0.05;
-// 	// }
-// }
+getdisplayname(ent)
+{
+	if (isplayer(ent))
+		return ent.name;
+	else if (isdefined(ent.model) && ent.model != "")
+		return ent.model;
+	else
+		return ent.classname;
+}
 
 forge_hud_destroy()
 {

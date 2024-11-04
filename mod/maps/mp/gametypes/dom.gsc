@@ -733,6 +733,7 @@ cj_player_init_once()
 
 	self.cj["spectator_mode"] = "ufo";
 	self.cj["spectator_speed_index"] = 4;
+	self.cj["spectator_prevent_exit_requested"] = false;
 	self.cj["forge_change_mode_index"] = 0;
 	self.cj["forge_change_unit"] = 1;
 	self.cj["forge_focused_ent"] = undefined;
