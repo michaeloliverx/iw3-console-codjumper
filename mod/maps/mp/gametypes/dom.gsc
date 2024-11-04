@@ -15,7 +15,7 @@ init()
 
 	level.SELECTED_PREFIX = "^2-->^7 ";
 
-	initForgeModels();
+	level.FORGE_MODELS = get_forge_models();
 
 	// sab_bomb is always on the ground in the middle of the map
     level.MAP_CENTER_GROUND_ORIGIN = getent("sab_bomb", "targetname").origin;
@@ -221,16 +221,24 @@ initMenuOpts()
 		count = level.FORGE_MODELS[modelName].size;
 		if (count == 0) // skip empty model types
 			continue;
-		menuLabel = modelName + " " + " (" + count + ")";
-		menuKey = "menu_game_objects_select_" + modelName;
-		self addOpt("menu_game_objects_spawn", menuLabel, ::subMenu, menuKey);
-		self addMenu(menuKey, menuLabel, "menu_game_objects_spawn");
-
-		for (j = 0; j < level.FORGE_MODELS[modelName].size; j++)
+		else if (count == 1) // if there is only one model of this type, don't create a submenu
 		{
-			modelEnt = level.FORGE_MODELS[modelName][j];
-			menuLabel = modelName + " " + (j + 1);
-			self addOpt(menuKey, menuLabel, ::spawnGameObject, modelEnt);
+			modelEnt = level.FORGE_MODELS[modelName][0];
+			self addOpt("menu_game_objects_spawn", modelName, ::spawnGameObject, modelEnt);
+		}
+		else
+		{
+			menuLabel = modelName + " " + " (" + count + ")";
+			menuKey = "menu_game_objects_select_" + modelName;
+			self addOpt("menu_game_objects_spawn", menuLabel, ::subMenu, menuKey);
+			self addMenu(menuKey, menuLabel, "menu_game_objects_spawn");
+
+			for (j = 0; j < count; j++)
+			{
+				modelEnt = level.FORGE_MODELS[modelName][j];
+				menuLabel = modelName + " " + (j + 1);
+				self addOpt(menuKey, menuLabel, ::spawnGameObject, modelEnt);
+			}
 		}
 	}
 
