@@ -86,7 +86,7 @@ onPlayerSpawned()
 
 		self.cj["settings"]["forge"] = false;
 
-		self thread ammoCheck();
+		self thread replenish_ammo();
 		self thread setupLoadout();
 		self thread watch_buttons();
 		self thread updateSpeedometerHudElem();
@@ -502,20 +502,20 @@ destroyOnDeath(elem)
 		elem destroy();
 }
 
-ammoCheck()
+/**
+ * Constantly replace the players ammo.
+ */
+replenish_ammo()
 {
 	self endon("end_respawn");
 	self endon("disconnect");
-	level endon("game_ended");
 
 	for (;;)
 	{
-		currentWeapon = self getCurrentWeapon();
-		if (!self isMantling() && !self isOnLadder())
-		{
+		currentWeapon = self getCurrentWeapon(); // undefined if the player is mantling or on a ladder
+		if (isdefined(currentWeapon))
 			self giveMaxAmmo(currentWeapon);
-		}
-		wait 2;
+		wait 1;
 	}
 }
 
