@@ -83,7 +83,7 @@ def needs_space(prev: chr, next: chr) -> bool:
         return True
 
     # handle cases where an array item might be trying to call something: (level.players[0] thread someFunction();)
-    if prev == ']' and (next.isalnum() or next == '_'):
+    if prev == ']' and (next.isalnum() or next in '_['):
         return True
 
     return (prev.isalnum() or prev == '_') and (next.isalnum() or next == '_')
