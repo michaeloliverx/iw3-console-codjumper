@@ -127,7 +127,13 @@ initCJ()
 	level.DVARS["cg_thirdPersonRange"].max = 1024;
 	level.DVARS["cg_thirdPersonRange"].step = 1;
 
-	// r_blur ?
+	level.DVARS["r_blur"] = spawnstruct();
+	level.DVARS["r_blur"].type = "slider";
+	level.DVARS["r_blur"].name = "r_blur";
+	level.DVARS["r_blur"].default_value = 0;
+	level.DVARS["r_blur"].min = 0;
+	level.DVARS["r_blur"].max = 32;
+	level.DVARS["r_blur"].step = 0.2;
 
 	level.DVARS["r_dof_enable"] = spawnstruct();
 	level.DVARS["r_dof_enable"].type = "boolean";
@@ -722,7 +728,7 @@ watchbuttons()
 				self position_load();
 				wait 0.2;
 			}
-			else if(self button_pressed("frag"))
+			else if (self button_pressed("frag"))
 			{
 				self ufo_controls_toggle();
 				wait 0.2;
