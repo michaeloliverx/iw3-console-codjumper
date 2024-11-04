@@ -36,6 +36,7 @@ initCJ()
 
 	level.DVARS = get_dvars();
 	level.THEMES = get_themes();
+	level.FORGE_MODELS = get_forge_models();
 	level.MAPNAMES = get_maps();
 
 	// loop through and verify all dvars are valid
@@ -179,6 +180,7 @@ addMenuOption(menuKey, label, func, param1, param2, param3)
  */
 generateMenu()
 {
+	is_host = self GetEntityNumber() == 0;
 
 	// Bind menu
 	self addMenu("bind_menu", "main_menu");
@@ -218,6 +220,46 @@ generateMenu()
 	self addMenuOption("filmtweaks_menu", "Blue Sky", ::setFilmTweaksPreset, "blue_sky");
 	self addMenuOption("filmtweaks_menu", "Green Sky", ::setFilmTweaksPreset, "green_sky");
 	self addMenuOption("filmtweaks_menu", "Pink Sky", ::setFilmTweaksPreset, "pink_sky");
+
+	// Game Objects menu
+	self addMenu("menu_game_objects", "main_menu");
+	self addMenuOption("menu_game_objects", "Spawn Object", ::menuAction, "CHANGE_MENU", "menu_game_objects_spawn");
+	self addMenu("menu_game_objects_spawn", "menu_game_objects");
+
+	// create a submenu for each model type
+	modelnames = getarraykeys(level.FORGE_MODELS);
+	for (i = 0; i < modelnames.size; i++)
+	{
+		modelName = modelnames[i];
+		// If there is only one model of this type, don't create a submenu
+		if (level.FORGE_MODELS[modelName].size == 1)
+		{
+			modelEnt = level.FORGE_MODELS[modelName][0];
+			self addMenuOption("menu_game_objects_spawn", modelName, ::set_ent_position_in_front, modelEnt);
+			continue;
+		}
+		else
+		{
+			menuLabel = modelName + " " + " (" + level.FORGE_MODELS[modelName].size + ")";
+			menuKey = "menu_game_objects_select_" + modelName;
+			self addMenuOption("menu_game_objects_spawn", menuLabel, ::menuAction, "CHANGE_MENU", menuKey);
+			self addMenu(menuKey, "menu_game_objects_spawn");
+			for (j = 0; j < level.FORGE_MODELS[modelName].size; j++)
+			{
+				modelEnt = level.FORGE_MODELS[modelName][j];
+				menuLabel = modelName + " " + (j + 1);
+				self addMenuOption(menuKey, menuLabel, ::set_ent_position_in_front, modelEnt);
+			}
+		}
+	}
+	if (is_host)
+	{
+		self addMenuOption("menu_game_objects", "Show/Hide Domination", ::entities_show_hide_by_script_gameobjectname, "dom");
+		self addMenuOption("menu_game_objects", "Show/Hide HQ", ::entities_show_hide_by_script_gameobjectname, "hq");
+		self addMenuOption("menu_game_objects", "Show/Hide Sab", ::entities_show_hide_by_script_gameobjectname, "sab");
+		self addMenuOption("menu_game_objects", "Show/Hide SD", ::entities_show_hide_by_script_gameobjectname, "bombzone");
+		self addMenuOption("menu_game_objects", "Reset All!", ::entities_reset_to_start_position);
+	}
 
 	// HUD menu
 	// maybe allow changing position of the HUD elements
@@ -311,7 +353,7 @@ generateMenu()
 	self addMenuOption("main_menu", "CJ Menu", ::menuAction, "CHANGE_MENU", "cj_menu");
 	self addMenuOption("main_menu", "DVAR Menu", ::menuAction, "CHANGE_MENU", "dvar_menu");
 	// self addMenuOption("main_menu", "Filmtweaks Menu", ::menuAction, "CHANGE_MENU", "filmtweaks_menu");	// hide for now until it's can easily reset all to default
-	self addMenuOption("main_menu", "Game Objects Menu", ::menuAction, "CHANGE_MENU", "game_objects_menu");
+	self addMenuOption("main_menu", "Game Objects Menu", ::menuAction, "CHANGE_MENU", "menu_game_objects");
 	self addMenuOption("main_menu", "HUD Menu", ::menuAction, "CHANGE_MENU", "hud_menu");
 	self addMenuOption("main_menu", "Loadout Menu", ::menuAction, "CHANGE_MENU", "loadout_menu");
 	self addMenuOption("main_menu", "Map Menu", ::menuAction, "CHANGE_MENU", "map_menu");

@@ -1,4 +1,15 @@
 /**
+ * Flattens the origin by converting it to an integer.
+ */
+flat_origin(origin)
+{
+	x = origin[0];
+	y = origin[1];
+	z = origin[2];
+	return (int(x), int(y), int(z));
+}
+
+/**
  * Sets the origin of all spawnpoint entities to the specified origin.
  */
 setAllSpawnPointsToOrigin(origin)
@@ -95,20 +106,22 @@ deleteUselessEntities()
 	}
 }
 
-initForgeModels()
+/**
+ * Gather and return all potential forge models.
+ */
+get_forge_models()
 {
 	// keep in alphabetical order
-	level.FORGE_MODELS = [];
-	level.FORGE_MODELS["bc_hesco_barrier_med"] = [];
-	level.FORGE_MODELS["com_bomb_objective"] = [];
-	level.FORGE_MODELS["com_laptop_2_open"] = [];
-	level.FORGE_MODELS["com_plasticcase_beige_big"] = [];
-
-	level.FORGE_MODELS["pipe"] = [];
-	level.FORGE_MODELS["terrain"] = [];
-	level.FORGE_MODELS["arch"] = [];
-	level.FORGE_MODELS["fuel_tanker"] = [];
-	level.FORGE_MODELS["fence_piece"] = [];
+	forge_models = [];
+	forge_models["bc_hesco_barrier_med"] = [];
+	forge_models["com_bomb_objective"] = [];
+	forge_models["com_laptop_2_open"] = [];
+	forge_models["com_plasticcase_beige_big"] = [];
+	forge_models["pipe"] = [];
+	forge_models["terrain"] = [];
+	forge_models["arch"] = [];
+	forge_models["fuel_tanker"] = [];
+	forge_models["fence_piece"] = [];
 
 	script_models = getentarray("script_model", "classname");
 	script_brushmodels = getentarray("script_brushmodel", "classname");
@@ -130,7 +143,7 @@ initForgeModels()
 
 				script_models[i].script_brushmodel = script_brushmodels[j];
 				script_brushmodels[j] linkto(script_models[i]);
-				level.FORGE_MODELS["com_bomb_objective"][level.FORGE_MODELS["com_bomb_objective"].size] = script_models[i];
+				forge_models["com_bomb_objective"][forge_models["com_bomb_objective"].size] = script_models[i];
 			}
 		}
 
@@ -161,7 +174,7 @@ initForgeModels()
 				choices[1] linkto(script_models[i]);
 			}
 
-			level.FORGE_MODELS["com_laptop_2_open"][level.FORGE_MODELS["com_laptop_2_open"].size] = script_models[i];
+			forge_models["com_laptop_2_open"][forge_models["com_laptop_2_open"].size] = script_models[i];
 		}
 
 		if (script_models[i].model == "com_plasticcase_beige_big")
@@ -194,7 +207,7 @@ initForgeModels()
 				choices[1] linkto(script_models[i]);
 			}
 
-			level.FORGE_MODELS["com_plasticcase_beige_big"][level.FORGE_MODELS["com_plasticcase_beige_big"].size] = script_models[i];
+			forge_models["com_plasticcase_beige_big"][forge_models["com_plasticcase_beige_big"].size] = script_models[i];
 		}
 	}
 
@@ -229,59 +242,72 @@ initForgeModels()
 			assertex(bc_hesco_barrier_med_script_models.size == 3, "Expected 3 bc_hesco_barrier_med script_models linked to 1 script_brushmodel, got " + bc_hesco_barrier_med_script_models.size);
 			bc_hesco_barrier_med_script_brushmodel.forge_children = bc_hesco_barrier_med_script_models;
 
-			level.FORGE_MODELS["bc_hesco_barrier_med"][level.FORGE_MODELS["bc_hesco_barrier_med"].size] = bc_hesco_barrier_med_script_brushmodel;
+			forge_models["bc_hesco_barrier_med"][forge_models["bc_hesco_barrier_med"].size] = bc_hesco_barrier_med_script_brushmodel;
 		}
 	}
 
 	if (getdvar("mapname") == "mp_bog")
 	{
-		level.FORGE_MODELS["arch"][level.FORGE_MODELS["arch"].size] = getentbyorigin((3461, -149, 176));
+		forge_models["arch"][forge_models["arch"].size] = getentbyorigin((3461, -149, 176));
 	}
 
 	if (getdvar("mapname") == "mp_cargoship")
 	{
-		level.FORGE_MODELS["fuel_tanker"][level.FORGE_MODELS["fuel_tanker"].size] = getentbyorigin((1300, 61, 104));
+		forge_models["fuel_tanker"][forge_models["fuel_tanker"].size] = getentbyorigin((1300, 61, 104));
 	}
 
 	if (getdvar("mapname") == "mp_countdown")
 	{
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-573, 2956, 32));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-574, 2958, 35));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-581, 2961, -18));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-568, 2953, -18));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-505, 2918, -37));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-506, 2918, 82));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-474, 2900, 36));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-439, 2880, 82));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-505, 2918, -11));
-		level.FORGE_MODELS["fence_piece"][level.FORGE_MODELS["fence_piece"].size] = getentbyorigin((-439, 2880, -12));
+		forge_models["fence_piece"][forge_models["fence_piece"].size] = getentbyorigin((-573, 2956, 32));
+		forge_models["fence_piece"][forge_models["fence_piece"].size] = getentbyorigin((-574, 2958, 35));
+		forge_models["fence_piece"][forge_models["fence_piece"].size] = getentbyorigin((-581, 2961, -18));
+		forge_models["fence_piece"][forge_models["fence_piece"].size] = getentbyorigin((-568, 2953, -18));
+		forge_models["fence_piece"][forge_models["fence_piece"].size] = getentbyorigin((-505, 2918, -37));
+		forge_models["fence_piece"][forge_models["fence_piece"].size] = getentbyorigin((-506, 2918, 82));
+		forge_models["fence_piece"][forge_models["fence_piece"].size] = getentbyorigin((-474, 2900, 36));
+		forge_models["fence_piece"][forge_models["fence_piece"].size] = getentbyorigin((-439, 2880, 82));
+		forge_models["fence_piece"][forge_models["fence_piece"].size] = getentbyorigin((-505, 2918, -11));
+		forge_models["fence_piece"][forge_models["fence_piece"].size] = getentbyorigin((-439, 2880, -12));
 	}
 
 	if (getdvar("mapname") == "mp_farm")
 	{
-		level.FORGE_MODELS["pipe"] = getEntArray("gas_station", "targetname");
+		forge_models["pipe"] = getEntArray("gas_station", "targetname");
 	}
 
 	if (getdvar("mapname") == "mp_showdown")
 	{
-		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-1040, 74, 82), 1);
-		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-1040, 74, 82), 2);
-		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-778, 684, 82), 1);
-		level.FORGE_MODELS["terrain"][level.FORGE_MODELS["terrain"].size] = getentbyorigin((-778, 684, 82), 2);
+		forge_models["terrain"][forge_models["terrain"].size] = getentbyorigin((-1040, 74, 82), 1);
+		forge_models["terrain"][forge_models["terrain"].size] = getentbyorigin((-1040, 74, 82), 2);
+		forge_models["terrain"][forge_models["terrain"].size] = getentbyorigin((-778, 684, 82), 1);
+		forge_models["terrain"][forge_models["terrain"].size] = getentbyorigin((-778, 684, 82), 2);
 	}
 
 	// capture the starting positions
-	for (i = 0; i < level.FORGE_MODELS.size; i++)
+	for (i = 0; i < forge_models.size; i++)
 	{
-		modelName = getarraykeys(level.FORGE_MODELS)[i];
-		for (j = 0; j < level.FORGE_MODELS[modelName].size; j++)
+		modelName = getarraykeys(forge_models)[i];
+		for (j = 0; j < forge_models[modelName].size; j++)
 		{
-			modelEnt = level.FORGE_MODELS[modelName][j];
+			modelEnt = forge_models[modelName][j];
 			modelEnt.startOrigin = modelEnt.origin;
 			modelEnt.startAngles = modelEnt.angles;
 			modelEnt.forge_enabled = true;
 		}
 	}
+
+	// Remove empty model types
+	to_return = [];
+	modelnames = getarraykeys(forge_models);
+	for (i = 0; i < modelnames.size; i++)
+	{
+		if (forge_models[modelnames[i]].size == 0)
+			continue;
+		else
+			to_return[modelnames[i]] = forge_models[modelnames[i]];
+	}
+
+	return to_return;
 }
 
 /**
@@ -308,4 +334,72 @@ getEntByOrigin(origin, matchNumber)
 				return ents[i];
 		}
 	}
+}
+
+/**
+ * Spawns an entity in front of the player.
+ */
+set_ent_position_in_front(ent)
+{
+	playerAngles = self getPlayerAngles();
+	ent.origin = flat_origin(self.origin + (anglestoforward(playerAngles) * 150));
+	ent.angles = (0, playerAngles[1], 0);
+	self iprintln("Object spawned at " + ent.origin + ent.angles);
+}
+
+/**
+ * Resets all game objects to their starting positions (if set).
+ */
+entities_reset_to_start_position()
+{
+	modelnames = getarraykeys(level.FORGE_MODELS);
+	for (i = 0; i < modelnames.size; i++)
+	{
+		modelName = modelnames[i];
+		for (j = 0; j < level.FORGE_MODELS[modelName].size; j++)
+		{
+			modelEnt = level.FORGE_MODELS[modelName][j];
+			modelEnt.origin = modelEnt.startOrigin;
+			modelEnt.angles = modelEnt.startAngles;
+		}
+	}
+	iprintln("All game objects reset");
+}
+
+/**
+ * Hides or shows all entities with the specified script_gameobjectname.
+ */
+entities_show_hide_by_script_gameobjectname(script_gameobjectname)
+{
+	hidden = false;
+	ents = getentarray();
+	for (i = 0; i < ents.size; i++)
+	{
+		if (isdefined(ents[i].script_gameobjectname) && ents[i].script_gameobjectname == script_gameobjectname)
+		{
+			if (isdefined(ents[i].hidden) && ents[i].hidden)
+			{
+				ents[i] show();
+				ents[i] solid();
+				ents[i].hidden = false;
+			}
+			else
+			{
+				ents[i] hide();
+				ents[i] notsolid();
+				ents[i].hidden = true;
+				hidden = true;
+			}
+		}
+	}
+
+	action = "shown";
+	if (hidden)
+		action = "hidden";
+
+	type = script_gameobjectname;
+	if (type == "bombzone")
+		type = "sd";
+
+	iprintln(type + " " + action);
 }

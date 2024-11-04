@@ -145,7 +145,7 @@ get_maps()
 	maps["mp_showdown"] = "Showdown";
 	maps["mp_strike"] = "Strike";
 	maps["mp_vacant"] = "Vacant";
-	maps["mp_wetlands"] = "Wet Work";
+	maps["mp_cargoship"] = "Wet Work";
 	if (level.xenon)
 		maps["mp_crash_snow"] = "Winter Crash";
 
