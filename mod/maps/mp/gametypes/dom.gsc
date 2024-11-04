@@ -89,7 +89,6 @@ onPlayerSpawned()
 		self thread replenish_ammo();
 		self thread setupLoadout();
 		self thread watch_buttons();
-		self thread updateSpeedometerHudElem();
 		self thread initMenu();
 		self resetFOV();
 	}
@@ -115,6 +114,8 @@ setupPlayer()
 	self.cj["settings"]["specialty_fastreload_enable"] = true;
 	self.cj["settings"]["rpg_switch_enabled"] = false;
 	self.cj["settings"]["rpg_switched"] = false;
+
+	self.cj["meter_hud"] = [];
 
 	// Remove unlocalized errors
 	self setClientDvars("loc_warnings", 0, "loc_warningsAsErrors", 0, "cg_errordecay", 1, "con_errormessagetime", 0, "uiscript_debug", 0);
@@ -257,7 +258,10 @@ initMenuOpts()
 	self addOpt("player_settings", "Player Names", ::togglePlayerNames);
 	self addOpt("player_settings", "Gun Bob", ::toggleGunBob);
 	self addOpt("player_settings", "Spectator Buttons", ::toggleSpectatorButtons);
-	self addOpt("player_settings", "Speed + Height Meter", ::toggleSpeedometerHudElem);
+	self addOpt("player_settings", "Distance HUD", ::toggle_hud_display, "distance");
+	self addOpt("player_settings", "Speed HUD", ::toggle_hud_display, "speed");
+	self addOpt("player_settings", "Height HUD", ::toggle_hud_display, "z_origin");
+
 	self addOpt("player_settings", "Jump Crouch", ::toggleJumpCrouch);
 	self addOpt("player_settings", "Lean Toggle", ::LeanBindToggle);
 	self addOpt("player_settings", "FOV", ::toggleFOV);
