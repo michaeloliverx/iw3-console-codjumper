@@ -2,6 +2,7 @@
 #include maps\mp\gametypes\_hud_util;
 #include maps\mp\gametypes\koth;
 #include maps\mp\gametypes\sab;
+#include maps\mp\gametypes\sd;
 
 init()
 {
@@ -87,12 +88,8 @@ onPlayerSpawned()
 
 		self thread ammoCheck();
 		self thread setupLoadout();
-		self thread watchMeleeButtonPressed();
-		self thread watchSecondaryOffhandButtonPressed();
-		self thread watchFragButtonPressed();
+		self thread watch_buttons();
 		self thread updateSpeedometerHudElem();
-		self thread watchDPAD_UP();
-		self thread watchUseButtonPressed();
 		self thread initMenu();
 		self resetFOV();
 	}
@@ -400,6 +397,7 @@ openCJ()
 {
 	if(!isDefined(self.inMenu))
 	{
+		wait 0.05;
 		self freezecontrols(true);
 		self.inMenu = true;
 
@@ -417,36 +415,6 @@ openCJ()
 			string+= self.menuAction[self.currentMenu].opt[m]+"\n";
 		self.menuText = self createText("default", 1.5, "LEFT", "TOPRIGHT", -300, 60, 3, 1, undefined, string);
 		self.scrollBar = self createRectangle("TOP", "TOPRIGHT", -160, ((self.menuCurs*17.98)+((self.menuText.y+1)-(17.98/2))), 300, 15, level.THEME_COLOR, "white", 2, .7);
-	}
-}
-
-watchUseButtonPressed()
-{
-	self endon("disconnect");
-	self endon("end_respawn");
-
-	for(;;)
-	{
-		if(!self.inMenu && self UseButtonPressed())
-		{
-			catch_next = false;
-
-			for(i=0; i<=0.5; i+=0.05)
-			{
-				if(catch_next && self UseButtonPressed() && !(self isMantling()))
-				{
-					wait 0.1;
-					thread openCJ();
-					break;
-				}
-				else if(!(self UseButtonPressed()))
-					catch_next = true;
-
-				wait 0.05;
-			}
-		}
-
-		wait 0.05;
 	}
 }
 
@@ -603,75 +571,68 @@ setupLoadout()
 	}
 }
 
-watchMeleeButtonPressed()
+watch_nightvision_press()
 {
 	self endon("disconnect");
 	self endon("end_respawn");
 
-	for(;;)
+	for (;;)
 	{
-		if(!self.inMenu && self meleeButtonPressed())
+		common_scripts\utility::waittill_any("night_vision_on", "night_vision_off");
+		self.nightVisionButtonPressedTime = getTime();
+	}
+}
+
+watch_buttons()
+{
+	self endon("disconnect");
+	self endon("end_respawn");
+
+	self thread watch_nightvision_press();
+
+	for (;;)
+	{
+		if (!self.inMenu)
 		{
-			catch_next = false;
-
-			for(i=0; i<0.5; i+=0.05)
+			if (self button_pressed_twice("use"))
 			{
-				if(catch_next && self meleeButtonPressed() && self isOnGround())
-				{
-					self savePos(self.cj["savenum"]);
-					wait .1;
-					break;
-				}
-				else if(!(self meleeButtonPressed()) && !(self attackButtonPressed()))
-					catch_next = true;
+				self thread openCJ();
+				wait .2;
+			}
+			else if (self button_pressed_twice("melee"))
+			{
+				self savePos(self.cj["savenum"]);
+				wait .2;
+			}
+			else if (self.sessionstate == "playing" && self button_pressed("smoke"))
+			{
+				self loadPos(self.cj["savenum"]);
+				wait .2;
+			}
+			else if (self button_pressed("frag"))
+			{
+				if (self.sessionstate == "playing")
+					self thread forgestart();
+				else if (self.sessionstate == "spectator")
+					self ufoend();
 
-				wait 0.05;
+				wait .2;
+			}
+			else if (self button_pressed("nightvision"))
+			{
+				self thread spawnSelectedBot();
+				wait .2;
 			}
 		}
-
-		wait 0.05;
-	}
-}
-
-watchSecondaryOffhandButtonPressed()
-{
-	self endon("disconnect");
-	self endon("end_respawn");
-
-	for(;;)
-	{
-		if(self.sessionstate == "playing" && !self.inMenu && self secondaryOffhandButtonPressed())
-		{
-			self loadPos(self.cj["savenum"]);
-			wait .1;
-		}
-		wait 0.05;
-	}
-}
-
-watchFragButtonPressed()
-{
-	self endon("disconnect");
-	self endon("end_respawn");
-
-	for(;;)
-	{
-		if(self FragButtonPressed())
-		{
-			if(self.sessionstate == "playing")
-				self thread forgestart();
-			else if(self.sessionstate == "spectator")
-				self ufoend();
-
-			wait 0.5;
-		}
-
-		wait 0.05;
+		wait .05;
 	}
 }
 
 savePos(i)
 {
+	if(!self isOnGround())
+		return;
+
 	self.cj["settings"]["rpg_switched"] = false;
 	self.cj["saves"]["org"][i] = self.origin;
 	self.cj["saves"]["ang"][i] = self getPlayerAngles();
@@ -730,20 +691,7 @@ initBot()
 	return bot;
 }
 
-watchDPAD_UP()
-{
-	self endon("end_respawn");
-	self endon("disconnect");
-	level endon("game_ended");
 
-	self SetActionSlot( 1, "nightvision" );
-
-	for(;;)
-	{
-		waittill_any("night_vision_on", "night_vision_off");
-		self thread spawnSelectedBot();
-	}
-}
 
 setSelectedBot(num)
 {
