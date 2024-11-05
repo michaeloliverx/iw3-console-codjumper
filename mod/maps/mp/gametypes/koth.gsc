@@ -589,9 +589,9 @@ forgestart()
 	else
 		self iprintln("Forge mode ON");
 
-	focusedColor = (0, 0.5, 0.5);
-	unfocusedColor = (1, 1, 1);
-	pickedUpColor = (1, 0, 0);
+	unfocusedColor = (0.5, 0.5, 0.5); // gray for unfocused
+	focusedColor = (0, 1, 0);		  // green for focused
+	pickedUpColor = (1, 0, 0);		  // red for picked up
 
 	self.focusedEnt = undefined;
 	self.pickedUpEnt = undefined;
