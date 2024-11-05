@@ -132,8 +132,6 @@ setupPlayer()
 	self.cj["savenum"] = 0;
 	self.cj["saves"] = [];
 	self.cj["settings"] = [];
-	self.cj["settings"]["deserteagle_choice"] = "deserteaglegold_mp";
-	self.cj["settings"]["specialty_fastreload_enable"] = true;
 	self.cj["settings"]["rpg_switch_enabled"] = false;
 	self.cj["settings"]["rpg_switched"] = false;
 
@@ -756,58 +754,6 @@ replenish_ammo()
 		wait 1;
 	}
 }
-
-// setupLoadout()
-// {
-// 	self clearPerks();
-// 	self takeAllWeapons();
-
-// 	if (self.cj["settings"]["specialty_fastreload_enable"] == true)
-// 	{
-// 		self setPerk("specialty_fastreload"); // Give Sleight of Hand
-// 	}
-
-// 	self giveWeapon("rpg_mp");
-// 	self SetActionSlot(3, "weapon", "rpg_mp");
-
-// 	if (self.cj["settings"]["rpg_switch_enabled"] == true)
-// 	{
-// 		self thread rpgSwitch(); // thread again in case player switches teams/classes etc
-// 	}
-
-// 	deserteagle_choice = self.cj["settings"]["deserteagle_choice"];
-
-// 	self giveWeapon(deserteagle_choice);
-// 	wait 0.05;
-// 	self switchToWeapon(deserteagle_choice);
-
-// 	// Oldschool mode gets the default oldschool weapons
-// 	if (getDvarInt("jump_height") == 64)
-// 	{
-// 		self takeWeapon(deserteagle_choice);
-// 		self giveWeapon("skorpion_mp");
-// 		self giveWeapon("beretta_mp");
-// 		wait 0.05;
-// 		self switchToWeapon("beretta_mp");
-// 	}
-// 	else
-// 	{
-// 		weapon = self.pers["primaryWeapon"] + "_mp"; // get the primary of whichever class is selected to determine mobility
-
-// 		switch (weaponClass(weapon))
-// 		{
-// 		case "mg":
-// 			self giveWeapon("m60e4_reflex_mp", 6); // Gold M60
-// 			break;
-// 		case "rifle":
-// 			self giveWeapon("remington700_mp", 5); // Blue tiger R700
-// 			break;
-// 		default:
-// 			self giveWeapon("uzi_mp", 6); // Gold Mini-Uzi
-// 			break;
-// 		}
-// 	}
-// }
 
 watch_nightvision_press()
 {

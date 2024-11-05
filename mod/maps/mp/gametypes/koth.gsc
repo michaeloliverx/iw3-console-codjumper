@@ -171,18 +171,12 @@ rpgSwitch()
 	while(self.cj["settings"]["rpg_switch_enabled"])
 	{
 		self waittill("weapon_fired");
-		weapon = self getCurrentWeapon();
-		if (weapon == "rpg_mp")
+		if (self getCurrentWeapon() == "rpg_mp")
 		{
 			self.cj["settings"]["rpg_switched"] = true;
-
-			if(getDvarInt("jump_height") == 64)
-				self switchToWeapon("beretta_mp");
-			else
-				self switchToWeapon(self.cj["settings"]["deserteagle_choice"]);
-
+			self switchToWeapon(self.cj["loadout"].sidearm);
 			wait 0.4;
-			self SetWeaponAmmoClip(weapon, 1);
+			self SetWeaponAmmoClip("rpg_mp", 1);
 		}
 	}
 }
