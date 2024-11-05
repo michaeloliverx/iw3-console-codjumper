@@ -56,3 +56,40 @@ button_pressed_twice(button)
 	}
 	return false;
 }
+
+/**
+ * Normalize RGB values (0-255) to (0-1).
+ */
+rgbToNormalized(rgb)
+{
+	return (rgb[0] / 255, rgb[1] / 255, rgb[2] / 255);
+}
+
+get_themes()
+{
+	themes = [];
+
+	themes["blue"] = rgbToNormalized((0, 0, 255));
+	themes["brown"] = rgbToNormalized((139, 69, 19));
+	themes["cyan"] = rgbToNormalized((0, 255, 255));
+	themes["gold"] = rgbToNormalized((255, 215, 0));
+	themes["green"] = rgbToNormalized((0, 208, 98));
+	themes["lime"] = rgbToNormalized((0, 255, 0));
+	themes["magenta"] = rgbToNormalized((255, 0, 255));
+	themes["maroon"] = rgbToNormalized((128, 0, 0));
+	themes["olive"] = rgbToNormalized((128, 128, 0));
+	themes["orange"] = rgbToNormalized((255, 165, 0));
+	themes["pink"] = rgbToNormalized((255, 25, 127));
+	themes["purple"] = rgbToNormalized((90, 0, 208));
+	themes["red"] = rgbToNormalized((255, 0, 0));
+	themes["salmon"] = rgbToNormalized((250, 128, 114));
+	themes["silver"] = rgbToNormalized((192, 192, 192));
+	themes["skyblue"] = rgbToNormalized((0, 191, 255));
+	themes["tan"] = rgbToNormalized((210, 180, 140));
+	themes["teal"] = rgbToNormalized((0, 128, 128));
+	themes["turquoise"] = rgbToNormalized((64, 224, 208));
+	themes["violet"] = rgbToNormalized((238, 130, 238));
+	themes["yellow"] = rgbToNormalized((255, 255, 0));
+
+	return themes;
+}

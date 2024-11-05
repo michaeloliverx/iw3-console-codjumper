@@ -601,7 +601,7 @@ forgestart()
 	for (;;)
 	{
 		// prevent monitoring when in menu
-		if (isDefined(self.inMenu) && self.inMenu)
+		if (self.cj["menu_open"])
 		{
 			wait 0.1;
 			continue;
@@ -621,7 +621,7 @@ forgestart()
 		}
 
 		// don't unfreeze controls if in menu otherwise the menu controls will break
-		if (!isDefined(self.inMenu))
+		if (!self.cj["menu_open"])
 			self freezecontrols(false);
 
 		// HOLD X actions
