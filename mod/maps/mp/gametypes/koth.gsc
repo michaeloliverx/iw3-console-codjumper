@@ -122,35 +122,6 @@ start_hud_distance_z_origin()
 	}
 }
 
-toggleFOV()
-{
-	setting = "cg_fov";
-	printName = "FOV";
-
-	currentValue = self.cj["settings"][setting];
-	if(!isdefined(currentValue))
-		currentValue = 65;
-
-	switch( currentValue )
-	{
-		case 65:
-			newValue = 70;
-			break;
-		case 70:
-			newValue = 75;
-			break;
-		case 75:
-			newValue = 80;
-			break;
-		default:
-			newValue = 65;
-			break;
-	}
-	self.cj["settings"][setting] = newValue;
-	self setClientDvar(setting, newValue);
-	self iPrintln(printName + " " + newValue);
-}
-
 toggleJumpCrouch()
 {
 	setting = "jumpcrouch_enabled";
@@ -213,76 +184,6 @@ rpgSwitch()
 			wait 0.4;
 			self SetWeaponAmmoClip(weapon, 1);
 		}
-	}
-}
-
-toggle_r_zfar()
-{
-	setting = "r_zfar";
-	printName = "r_zfar";
-
-	currentValue = self.cj["settings"][setting];
-	if(!isdefined(currentValue))
-		currentValue = 0;
-
-	switch( currentValue )
-	{
-		case 0:
-			newValue = 2000;
-			break;
-		case 2000:
-			newValue = 2500;
-			break;
-		case 2500:
-			newValue = 3000;
-			break;
-		case 3000:
-			newValue = 3500;
-			break;
-		default:
-			newValue = 0;
-			break;
-	}
-	self.cj["settings"][setting] = newValue;
-	self setClientDvar(setting, newValue);
-	self iPrintln(printName + " " + newValue);
-}
-
-toggle_r_fog()
-{
-	setting = "r_fog";
-	printName = "Fog";
-
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
-	{
-		self.cj["settings"][setting] = false;
-		self setClientDvar(setting, 0);
-		self iPrintln(printName + " [^1OFF^7]");
-	}
-	else
-	{
-		self.cj["settings"][setting] = true;
-		self setClientDvar(setting, 1);
-		self iPrintln(printName + " [^2ON^7]");
-	}
-}
-
-toggle_r_dof_enable()
-{
-	setting = "r_dof_enable";
-	printName = "Depth of field";
-
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
-	{
-		self.cj["settings"][setting] = false;
-		self setClientDvar(setting, 0);
-		self iPrintln(printName + " [^1OFF^7]");
-	}
-	else
-	{
-		self.cj["settings"][setting] = true;
-		self setClientDvar(setting, 1);
-		self iPrintln(printName + " [^2ON^7]");
 	}
 }
 
