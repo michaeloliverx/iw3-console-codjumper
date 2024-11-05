@@ -48,7 +48,6 @@ init()
 	setDvar("bg_fallDamageMinHeight", 9998);
 
 	// Prevent bots from moving
-	setDvar("sv_botsRandomInput", 0);
 	setDvar("sv_botsPressAttackBtn", 0);
 
 	setDvar("userinfo", "L"); // prevent people from freezing consoles via userinfo command
