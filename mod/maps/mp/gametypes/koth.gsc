@@ -468,8 +468,8 @@ getForgeInstructionsText(state)
 	}
 	else if (state == "HOLD_X")
 	{
-		instructions[instructions.size] = "[{+smoke}] Next mode";
-		instructions[instructions.size] = "[{+frag}] Prev mode";
+		instructions[instructions.size] = "[{+smoke}] Prev mode";
+		instructions[instructions.size] = "[{+frag}] Next mode";
 
 		instructions[instructions.size] = "[{+speed_throw}] Exit Forge";
 		instructions[instructions.size] = "[{+attack}] Pick up/Drop";
@@ -502,8 +502,7 @@ createforgehud()
 
 	self.forge_hud["mode"] = createFontString("default", 1.4);
 	self.forge_hud["mode"] setPoint("TOPRIGHT", "TOPRIGHT", x, 0);
-	self.forge_hud["mode"] setText("mode: " + self.forge_change_mode);
-	self.forge_hud["mode"].alpha = 0;
+	self.forge_hud["mode"] setText("mode: " + self forge_get_mode());
 
 	self.forge_hud["pitch"] = createFontString("default", 1.4);
 	self.forge_hud["pitch"] setPoint("TOPRIGHT", "TOPRIGHT", x, 20);
@@ -572,14 +571,11 @@ forgestart()
 	spectator_speed_settings["fast"] = 1.5;
 	spectator_speed_settings["faster"] = 3;
 
-	if(!isdefined(self.spectator_speed_index))
+	if (!isdefined(self.spectator_speed_index))
 		self.spectator_speed_index = 3;
 
 	if (!isdefined(self.spectator_mode))
 		self.spectator_mode = "ufo";
-
-	if (!isdefined(self.forge_change_mode))
-		self.forge_change_mode = "pitch";
 
 	if (self.spectator_mode == "forge")
 		self thread createforgehud();
@@ -589,9 +585,9 @@ forgestart()
 	else
 		self iprintln("Forge mode ON");
 
-	focusedColor = (0, 0.5, 0.5);
-	unfocusedColor = (1, 1, 1);
-	pickedUpColor = (1, 0, 0);
+	unfocusedColor = (0.5, 0.5, 0.5); // gray for unfocused
+	focusedColor = (0, 1, 0);		  // green for focused
+	pickedUpColor = (1, 0, 0);		  // red for picked up
 
 	self.focusedEnt = undefined;
 	self.pickedUpEnt = undefined;
@@ -609,15 +605,8 @@ forgestart()
 
 		if (!isdefined(self.focusedEnt) && !isdefined(self.pickedUpEnt) && self secondaryoffhandbuttonpressed())
 		{
-			speeds = getarraykeys(spectator_speed_settings);
-			self.spectator_speed_index--;
-			if (self.spectator_speed_index < 0)
-				self.spectator_speed_index = speeds.size - 1;
-
-			speed = speeds[self.spectator_speed_index];
-			self setClientDvar("player_spectateSpeedScale", spectator_speed_settings[speed]);
-			self iprintln("Spectator speed: " + speed);
-			wait 0.25;
+			self cycle_spectator_speed();
+			wait 0.1;
 		}
 
 		// don't unfreeze controls if in menu otherwise the menu controls will break
@@ -661,7 +650,7 @@ forgestart()
 				wait 0.05;
 			}
 
-			if (self.spectator_mode == "forge")
+			if (self.spectator_mode == "forge") // Forge specific actions
 			{
 
 #if defined(SYSTEM_XENON)
@@ -713,37 +702,22 @@ forgestart()
 					break;
 				}
 
-				// change mode
-				if (self fragbuttonpressed())
+				if (self fragbuttonpressed() || self secondaryoffhandbuttonpressed())
 				{
-					if (self.forge_change_mode == "z")
-						self.forge_change_mode = "pitch";
-					else if (self.forge_change_mode == "pitch")
-						self.forge_change_mode = "yaw";
-					else if (self.forge_change_mode == "yaw")
-						self.forge_change_mode = "roll";
-					else if (self.forge_change_mode == "roll")
-						self.forge_change_mode = "z";
-
-					self.forge_hud["mode"] setText("mode: " + self.forge_change_mode);
-
+					if (self fragbuttonpressed())
+						self forge_change_mode("next");
+					else if (self secondaryoffhandbuttonpressed())
+						self forge_change_mode("prev");
+					self.forge_hud["mode"] setText("mode: " + self forge_get_mode());
 					wait 0.1;
 				}
-				else if (self secondaryoffhandbuttonpressed())
-				{
-					if (self.forge_change_mode == "pitch")
-						self.forge_change_mode = "z";
-					else if (self.forge_change_mode == "z")
-						self.forge_change_mode = "roll";
-					else if (self.forge_change_mode == "roll")
-						self.forge_change_mode = "yaw";
-					else if (self.forge_change_mode == "yaw")
-						self.forge_change_mode = "pitch";
-
-					self.forge_hud["mode"] setText("mode: " + self.forge_change_mode);
-
-					wait 0.1;
-				}
+			}
+			else if (self.spectator_mode == "ufo") // UFO specific actions
+			{
+				if (self secondaryoffhandbuttonpressed())
+					self setplayerangles(self getPlayerAngles() - (0, 0, 1));
+				else if (self fragbuttonpressed())
+					self setplayerangles(self getPlayerAngles() + (0, 0, 1));
 			}
 
 			wait 0.05;
@@ -795,7 +769,6 @@ forgestart()
 				self.forge_hud["x"] SetValue(self.focusedEnt.origin[0]);
 				self.forge_hud["y"] SetValue(self.focusedEnt.origin[1]);
 				self.forge_hud["z"] SetValue(self.focusedEnt.origin[2]);
-				self.forge_hud["mode"].alpha = 1;
 				self.forge_hud["pitch"].alpha = 1;
 				self.forge_hud["yaw"].alpha = 1;
 				self.forge_hud["roll"].alpha = 1;
@@ -805,7 +778,6 @@ forgestart()
 			}
 			else
 			{
-				self.forge_hud["mode"].alpha = 0;
 				self.forge_hud["pitch"].alpha = 0;
 				self.forge_hud["yaw"].alpha = 0;
 				self.forge_hud["roll"].alpha = 0;
@@ -818,27 +790,9 @@ forgestart()
 			if (!isdefined(self.pickedUpEnt) && isdefined(self.focusedEnt) && (self secondaryoffhandbuttonpressed() || self fragbuttonpressed()))
 			{
 				if (self secondaryoffhandbuttonpressed())
-				{
-					if (self.forge_change_mode == "pitch")
-						self.focusedEnt rotatepitch(unit, 0.05);
-					else if (self.forge_change_mode == "yaw")
-						self.focusedEnt rotateyaw(unit, 0.05);
-					else if (self.forge_change_mode == "roll")
-						self.focusedEnt rotateroll(unit, 0.05);
-					else if (self.forge_change_mode == "z")
-						self.focusedEnt movez(unit * -1, 0.05);
-				}
+					self transform_object(self.focusedEnt, self forge_get_mode(), unit, 0.05);
 				else if (self fragbuttonpressed())
-				{
-					if (self.forge_change_mode == "pitch")
-						self.focusedEnt rotatepitch(unit * -1, 0.05);
-					else if (self.forge_change_mode == "yaw")
-						self.focusedEnt rotateyaw(unit * -1, 0.05);
-					else if (self.forge_change_mode == "roll")
-						self.focusedEnt rotateroll(unit * -1, 0.05);
-					else if (self.forge_change_mode == "z")
-						self.focusedEnt movez(unit, 0.05);
-				}
+					self transform_object(self.focusedEnt, self forge_get_mode(), unit * -1, 0.05);
 			}
 		}
 
@@ -1000,4 +954,74 @@ setSaveIndex()
 	self.cj["savenum"] = (i + 1) % 10;
 
 	self iPrintln("Position " + (self.cj["savenum"] + 1) + " set");
+}
+
+cycle_spectator_speed()
+{
+	speeds[0] = 0.05;
+	speeds[1] = 0.1;
+	speeds[2] = 0.2;
+	speeds[3] = 0.4;
+	speeds[4] = 0.8;
+	speeds[5] = 1;
+	speeds[6] = 1.5;
+	speeds[7] = 3;
+
+	self.cj["spectator_speed_index"] += 1;
+	if (self.cj["spectator_speed_index"] >= speeds.size)
+		self.cj["spectator_speed_index"] = 0;
+
+	speed = speeds[self.cj["spectator_speed_index"]];
+	self setClientDvar("player_spectateSpeedScale", speed);
+	msg = "player_spectateSpeedScale " + speed;
+	if (speed == 1)
+		msg += " (default)";
+
+	self iprintln(msg);
+}
+
+forge_get_mode()
+{
+	return level.forge_change_modes[self.cj["forge_change_mode_index"]];
+}
+
+forge_change_mode(action)
+{
+	index = self.cj["forge_change_mode_index"];
+	if (action == "next")
+	{
+		index += 1;
+		if (index >= level.forge_change_modes.size)
+			index = 0;
+	}
+	else if (action == "prev")
+	{
+		index -= 1;
+		if (index < 0)
+			index = level.forge_change_modes.size - 1;
+	}
+
+	self.cj["forge_change_mode_index"] = index;
+}
+
+transform_object(ent, axis, amount, time)
+{
+	if (!isdefined(ent))
+	{
+		self iprintln("No object to transform");
+		return;
+	}
+
+	if (axis == "pitch")
+		ent rotatepitch(amount, time);
+	else if (axis == "yaw")
+		ent rotateyaw(amount, time);
+	else if (axis == "roll")
+		ent rotateroll(amount, time);
+	else if (axis == "x")
+		ent moveX(amount, time);
+	else if (axis == "y")
+		ent moveY(amount, time);
+	else if (axis == "z")
+		ent moveZ(amount, time);
 }
