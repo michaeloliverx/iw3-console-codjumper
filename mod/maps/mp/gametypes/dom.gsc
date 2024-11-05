@@ -17,6 +17,7 @@ init()
 
 	level.MENU_SCROLL_TIME_SECONDS = 0.250;
 
+	level.DVARS = get_dvars();
 	level.THEMES = get_themes();
 
 	level.SELECTED_PREFIX = "^2-->^7 ";
@@ -142,6 +143,8 @@ setupPlayer()
 
 	self.cj["spectator_speed_index"] = 5;
 	self.cj["forge_change_mode_index"] = 0;
+
+	self.cj["dvars"] = [];
 
 	// Remove unlocalized errors
 	self setClientDvars("loc_warnings", 0, "loc_warningsAsErrors", 0, "cg_errordecay", 1, "con_errormessagetime", 0, "uiscript_debug", 0);
@@ -477,12 +480,27 @@ generateMenuOptions()
 	self addMenu("main");
 	is_host = self GetEntityNumber() == 0;
 
+	// DVAR menu
+	self addMenuOption("main", "DVAR Menu", ::menuAction, "CHANGE_MENU", "dvar_menu");
+	self addMenu("dvar_menu", "main");
+	self addMenuOption("dvar_menu", "^1Reset All^7", ::resetAllClientDvars);
+	dvars = getarraykeys(level.DVARS);
+	for (i = dvars.size - 1; i >= 0; i--) // reverse order to display the dvars in the order they are defined
+	{
+		dvar = level.DVARS[dvars[i]];
+		if (!is_host && isdefined(dvar.scope) && dvar.scope == "global")
+			continue;
+		if (dvar.type == "slider")
+			self addMenuOption("dvar_menu", dvar.name, ::dvarSlider, dvar);
+		else if (dvar.type == "boolean")
+			self addMenuOption("dvar_menu", dvar.name, ::booleanDvarToggle, dvar);
+	}
+
 	// Host submenu
 	if (is_host)
 	{
 		self addMenuOption("main", "Global settings", ::menuAction, "CHANGE_MENU", "host_menu");
 		self addMenu("host_menu", "main");
-		self addMenuOption("host_menu", "Toggle jump_slowdownEnable", ::toggleJumpSlowdown);
 		self addMenuOption("host_menu", "Toggle Old School Mode", ::toggleOldschool);
 
 		// Map Menu
@@ -569,21 +587,12 @@ generateMenuOptions()
 	self addMenuOption("main", "Player Settings", ::menuAction, "CHANGE_MENU", "player_settings");
 	self addMenu("player_settings", "main");
 	self addMenuOption("player_settings", "Set Save Index", ::setSaveIndex);
-	self addMenuOption("player_settings", "3rd Person", ::toggleThirdPerson);
-	self addMenuOption("player_settings", "cg_drawGun", ::toggleShowGun);
-	self addMenuOption("player_settings", "Player Names", ::togglePlayerNames);
-	self addMenuOption("player_settings", "Gun Bob", ::toggleGunBob);
-	self addMenuOption("player_settings", "Spectator Buttons", ::toggleSpectatorButtons);
 	self addMenuOption("player_settings", "Distance HUD", ::toggle_hud_display, "distance");
 	self addMenuOption("player_settings", "Speed HUD", ::toggle_hud_display, "speed");
 	self addMenuOption("player_settings", "Height HUD", ::toggle_hud_display, "z_origin");
 
 	self addMenuOption("player_settings", "Jump Crouch", ::toggleJumpCrouch);
 	self addMenuOption("player_settings", "Lean Toggle", ::LeanBindToggle);
-	self addMenuOption("player_settings", "FOV", ::toggleFOV);
-	self addMenuOption("player_settings", "r_zfar", ::toggle_r_zfar);
-	self addMenuOption("player_settings", "Fog", ::toggle_r_fog);
-	self addMenuOption("player_settings", "Depth of Field", ::toggle_r_dof_enable);
 	self addMenuOption("player_settings", "Cycle Visions", ::CycleVision);
 	self addMenuOption("player_settings", "Revert Vision", ::RevertVision);
 	self addMenuOption("player_settings", "Look Straight Down", ::toggle_look_straight_down);
@@ -943,101 +952,6 @@ toggleOldschool()
 	}
 }
 
-toggleJumpSlowdown()
-{
-	setting = "jump_slowdownEnable";
-	printName = setting;
-
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
-	{
-		self.cj["settings"][setting] = true;
-		setDvar(setting, 1);
-		iPrintln(printName + " [^2ON^7]");
-	}
-	else
-	{
-		self.cj["settings"][setting] = false;
-		setDvar(setting, 0);
-		iPrintln(printName + " [^1OFF^7]");
-	}
-}
-
-toggleShowGun()
-{
-	setting = "cg_drawgun";
-	printName = setting;
-
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
-	{
-		self.cj["settings"][setting] = false;
-		self setClientDvar(setting, 0);
-		self iPrintln(printName + " [^1OFF^7]");
-	}
-	else
-	{
-		self.cj["settings"][setting] = true;
-		self setClientDvar(setting, 1);
-		self iPrintln(printName + " [^2ON^7]");
-	}
-}
-
-toggleThirdPerson()
-{
-	setting = "cg_thirdPerson";
-	printName = "3rd Person";
-
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
-	{
-		self.cj["settings"][setting] = true;
-		self setClientDvar(setting, 1);
-		self iPrintln(printName + " [^2ON^7]");
-	}
-	else
-	{
-		self.cj["settings"][setting] = false;
-		self setClientDvar(setting, 0);
-		self iPrintln(printName + " [^1OFF^7]");
-	}
-}
-
-togglePlayerNames()
-{
-	setting = "cg_overheadnamessize";
-	printName = "Player names";
-
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
-	{
-		self.cj["settings"][setting] = false;
-		self setClientDvar(setting, 0);
-		self iPrintln(printName + " [^1OFF^7]");
-	}
-	else
-	{
-		self.cj["settings"][setting] = true;
-		self setClientDvar(setting, 0.65);
-		self iPrintln(printName + " [^2ON^7]");
-	}
-}
-
-toggleGunBob()
-{
-	setting = "bg_bobMax";
-	printName = "Gun bob";
-
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
-	{
-		self.cj["settings"][setting] = false;
-		self setClientDvar(setting, 0);
-		self iPrintln(printName + " [^1OFF^7]");
-	}
-	else
-	{
-		self.cj["settings"][setting] = true;
-		self setClientDvar(setting, 8);
-		self iPrintln(printName + " [^2ON^7]");
-	}
-}
-
 addClone()
 {
 	body = self clonePlayer(100000);
@@ -1076,25 +990,6 @@ toggleFastReload()
 changeMap(mapname)
 {
 	Map(mapname);
-}
-
-toggleSpectatorButtons()
-{
-	setting = "cg_drawSpectatorMessages";
-	printName = "Spectator Buttons";
-
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == true)
-	{
-		self.cj["settings"][setting] = false;
-		self setClientDvar(setting, 0);
-		self iPrintln(printName + " [^1OFF^7]");
-	}
-	else
-	{
-		self.cj["settings"][setting] = true;
-		self setClientDvar(setting, 1);
-		self iPrintln(printName + " [^2ON^7]");
-	}
 }
 
 deleteClones()

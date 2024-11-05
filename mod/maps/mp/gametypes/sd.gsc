@@ -1,3 +1,5 @@
+#include maps\mp\gametypes\_hud_util;
+
 /**
  * Check if a button is pressed.
  */
@@ -92,4 +94,325 @@ get_themes()
 	themes["yellow"] = rgbToNormalized((255, 255, 0));
 
 	return themes;
+}
+
+get_dvars()
+{
+	dvars = [];
+
+	// Alphabetically sorted by key
+	dvars["bg_bobMax"] = spawnstruct();
+	dvars["bg_bobMax"].type = "slider";
+	dvars["bg_bobMax"].name = "bg_bobMax";
+	dvars["bg_bobMax"].default_value = 8;
+	dvars["bg_bobMax"].min = 0;
+	dvars["bg_bobMax"].max = 36;
+	dvars["bg_bobMax"].step = 1;
+
+	dvars["cg_drawGun"] = spawnstruct();
+	dvars["cg_drawGun"].type = "boolean";
+	dvars["cg_drawGun"].name = "cg_drawGun";
+	dvars["cg_drawGun"].default_value = 1;
+
+	dvars["cg_drawSpectatorMessages"] = spawnstruct();
+	dvars["cg_drawSpectatorMessages"].type = "boolean";
+	dvars["cg_drawSpectatorMessages"].name = "cg_drawSpectatorMessages";
+	dvars["cg_drawSpectatorMessages"].default_value = 1;
+
+	dvars["cg_fov"] = spawnstruct();
+	dvars["cg_fov"].type = "slider";
+	dvars["cg_fov"].name = "cg_fov";
+	dvars["cg_fov"].default_value = 65;
+	dvars["cg_fov"].min = 65;
+	dvars["cg_fov"].max = 90;
+	dvars["cg_fov"].step = 1;
+
+	dvars["cg_fovScale"] = spawnstruct();
+	dvars["cg_fovScale"].type = "slider";
+	dvars["cg_fovScale"].name = "cg_fovScale";
+	dvars["cg_fovScale"].default_value = 1;
+	dvars["cg_fovScale"].min = 0.2;
+	dvars["cg_fovScale"].max = 2;
+	dvars["cg_fovScale"].step = 0.1;
+
+	dvars["cg_thirdPerson"] = spawnstruct();
+	dvars["cg_thirdPerson"].type = "boolean";
+	dvars["cg_thirdPerson"].name = "cg_thirdPerson";
+	dvars["cg_thirdPerson"].default_value = 0;
+
+	dvars["cg_thirdPersonAngle"] = spawnstruct();
+	dvars["cg_thirdPersonAngle"].type = "slider";
+	dvars["cg_thirdPersonAngle"].name = "cg_thirdPersonAngle";
+	dvars["cg_thirdPersonAngle"].default_value = 356;
+	dvars["cg_thirdPersonAngle"].min = -180;
+	dvars["cg_thirdPersonAngle"].max = 360;
+	dvars["cg_thirdPersonAngle"].step = 1;
+
+	dvars["cg_thirdPersonRange"] = spawnstruct();
+	dvars["cg_thirdPersonRange"].type = "slider";
+	dvars["cg_thirdPersonRange"].name = "cg_thirdPersonRange";
+	dvars["cg_thirdPersonRange"].default_value = 120;
+	dvars["cg_thirdPersonRange"].min = 0;
+	dvars["cg_thirdPersonRange"].max = 1024;
+	dvars["cg_thirdPersonRange"].step = 1;
+
+	dvars["jump_slowdownEnable"] = spawnstruct();
+	dvars["jump_slowdownEnable"].scope = "global";
+	dvars["jump_slowdownEnable"].type = "boolean";
+	dvars["jump_slowdownEnable"].name = "jump_slowdownEnable";
+	dvars["jump_slowdownEnable"].default_value = 1;
+
+	dvars["r_blur"] = spawnstruct();
+	dvars["r_blur"].type = "slider";
+	dvars["r_blur"].name = "r_blur";
+	dvars["r_blur"].default_value = 0;
+	dvars["r_blur"].min = 0;
+	dvars["r_blur"].max = 32;
+	dvars["r_blur"].step = 0.2;
+
+	dvars["r_dof_enable"] = spawnstruct();
+	dvars["r_dof_enable"].type = "boolean";
+	dvars["r_dof_enable"].name = "r_dof_enable";
+	dvars["r_dof_enable"].default_value = 1;
+
+	dvars["r_fog"] = spawnstruct();
+	dvars["r_fog"].type = "boolean";
+	dvars["r_fog"].name = "r_fog";
+	dvars["r_fog"].default_value = 1;
+
+	dvars["r_fullbright"] = spawnstruct();
+	dvars["r_fullbright"].type = "boolean";
+	dvars["r_fullbright"].name = "r_fullbright";
+	dvars["r_fullbright"].default_value = 0;
+
+	dvars["r_zfar"] = spawnstruct();
+	dvars["r_zfar"].type = "slider";
+	dvars["r_zfar"].name = "r_zfar";
+	dvars["r_zfar"].default_value = 0;
+	dvars["r_zfar"].min = 0;
+	dvars["r_zfar"].max = 4000;
+	dvars["r_zfar"].step = 500;
+
+	return dvars;
+}
+
+clientdvar_get(dvar)
+{
+	if (!isdefined(self.clientdvars))
+		self.clientdvars = [];
+
+	if (!isdefined(self.clientdvars[dvar.name]))
+		return dvar.default_value;
+
+	return self.clientdvars[dvar.name];
+}
+
+clientdvar_set(dvar, value)
+{
+	if (!isdefined(self.clientdvars))
+		self.clientdvars = [];
+
+	self.clientdvars[dvar.name] = value;
+
+	self setclientdvar(dvar.name, value);
+
+	msg = dvar.name + " set to " + value;
+	if (value == dvar.default_value)
+		msg += " [DEFAULT]";
+
+	self iprintln(msg);
+}
+
+isDvarStructValid(dvar)
+{
+	// all must have a name, type
+	if (!isdefined(dvar) || !isdefined(dvar.type) || !isdefined(dvar.name))
+		return false;
+
+	// type specific checks
+	if (dvar.type == "slider")
+	{
+		if (!isdefined(dvar.default_value) || !isdefined(dvar.min) || !isdefined(dvar.max) || !isdefined(dvar.step))
+			return false;
+	}
+	else if (dvar.type == "boolean")
+	{
+		if (!isdefined(dvar.default_value))
+			return false;
+	}
+	return true;
+}
+
+// Function to calculate and update the cursor position based on dvar value
+updateCursorPosition(dvar, dvarValue, sliderCursor, centerXPosition, railWidth, cursorWidth)
+{
+	// Calculate normalized position (0 to 1) on the rail
+	normalizedPosition = (dvarValue - dvar.min) / (dvar.max - dvar.min);
+	// Calculate actual x position on the rail
+	sliderCursor.x = centerXPosition + int(normalizedPosition * (railWidth - cursorWidth));
+}
+
+// TODO: more options
+// - reset to default
+// - add a label to the slider?
+// - ignore main menu button presses when the slider controls are open
+dvarSlider(dvar)
+{
+	self endon("disconnect");
+	self endon("end_respawn");
+
+	// self menuAction("CLOSE");
+
+	if (!isDvarStructValid(dvar))
+	{
+		self iprintln("^1dvar is missing required fields");
+		return;
+	}
+	if (dvar.type != "slider")
+	{
+		self iprintln("^1dvar type is not a slider");
+		return;
+	}
+
+	// call this on a fresh game to get the default value
+	// self iprintln("DEFAULT GAME VALUE " + dvar.name + " " + getdvar(dvar.name));
+
+	// -- Background
+	backgroundWidth = level.SCREEN_MAX_WIDTH;
+	backgroundHeight = 50;
+	centerYPosition = (level.SCREEN_MAX_HEIGHT - backgroundHeight) / 2;
+
+	sliderBackground = newClientHudElem(self);
+	sliderBackground.elemType = "icon";
+	sliderBackground.color = (0, 0, 0);
+	sliderBackground.alpha = 0.5;
+	sliderBackground setShader("white", backgroundWidth, backgroundHeight);
+	sliderBackground.x = 0;
+	sliderBackground.y = centerYPosition;
+	sliderBackground.alignX = "left";
+	sliderBackground.alignY = "top";
+	sliderBackground.horzAlign = "fullscreen";
+	sliderBackground.vertAlign = "fullscreen";
+
+	// -- Rail
+	railWidth = int(level.SCREEN_MAX_WIDTH * 0.75);
+	railHeight = 4;
+	centerXPosition = (level.SCREEN_MAX_WIDTH - railWidth) / 2;
+	centerYPosition = (level.SCREEN_MAX_HEIGHT - railHeight) / 2;
+
+	sliderRail = newClientHudElem(self);
+	sliderRail.elemType = "icon";
+	sliderRail.alpha = 0.75;
+	sliderRail setShader("white", railWidth, railHeight);
+	sliderRail.x = centerXPosition;
+	sliderRail.y = centerYPosition;
+	sliderRail.alignX = "left";
+	sliderRail.alignY = "top";
+	sliderRail.horzAlign = "fullscreen";
+	sliderRail.vertAlign = "fullscreen";
+
+	// -- Cursor
+	cursorWidth = 3;
+	cursorHeight = int(backgroundHeight / 2);
+	// Start position aligned with the beginning of the rail
+	cursorStartXPosition = centerXPosition; // This aligns it to the start of the rail
+	// Centered vertically with respect to the rail
+	cursorYPosition = centerYPosition - (cursorHeight - railHeight) / 2;
+
+	sliderCursor = newClientHudElem(self);
+	sliderCursor.elemType = "icon";
+	sliderCursor.color = self.themeColor; // Use the theme color
+	sliderCursor.alpha = 0;				  // Hide the cursor initially
+	sliderCursor setShader("white", cursorWidth, cursorHeight);
+	sliderCursor.x = cursorStartXPosition;
+	sliderCursor.y = cursorYPosition;
+	sliderCursor.alignX = "left";
+	sliderCursor.alignY = "top";
+	sliderCursor.horzAlign = "fullscreen";
+	sliderCursor.vertAlign = "fullscreen";
+
+	dvarValue = self clientdvar_get(dvar);
+
+	// Initialize cursor position based on the default dvar value
+	updateCursorPosition(dvar, dvarValue, sliderCursor, centerXPosition, railWidth, cursorWidth);
+
+	sliderCursor.alpha = 1; // Show the cursor after it has been positioned
+
+	sliderValue = createFontString("default", 3);
+	sliderValue setPoint("CENTER", "CENTER", 0, -50);
+	sliderValue SetValue(dvarValue);
+
+	for (;;)
+	{
+		if (self fragbuttonpressed() || self secondaryoffhandbuttonpressed())
+		{
+			if (self fragbuttonpressed())
+			{
+				dvarValue += dvar.step;
+				if (dvarValue > dvar.max)
+				{
+					dvarValue = dvar.min; // Wrap around to min
+				}
+			}
+			else if (self secondaryoffhandbuttonpressed())
+			{
+				dvarValue -= dvar.step;
+				if (dvarValue < dvar.min)
+				{
+					dvarValue = dvar.max; // Wrap around to max
+				}
+			}
+
+			updateCursorPosition(dvar, dvarValue, sliderCursor, centerXPosition, railWidth, cursorWidth);
+			sliderValue SetValue(dvarValue);
+			self clientdvar_set(dvar, dvarValue);
+
+			wait 0.05; // Prevent rapid firing
+		}
+		else if (self meleebuttonpressed())
+		{
+			self clientdvar_set(dvar, dvarValue);
+
+			sliderBackground destroy();
+			sliderRail destroy();
+			sliderCursor destroy();
+			sliderValue destroy();
+
+			// self menuAction("OPEN");
+			return;
+		}
+
+		wait 0.05;
+	}
+}
+
+booleanDvarToggle(dvar)
+{
+	if (!isDvarStructValid(dvar))
+	{
+		self iprintln("^1dvar is missing required fields");
+		return;
+	}
+	if (dvar.type != "boolean")
+	{
+		self iprintln("^1dvar type is not a boolean");
+		return;
+	}
+
+	dvarValue = self clientdvar_get(dvar);
+
+	if (dvarValue == 0)
+		self clientdvar_set(dvar, 1);
+	else
+		self clientdvar_set(dvar, 0);
+}
+
+resetAllClientDvars()
+{
+	dvars = getarraykeys(level.DVARS);
+	for (i = 0; i < dvars.size; i++)
+	{
+		dvar = level.DVARS[dvars[i]];
+		self clientdvar_set(dvar, dvar.default_value);
+	}
 }
