@@ -21,6 +21,8 @@ extern "C"
         PTHREAD_START_ROUTINE pStartAddress,
         void *pParameter,
         uint32_t creationFlags);
+    
+    long DbgPrint(const char *format, ...);  
 }
 
 void *ResolveFunction(const std::string &moduleName, uint32_t ordinal)
@@ -238,10 +240,16 @@ void GScr_CloneBrushModelToScriptModel(scr_entref_t *scriptModelEntRef)
     SV_LinkEntity(scriptEnt);
 }
 
-void PlayerCmd_holdBreathButtonPressed(scr_entref_t *entref)
+void PlayerCmd_HoldBreathButtonPressed(scr_entref_t *entref)
 {
     gentity_s *ent = GetEntity(entref);
     Scr_AddInt(((ent->client->buttonsSinceLastFrame | ent->client->buttons) & KEY_MASK_HOLDBREATH) != 0);
+}
+
+void PlayerCmd_JumpButtonPressed(scr_entref_t *entref)
+{
+    gentity_s *ent = GetEntity(entref);
+    Scr_AddInt(((ent->client->buttonsSinceLastFrame | ent->client->buttons) & KEY_MASK_JUMP) != 0);
 }
 
 Detour Scr_GetMethodDetour;
@@ -281,7 +289,10 @@ xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
         return reinterpret_cast<xfunction_t *>(&GScr_CloneBrushModelToScriptModel);
 
     if (std::strcmp(*pName, "holdbreathbuttonpressed") == 0)
-        return reinterpret_cast<xfunction_t *>(&PlayerCmd_holdBreathButtonPressed);
+        return reinterpret_cast<xfunction_t *>(&PlayerCmd_HoldBreathButtonPressed);
+
+    if (std::strcmp(*pName, "jumpbuttonpressed") == 0)
+        return reinterpret_cast<xfunction_t *>(&PlayerCmd_JumpButtonPressed);
 
     return result;
 }
