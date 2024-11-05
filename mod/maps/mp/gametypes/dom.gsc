@@ -52,6 +52,18 @@ init()
 
 	setDvar("userinfo", "L"); // prevent people from freezing consoles via userinfo command
 
+	// prevent dynents from moving from bullets / explosions
+	setDvar("dynEnt_active", 0);
+	setDvar("dynEnt_bulletForce", 0);
+	setDvar("dynEnt_explodeForce", 0);
+	setDvar("dynEnt_explodeMaxEnts", 0);
+	setDvar("dynEnt_explodeMinForce", 9999999999);
+	setDvar("dynEnt_explodeSpinScale", 0);
+	setDvar("dynEnt_explodeUpbias", 0);
+	setDvar("dynEntPieces_angularVelocity", 0);
+	setDvar("dynEntPieces_impactForce", 0);
+	setDvar("dynEntPieces_velocity", 0);
+
 	level thread onPlayerConnect();
 }
 
