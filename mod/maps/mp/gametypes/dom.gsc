@@ -30,6 +30,11 @@ init()
 
 	deleteUselessEntities();
 
+	level.forge_change_modes[0] = "pitch";
+	level.forge_change_modes[1] = "yaw";
+	level.forge_change_modes[2] = "roll";
+	level.forge_change_modes[3] = "z";
+
 	level.hardcoreMode = true; // Force hardcore mode
 
 	gametype = level.gametype;
@@ -134,6 +139,9 @@ setupPlayer()
 	self.cj["meter_hud"] = [];
 
 	self.cj["menu_open"] = false;
+
+	self.cj["spectator_speed_index"] = 5;
+	self.cj["forge_change_mode_index"] = 0;
 
 	// Remove unlocalized errors
 	self setClientDvars("loc_warnings", 0, "loc_warningsAsErrors", 0, "cg_errordecay", 1, "con_errormessagetime", 0, "uiscript_debug", 0);
