@@ -21,6 +21,8 @@ extern "C"
         PTHREAD_START_ROUTINE pStartAddress,
         void *pParameter,
         uint32_t creationFlags);
+    
+    long DbgPrint(const char *format, ...);  
 }
 
 void *ResolveFunction(const std::string &moduleName, uint32_t ordinal)
