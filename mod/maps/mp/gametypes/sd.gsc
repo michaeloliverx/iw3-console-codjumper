@@ -253,23 +253,23 @@ updateCursorPosition(dvar, dvarValue, sliderCursor, centerXPosition, railWidth, 
 // - reset to default
 // - add a label to the slider?
 // - ignore main menu button presses when the slider controls are open
-dvarSlider(dvar)
+slider_start(dvar)
 {
 	self endon("disconnect");
 	self endon("end_respawn");
 
 	// self menuAction("CLOSE");
 
-	if (!isDvarStructValid(dvar))
+	if (!isDvarStructValid(dvar) || dvar.type != "slider")
 	{
-		self iprintln("^1dvar is missing required fields");
+		self iprintln("^1dvar struct is invalid");
 		return;
 	}
-	if (dvar.type != "slider")
-	{
-		self iprintln("^1dvar type is not a slider");
-		return;
-	}
+
+	if (!isdefined(self.cj["slider_hud"]))
+		self.cj["slider_hud"] = [];
+	else
+		self slider_hud_destroy();
 
 	// call this on a fresh game to get the default value
 	// self iprintln("DEFAULT GAME VALUE " + dvar.name + " " + getdvar(dvar.name));
@@ -279,17 +279,17 @@ dvarSlider(dvar)
 	backgroundHeight = 50;
 	centerYPosition = (level.SCREEN_MAX_HEIGHT - backgroundHeight) / 2;
 
-	sliderBackground = newClientHudElem(self);
-	sliderBackground.elemType = "icon";
-	sliderBackground.color = (0, 0, 0);
-	sliderBackground.alpha = 0.5;
-	sliderBackground setShader("white", backgroundWidth, backgroundHeight);
-	sliderBackground.x = 0;
-	sliderBackground.y = centerYPosition;
-	sliderBackground.alignX = "left";
-	sliderBackground.alignY = "top";
-	sliderBackground.horzAlign = "fullscreen";
-	sliderBackground.vertAlign = "fullscreen";
+	self.cj["slider_hud"]["background"] = newClientHudElem(self);
+	self.cj["slider_hud"]["background"].elemType = "icon";
+	self.cj["slider_hud"]["background"].color = (0, 0, 0);
+	self.cj["slider_hud"]["background"].alpha = 0.5;
+	self.cj["slider_hud"]["background"] setShader("white", backgroundWidth, backgroundHeight);
+	self.cj["slider_hud"]["background"].x = 0;
+	self.cj["slider_hud"]["background"].y = centerYPosition;
+	self.cj["slider_hud"]["background"].alignX = "left";
+	self.cj["slider_hud"]["background"].alignY = "top";
+	self.cj["slider_hud"]["background"].horzAlign = "fullscreen";
+	self.cj["slider_hud"]["background"].vertAlign = "fullscreen";
 
 	// -- Rail
 	railWidth = int(level.SCREEN_MAX_WIDTH * 0.75);
@@ -297,16 +297,16 @@ dvarSlider(dvar)
 	centerXPosition = (level.SCREEN_MAX_WIDTH - railWidth) / 2;
 	centerYPosition = (level.SCREEN_MAX_HEIGHT - railHeight) / 2;
 
-	sliderRail = newClientHudElem(self);
-	sliderRail.elemType = "icon";
-	sliderRail.alpha = 0.75;
-	sliderRail setShader("white", railWidth, railHeight);
-	sliderRail.x = centerXPosition;
-	sliderRail.y = centerYPosition;
-	sliderRail.alignX = "left";
-	sliderRail.alignY = "top";
-	sliderRail.horzAlign = "fullscreen";
-	sliderRail.vertAlign = "fullscreen";
+	self.cj["slider_hud"]["rail"] = newClientHudElem(self);
+	self.cj["slider_hud"]["rail"].elemType = "icon";
+	self.cj["slider_hud"]["rail"].alpha = 0.75;
+	self.cj["slider_hud"]["rail"] setShader("white", railWidth, railHeight);
+	self.cj["slider_hud"]["rail"].x = centerXPosition;
+	self.cj["slider_hud"]["rail"].y = centerYPosition;
+	self.cj["slider_hud"]["rail"].alignX = "left";
+	self.cj["slider_hud"]["rail"].alignY = "top";
+	self.cj["slider_hud"]["rail"].horzAlign = "fullscreen";
+	self.cj["slider_hud"]["rail"].vertAlign = "fullscreen";
 
 	// -- Cursor
 	cursorWidth = 3;
@@ -316,28 +316,28 @@ dvarSlider(dvar)
 	// Centered vertically with respect to the rail
 	cursorYPosition = centerYPosition - (cursorHeight - railHeight) / 2;
 
-	sliderCursor = newClientHudElem(self);
-	sliderCursor.elemType = "icon";
-	sliderCursor.color = self.themeColor; // Use the theme color
-	sliderCursor.alpha = 0;				  // Hide the cursor initially
-	sliderCursor setShader("white", cursorWidth, cursorHeight);
-	sliderCursor.x = cursorStartXPosition;
-	sliderCursor.y = cursorYPosition;
-	sliderCursor.alignX = "left";
-	sliderCursor.alignY = "top";
-	sliderCursor.horzAlign = "fullscreen";
-	sliderCursor.vertAlign = "fullscreen";
+	self.cj["slider_hud"]["cursor"] = newClientHudElem(self);
+	self.cj["slider_hud"]["cursor"].elemType = "icon";
+	self.cj["slider_hud"]["cursor"].color = self.themeColor; // Use the theme color
+	self.cj["slider_hud"]["cursor"].alpha = 0;				 // Hide the cursor initially
+	self.cj["slider_hud"]["cursor"] setShader("white", cursorWidth, cursorHeight);
+	self.cj["slider_hud"]["cursor"].x = cursorStartXPosition;
+	self.cj["slider_hud"]["cursor"].y = cursorYPosition;
+	self.cj["slider_hud"]["cursor"].alignX = "left";
+	self.cj["slider_hud"]["cursor"].alignY = "top";
+	self.cj["slider_hud"]["cursor"].horzAlign = "fullscreen";
+	self.cj["slider_hud"]["cursor"].vertAlign = "fullscreen";
 
 	dvarValue = self get_saved_client_dvar(dvar.name, dvar.default_value);
 
 	// Initialize cursor position based on the default dvar value
-	updateCursorPosition(dvar, dvarValue, sliderCursor, centerXPosition, railWidth, cursorWidth);
+	updateCursorPosition(dvar, dvarValue, self.cj["slider_hud"]["cursor"], centerXPosition, railWidth, cursorWidth);
 
-	sliderCursor.alpha = 1; // Show the cursor after it has been positioned
+	self.cj["slider_hud"]["cursor"].alpha = 1; // Show the cursor after it has been positioned
 
-	sliderValue = createFontString("default", 3);
-	sliderValue setPoint("CENTER", "CENTER", 0, -50);
-	sliderValue SetValue(dvarValue);
+	self.cj["slider_hud"]["value"] = createFontString("default", 3);
+	self.cj["slider_hud"]["value"] setPoint("CENTER", "CENTER", 0, -50);
+	self.cj["slider_hud"]["value"] SetValue(dvarValue);
 
 	for (;;)
 	{
@@ -347,21 +347,17 @@ dvarSlider(dvar)
 			{
 				dvarValue += dvar.step;
 				if (dvarValue > dvar.max)
-				{
 					dvarValue = dvar.min; // Wrap around to min
-				}
 			}
 			else if (self secondaryoffhandbuttonpressed())
 			{
 				dvarValue -= dvar.step;
 				if (dvarValue < dvar.min)
-				{
 					dvarValue = dvar.max; // Wrap around to max
-				}
 			}
 
-			updateCursorPosition(dvar, dvarValue, sliderCursor, centerXPosition, railWidth, cursorWidth);
-			sliderValue SetValue(dvarValue);
+			updateCursorPosition(dvar, dvarValue, self.cj["slider_hud"]["cursor"], centerXPosition, railWidth, cursorWidth);
+			self.cj["slider_hud"]["value"] SetValue(dvarValue);
 			self set_saved_client_dvar(dvar.name, dvarValue);
 
 			wait 0.05; // Prevent rapid firing
@@ -369,11 +365,7 @@ dvarSlider(dvar)
 		else if (self meleebuttonpressed())
 		{
 			self set_saved_client_dvar(dvar.name, dvarValue);
-
-			sliderBackground destroy();
-			sliderRail destroy();
-			sliderCursor destroy();
-			sliderValue destroy();
+			self slider_hud_destroy();
 
 			// self menuAction("OPEN");
 			return;
@@ -383,16 +375,23 @@ dvarSlider(dvar)
 	}
 }
 
-booleanDvarToggle(dvar)
+slider_hud_destroy()
 {
-	if (!isDvarStructValid(dvar))
-	{
-		self iprintln("^1dvar is missing required fields");
+	if (!isdefined(self.cj["slider_hud"]))
 		return;
-	}
-	if (dvar.type != "boolean")
+	keys = getarraykeys(self.cj["slider_hud"]);
+	for (i = 0; i < keys.size; i++)
 	{
-		self iprintln("^1dvar type is not a boolean");
+		if (isdefined(self.cj["slider_hud"][keys[i]]))
+			self.cj["slider_hud"][keys[i]] destroy();
+	}
+}
+
+toggle_boolean_dvar(dvar)
+{
+	if (!isDvarStructValid(dvar) || dvar.type != "boolean")
+	{
+		self iprintln("^1dvar struct is invalid");
 		return;
 	}
 
@@ -404,7 +403,7 @@ booleanDvarToggle(dvar)
 		self set_saved_client_dvar(dvar.name, 0);
 }
 
-resetAllClientDvars()
+reset_all_client_dvars()
 {
 	dvars = getarraykeys(level.DVARS);
 	for (i = 0; i < dvars.size; i++)

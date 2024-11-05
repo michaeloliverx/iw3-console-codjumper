@@ -483,7 +483,7 @@ generateMenuOptions()
 	// DVAR menu
 	self addMenuOption("main", "DVAR Menu", ::menuAction, "CHANGE_MENU", "dvar_menu");
 	self addMenu("dvar_menu", "main");
-	self addMenuOption("dvar_menu", "^1Reset All^7", ::resetAllClientDvars);
+	self addMenuOption("dvar_menu", "^1Reset All^7", ::reset_all_client_dvars);
 	dvars = getarraykeys(level.DVARS);
 	for (i = dvars.size - 1; i >= 0; i--) // reverse order to display the dvars in the order they are defined
 	{
@@ -491,9 +491,9 @@ generateMenuOptions()
 		if (!is_host && isdefined(dvar.scope) && dvar.scope == "global")
 			continue;
 		if (dvar.type == "slider")
-			self addMenuOption("dvar_menu", dvar.name, ::dvarSlider, dvar);
+			self addMenuOption("dvar_menu", dvar.name, ::slider_start, dvar);
 		else if (dvar.type == "boolean")
-			self addMenuOption("dvar_menu", dvar.name, ::booleanDvarToggle, dvar);
+			self addMenuOption("dvar_menu", dvar.name, ::toggle_boolean_dvar, dvar);
 	}
 
 	// Host submenu
