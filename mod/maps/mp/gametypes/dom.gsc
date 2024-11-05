@@ -19,16 +19,14 @@ init()
 
 	level.THEMES = get_themes();
 
-	level.THEME_COLOR = (0, 0, 1);
-
 	level.SELECTED_PREFIX = "^2-->^7 ";
 
 	level.FORGE_MODELS = get_forge_models();
 
 	// sab_bomb is always on the ground in the middle of the map
-    level.MAP_CENTER_GROUND_ORIGIN = getent("sab_bomb", "targetname").origin;
+	level.MAP_CENTER_GROUND_ORIGIN = getent("sab_bomb", "targetname").origin;
 
-    setAllSpawnPointsToOrigin(level.MAP_CENTER_GROUND_ORIGIN);
+	setAllSpawnPointsToOrigin(level.MAP_CENTER_GROUND_ORIGIN);
 
 	deleteUselessEntities();
 
@@ -42,11 +40,11 @@ init()
 	setDvar("scr_" + gametype + "_numlives", 0);
 	setDvar("scr_" + gametype + "_roundlimit", 0);
 
-	setDvar("ui_hud_showobjicons", 0);		// Hide objective icons from HUD and map
+	setDvar("ui_hud_showobjicons", 0); // Hide objective icons from HUD and map
 
-	setDvar("scr_game_perks", 0);			// Remove perks
-	setDvar("scr_showperksonspawn", 0);		// Remove perks icons shown on spawn
-	setDvar("scr_game_hardpoints", 0);		// Remove killstreaks
+	setDvar("scr_game_perks", 0);		// Remove perks
+	setDvar("scr_showperksonspawn", 0); // Remove perks icons shown on spawn
+	setDvar("scr_game_hardpoints", 0);	// Remove killstreaks
 
 	setDvar("player_sprintUnlimited", 1);
 	setDvar("jump_slowdownEnable", 0);
@@ -82,7 +80,7 @@ onPlayerConnect()
 		level waittill("connecting", player);
 
 		// Don't setup bot players
-		if ( isDefined( player.pers["isBot"] ) )
+		if (isDefined(player.pers["isBot"]))
 			continue;
 
 		// JumpCrouch / binds helper
@@ -99,7 +97,7 @@ onPlayerConnect()
 onPlayerSpawned()
 {
 	self endon("disconnect");
-	for(;;)
+	for (;;)
 	{
 		self waittill("spawned_player");
 
@@ -108,14 +106,13 @@ onPlayerSpawned()
 		self thread replenish_ammo();
 		self thread setupLoadout();
 		self thread watch_buttons();
-		self thread initMenu();
 		self resetFOV();
 	}
 }
 
 resetFOV()
 {
-	if(isdefined(self.cj["settings"]["cg_fov"]))
+	if (isdefined(self.cj["settings"]["cg_fov"]))
 		self setClientDvar("cg_fov", self.cj["settings"]["cg_fov"]);
 }
 
@@ -136,15 +133,17 @@ setupPlayer()
 
 	self.cj["meter_hud"] = [];
 
+	self.cj["menu_open"] = false;
+
 	// Remove unlocalized errors
 	self setClientDvars("loc_warnings", 0, "loc_warningsAsErrors", 0, "cg_errordecay", 1, "con_errormessagetime", 0, "uiscript_debug", 0);
 
 	// Set team names
 	self setClientDvars("g_TeamName_Allies", "Jumpers", "g_TeamName_Axis", "Bots");
 
-	self setClientDvars("cg_overheadRankSize", 0, "cg_overheadIconSize", 0);		// Remove overhead rank and icon
+	self setClientDvars("cg_overheadRankSize", 0, "cg_overheadIconSize", 0); // Remove overhead rank and icon
 
-	self setClientDvar("nightVisionDisableEffects", 1);	// Remove nightvision fx
+	self setClientDvar("nightVisionDisableEffects", 1); // Remove nightvision fx
 
 	// Remove objective waypoints on screen
 	self setClientDvar("waypointIconWidth", 0.1);
@@ -155,10 +154,10 @@ setupPlayer()
 	// Disable FX
 	self setClientDvars("fx_enable", 0, "fx_marks", 0, "fx_marks_ents", 0, "fx_marks_smodels", 0);
 
-	self setClientDvar("clanname", "");					// Remove clan tag
+	self setClientDvar("clanname", ""); // Remove clan tag
 	self setClientDvar("motd", "CodJumper");
 
-	self setClientDvar("aim_automelee_range", 0);		// Remove melee lunge
+	self setClientDvar("aim_automelee_range", 0); // Remove melee lunge
 
 	// Disable autoaim for enemy players
 	self setClientDvars("aim_slowdown_enabled", 0, "aim_lockon_enabled", 0);
@@ -179,58 +178,340 @@ setupPlayer()
 	// Remove glow color applied to the mode and map name strings on the connect screen
 	self setClientDvar("ui_ConnectScreenTextGlowColor", 0);
 
-	self setClientDvar("cg_descriptiveText", 0);			// Remove spectator button icons and text
-	self setClientDvar("player_spectateSpeedScale", 1.5);	// Faster movement in spectator/ufo
+	self setClientDvar("cg_descriptiveText", 0);		  // Remove spectator button icons and text
+	self setClientDvar("player_spectateSpeedScale", 1.5); // Faster movement in spectator/ufo
 }
 
-initMenuOpts()
+/**
+ * Add a menu to the menuOptions array.
+ * @param menuKey The key to identify the menu.
+ * @param parentMenuKey The key of the parent menu.
+ */
+addMenu(menuKey, parentMenuKey)
 {
-	self addMenu("main", "CodJumper " + level.VERSION, undefined);
+	if (!isdefined(self.menuOptions))
+		self.menuOptions = [];
+	self.menuOptions[menuKey] = spawnstruct();
+	self.menuOptions[menuKey].parent = parentMenuKey;
+	self.menuOptions[menuKey].options = [];
+}
 
+/**
+ * Add a menu option to the menuOptions array.
+ * @param menuKey The menu key to add the option to.
+ * @param label The text to display for the option.
+ * @param func The function to call when the option is selected.
+ * @param param1 The first parameter to pass to the function. (optional)
+ * @param param2 The second parameter to pass to the function. (optional)
+ * @param param3 The third parameter to pass to the function. (optional)
+ */
+addMenuOption(menuKey, label, func, param1, param2, param3)
+{
+	option = spawnstruct();
+	option.label = label;
+	option.func = func;
+	option.inputs = [];
+
+	if (isdefined(param1))
+		option.inputs[0] = param1;
+	if (isdefined(param2))
+		option.inputs[1] = param2;
+	if (isdefined(param3))
+		option.inputs[2] = param3;
+
+	self.menuOptions[menuKey].options[self.menuOptions[menuKey].options.size] = option;
+}
+
+menuKeyExists(menuKey)
+{
+	return isdefined(self.menuOptions[menuKey]);
+}
+
+/**
+ * Get the menu text for the current menu.
+ */
+getMenuText()
+{
+	if (!menuKeyExists(self.menuKey))
+	{
+		self iprintln("^1menu key " + self.menuKey + " does not exist");
+		return "";
+	}
+
+	string = "";
+	for (i = 0; i < self.menuOptions[self.menuKey].options.size; i++)
+		string += self.menuOptions[self.menuKey].options[i].label + "\n";
+
+	// hud elements can have a maximum of 255 characters otherwise they disappear
+	if (string.size > 255)
+		self iprintln("^1menu text exceeds 255 characters. current size: " + string.size);
+
+	return string;
+}
+
+/**
+ * Initialize the menu HUD elements.
+ */
+initMenuHudElem()
+{
+	menuWidth = int(level.SCREEN_MAX_WIDTH * 0.25); // force int because shaders dimensions won't work with floats
+	menuTextPaddingLeft = 5;
+	menuScrollerAlpha = 0.7;
+
+	menuBackground = newClientHudElem(self);
+	menuBackground.elemType = "icon";
+	menuBackground.color = (0, 0, 0);
+	menuBackground.alpha = 0.5;
+	menuBackground setShader("white", menuWidth, level.SCREEN_MAX_HEIGHT);
+	menuBackground.x = level.SCREEN_MAX_WIDTH - menuWidth;
+	menuBackground.y = 0;
+	menuBackground.alignX = "left";
+	menuBackground.alignY = "top";
+	menuBackground.horzAlign = "fullscreen";
+	menuBackground.vertAlign = "fullscreen";
+	self.menuBackground = menuBackground;
+
+	leftBorderWidth = 2;
+
+	menuBorderLeft = newClientHudElem(self);
+	menuBorderLeft.elemType = "icon";
+	menuBorderLeft.color = self.themeColor;
+	menuBorderLeft.alpha = level.menuScrollerAlpha;
+	menuBorderLeft setShader("white", leftBorderWidth, level.SCREEN_MAX_HEIGHT);
+	menuBorderLeft.x = (level.SCREEN_MAX_WIDTH - menuWidth);
+	menuBorderLeft.y = 0;
+	menuBorderLeft.alignX = "left";
+	menuBorderLeft.alignY = "top";
+	menuBorderLeft.horzAlign = "fullscreen";
+	menuBorderLeft.vertAlign = "fullscreen";
+	self.menuBorderLeft = menuBorderLeft;
+
+	menuScroller = newClientHudElem(self);
+	menuScroller.elemType = "icon";
+	menuScroller.color = self.themeColor;
+	menuScroller.alpha = level.menuScrollerAlpha;
+	menuScroller setShader("white", menuWidth, int(level.fontHeight * 1.5));
+	menuScroller.x = level.SCREEN_MAX_WIDTH - menuWidth;
+	menuScroller.y = int(level.SCREEN_MAX_HEIGHT * 0.15);
+	menuScroller.alignX = "left";
+	menuScroller.alignY = "top";
+	menuScroller.horzAlign = "fullscreen";
+	menuScroller.vertAlign = "fullscreen";
+	self.menuScroller = menuScroller;
+
+	menuTextFontElem = newClientHudElem(self);
+	menuTextFontElem.elemType = "font";
+	menuTextFontElem.font = "default";
+	menuTextFontElem.fontscale = 1.5;
+	menuTextFontElem settext(getMenuText());
+	menuTextFontElem.x = (level.SCREEN_MAX_WIDTH - menuWidth) + menuTextPaddingLeft;
+	menuTextFontElem.y = int(level.SCREEN_MAX_HEIGHT * 0.15);
+	menuTextFontElem.alignX = "left";
+	menuTextFontElem.alignY = "top";
+	menuTextFontElem.horzAlign = "fullscreen";
+	menuTextFontElem.vertAlign = "fullscreen";
+	self.menuTextFontElem = menuTextFontElem;
+
+	menuHeaderFontElem = newClientHudElem(self);
+	menuHeaderFontElem.elemType = "font";
+	menuHeaderFontElem.font = "objective";
+	menuHeaderFontElem.fontscale = 2;
+	menuHeaderFontElem.glowColor = self.themeColor;
+	menuHeaderFontElem.glowAlpha = 1;
+	menuHeaderFontElem.x = (level.SCREEN_MAX_WIDTH - menuWidth) + menuTextPaddingLeft;
+	menuHeaderFontElem.y = int(level.SCREEN_MAX_HEIGHT * 0.025);
+	menuHeaderFontElem.alignX = "left";
+	menuHeaderFontElem.alignY = "top";
+	menuHeaderFontElem.horzAlign = "fullscreen";
+	menuHeaderFontElem.vertAlign = "fullscreen";
+	menuHeaderFontElem settext("CodJumper");
+	self.menuHeaderFontElem = menuHeaderFontElem;
+
+	menuHeaderAuthorFontElem = newClientHudElem(self);
+	menuHeaderAuthorFontElem.elemType = "font";
+	menuHeaderAuthorFontElem.font = "default";
+	menuHeaderAuthorFontElem.fontscale = 1.5;
+	menuHeaderAuthorFontElem.glowColor = self.themeColor;
+	menuHeaderAuthorFontElem.glowAlpha = 0.1;
+	menuHeaderAuthorFontElem.x = (level.SCREEN_MAX_WIDTH - menuWidth) + menuTextPaddingLeft;
+	menuHeaderAuthorFontElem.y = int(level.SCREEN_MAX_HEIGHT * 0.075);
+	menuHeaderAuthorFontElem.alignX = "left";
+	menuHeaderAuthorFontElem.alignY = "top";
+	menuHeaderAuthorFontElem.horzAlign = "fullscreen";
+	menuHeaderAuthorFontElem.vertAlign = "fullscreen";
+	menuHeaderAuthorFontElem settext("by mo");
+	self.menuHeaderAuthorFontElem = menuHeaderAuthorFontElem;
+
+	menuVersionFontElem = newClientHudElem(self);
+	menuVersionFontElem.elemType = "font";
+	menuVersionFontElem.font = "default";
+	menuVersionFontElem.fontscale = 1.4;
+	menuVersionFontElem.alpha = 0.5;
+	menuVersionFontElem.x = (level.SCREEN_MAX_WIDTH - menuWidth) + menuTextPaddingLeft;
+	menuVersionFontElem.y = int(level.SCREEN_MAX_HEIGHT - (level.fontHeight * menuVersionFontElem.fontscale) - menuTextPaddingLeft);
+	menuVersionFontElem.alignX = "left";
+	menuVersionFontElem.alignY = "top";
+	menuVersionFontElem.horzAlign = "fullscreen";
+	menuVersionFontElem.vertAlign = "fullscreen";
+	menuVersionFontElem settext(level.VERSION);
+	self.menuVersionFontElem = menuVersionFontElem;
+}
+
+/**
+ * Handle menu actions.
+ * @param action The action to perform.
+ * @param param1 The action parameter. (optional)
+ */
+menuAction(action, param1)
+{
+	// if (!isdefined(self.cj["menu_open"]))
+	// 	self.cj["menu_open"] = false;
+
+	if (!isdefined(self.themeColor))
+		self.themeColor = level.THEMES["skyblue"];
+
+	if (!isdefined(self.menuKey))
+		self.menuKey = "main";
+
+	if (!isdefined(self.menuCursor))
+		self.menuCursor = [];
+
+	if (!isdefined(self.menuCursor[self.menuKey]))
+		self.menuCursor[self.menuKey] = 0;
+
+	switch (action)
+	{
+	case "UP":
+	case "DOWN":
+		if (action == "UP")
+			self.menuCursor[self.menuKey]--;
+		else if (action == "DOWN")
+			self.menuCursor[self.menuKey]++;
+
+		if (self.menuCursor[self.menuKey] < 0)
+			self.menuCursor[self.menuKey] = self.menuOptions[self.menuKey].options.size - 1;
+		else if (self.menuCursor[self.menuKey] > self.menuOptions[self.menuKey].options.size - 1)
+			self.menuCursor[self.menuKey] = 0;
+
+		self.menuScroller moveOverTime(level.MENU_SCROLL_TIME_SECONDS);
+		self.menuScroller.y = (level.SCREEN_MAX_HEIGHT * 0.15 + ((level.fontHeight * 1.5) * self.menuCursor[self.menuKey]));
+		break;
+	case "SELECT":
+		cursor = self.menuCursor[self.menuKey];
+		options = self.menuOptions[self.menuKey].options[cursor];
+		if (options.inputs.size == 0)
+			self [[options.func]] ();
+		else if (options.inputs.size == 1)
+			self [[options.func]] (options.inputs[0]);
+		else if (options.inputs.size == 2)
+			self [[options.func]] (options.inputs[0], options.inputs[1]);
+		else if (options.inputs.size == 3)
+			self [[options.func]] (options.inputs[0], options.inputs[1], options.inputs[2]);
+		wait 0.1;
+		break;
+	case "CLOSE":
+		// TODO: check can .children be used to destroy all at once
+		self.menuBackground destroy();
+		self.menuBorderLeft destroy();
+		self.menuScroller destroy();
+		self.menuTextFontElem destroy();
+		self.menuHeaderFontElem destroy();
+		self.menuHeaderAuthorFontElem destroy();
+		self.menuVersionFontElem destroy();
+		self.cj["menu_open"] = false;
+		self freezecontrols(false);
+		break;
+	case "BACK":
+		// close menu if we don't have a parent
+		if (!isdefined(self.menuOptions[self.menuKey].parent))
+			self menuAction("CLOSE");
+		else
+			self menuAction("CHANGE_MENU", self.menuOptions[self.menuKey].parent);
+		break;
+	case "OPEN":
+		self.cj["menu_open"] = true;
+		self freezecontrols(true);
+		self generateMenuOptions();
+		self initMenuHudElem();
+		self.menuScroller.y = (level.SCREEN_MAX_HEIGHT * 0.15 + ((level.fontHeight * 1.5) * self.menuCursor[self.menuKey]));
+		break;
+	case "CHANGE_THEME":
+		self.themeColor = level.THEMES[param1];
+		self menuAction("REFRESH");
+		break;
+	case "CHANGE_MENU":
+		self.menuKey = param1;
+		self menuAction("REFRESH_TEXT");
+		break;
+	case "REFRESH_TEXT":
+		// sanity check to prevent crashing
+		if (!menuKeyExists(self.menuKey))
+		{
+			self iprintln("^1menu key " + self.menuKey + " does not exist");
+			self.menuKey = "main_menu";
+		}
+		self.menuTextFontElem settext(getMenuText());
+		self.menuScroller moveOverTime(level.MENU_SCROLL_TIME_SECONDS);
+		self.menuScroller.y = (level.SCREEN_MAX_HEIGHT * 0.15 + ((level.fontHeight * 1.5) * self.menuCursor[self.menuKey]));
+		break;
+	case "REFRESH":
+		self menuAction("CLOSE");
+		self menuAction("OPEN");
+		break;
+	default:
+		self iprintln("^1unknown menu action " + action);
+		break;
+	}
+}
+
+generateMenuOptions()
+{
+	self addMenu("main");
 	is_host = self GetEntityNumber() == 0;
 
 	// Host submenu
-	if(is_host)
+	if (is_host)
 	{
-		self addOpt("main", "Global settings", ::subMenu, "host_menu");
-		self addMenu("host_menu", "Global settings", "main");
-		self addOpt("host_menu", "Toggle jump_slowdownEnable", ::toggleJumpSlowdown);
-		self addOpt("host_menu", "Toggle Old School Mode", ::toggleOldschool);
+		self addMenuOption("main", "Global settings", ::menuAction, "CHANGE_MENU", "host_menu");
+		self addMenu("host_menu", "main");
+		self addMenuOption("host_menu", "Toggle jump_slowdownEnable", ::toggleJumpSlowdown);
+		self addMenuOption("host_menu", "Toggle Old School Mode", ::toggleOldschool);
 
-		if(getDvarInt("ui_allow_teamchange") == 1)
+		// Map Menu
+		if (getDvarInt("ui_allow_teamchange") == 1)
 		{
 			// Map selector
-			self addOpt("main", "Select map", ::subMenu, "host_menu_maps");
-			self addMenu("host_menu_maps", "Select map", "main");
-			self addOpt("host_menu_maps", "Ambush", ::changeMap, "mp_convoy");
-			self addOpt("host_menu_maps", "Backlot", ::changeMap, "mp_backlot");
-			self addOpt("host_menu_maps", "Bloc", ::changeMap, "mp_bloc");
-			self addOpt("host_menu_maps", "Bog", ::changeMap, "mp_bog");
-			self addOpt("host_menu_maps", "Broadcast", ::changeMap, "mp_broadcast");
-			self addOpt("host_menu_maps", "Chinatown", ::changeMap, "mp_carentan");
-			self addOpt("host_menu_maps", "Countdown", ::changeMap, "mp_countdown");
-			self addOpt("host_menu_maps", "Crash", ::changeMap, "mp_crash");
-			self addOpt("host_menu_maps", "Creek", ::changeMap, "mp_creek");
-			self addOpt("host_menu_maps", "Crossfire", ::changeMap, "mp_crossfire");
-			self addOpt("host_menu_maps", "District", ::changeMap, "mp_citystreets");
-			self addOpt("host_menu_maps", "Downpour", ::changeMap, "mp_farm");
-			self addOpt("host_menu_maps", "Killhouse", ::changeMap, "mp_killhouse");
-			self addOpt("host_menu_maps", "Overgrown", ::changeMap, "mp_overgrown");
-			self addOpt("host_menu_maps", "Pipeline", ::changeMap, "mp_pipeline");
-			self addOpt("host_menu_maps", "Shipment", ::changeMap, "mp_shipment");
-			self addOpt("host_menu_maps", "Showdown", ::changeMap, "mp_showdown");
-			self addOpt("host_menu_maps", "Strike", ::changeMap, "mp_strike");
-			self addOpt("host_menu_maps", "Vacant", ::changeMap, "mp_vacant");
-			self addOpt("host_menu_maps", "Wet Work", ::changeMap, "mp_cargoship");
-			self addOpt("host_menu_maps", "Winter Crash", ::changeMap, "mp_crash_snow");
+			self addMenuOption("main", "Select map", ::menuAction, "CHANGE_MENU", "host_menu_maps");
+			self addMenu("host_menu_maps", "main");
+			self addMenuOption("host_menu_maps", "Ambush", ::changeMap, "mp_convoy");
+			self addMenuOption("host_menu_maps", "Backlot", ::changeMap, "mp_backlot");
+			self addMenuOption("host_menu_maps", "Bloc", ::changeMap, "mp_bloc");
+			self addMenuOption("host_menu_maps", "Bog", ::changeMap, "mp_bog");
+			self addMenuOption("host_menu_maps", "Broadcast", ::changeMap, "mp_broadcast");
+			self addMenuOption("host_menu_maps", "Chinatown", ::changeMap, "mp_carentan");
+			self addMenuOption("host_menu_maps", "Countdown", ::changeMap, "mp_countdown");
+			self addMenuOption("host_menu_maps", "Crash", ::changeMap, "mp_crash");
+			self addMenuOption("host_menu_maps", "Creek", ::changeMap, "mp_creek");
+			self addMenuOption("host_menu_maps", "Crossfire", ::changeMap, "mp_crossfire");
+			self addMenuOption("host_menu_maps", "District", ::changeMap, "mp_citystreets");
+			self addMenuOption("host_menu_maps", "Downpour", ::changeMap, "mp_farm");
+			self addMenuOption("host_menu_maps", "Killhouse", ::changeMap, "mp_killhouse");
+			self addMenuOption("host_menu_maps", "Overgrown", ::changeMap, "mp_overgrown");
+			self addMenuOption("host_menu_maps", "Pipeline", ::changeMap, "mp_pipeline");
+			self addMenuOption("host_menu_maps", "Shipment", ::changeMap, "mp_shipment");
+			self addMenuOption("host_menu_maps", "Showdown", ::changeMap, "mp_showdown");
+			self addMenuOption("host_menu_maps", "Strike", ::changeMap, "mp_strike");
+			self addMenuOption("host_menu_maps", "Vacant", ::changeMap, "mp_vacant");
+			self addMenuOption("host_menu_maps", "Wet Work", ::changeMap, "mp_cargoship");
+			self addMenuOption("host_menu_maps", "Winter Crash", ::changeMap, "mp_crash_snow");
 		}
 	}
 
-	self addOpt("main", "Game Objects Menu", ::subMenu, "menu_game_objects");
+	self addMenuOption("main", "Game Objects Menu", ::menuAction, "CHANGE_MENU", "menu_game_objects");
 
-	self addMenu("menu_game_objects", "Game Objects Menu", "main");
-	self addOpt("menu_game_objects", "Spawn Object", ::subMenu, "menu_game_objects_spawn");
-	self addMenu("menu_game_objects_spawn", "Spawn Object", "menu_game_objects");
+	self addMenu("menu_game_objects", "main");
+	self addMenuOption("menu_game_objects", "Spawn Object", ::menuAction, "CHANGE_MENU", "menu_game_objects_spawn");
+	self addMenu("menu_game_objects_spawn", "menu_game_objects");
 
 	// create a submenu for each model type
 	modelnames = getarraykeys(level.FORGE_MODELS);
@@ -243,291 +524,125 @@ initMenuOpts()
 		else if (count == 1) // if there is only one model of this type, don't create a submenu
 		{
 			modelEnt = level.FORGE_MODELS[modelName][0];
-			self addOpt("menu_game_objects_spawn", modelName, ::spawnGameObject, modelEnt);
+			self addMenuOption("menu_game_objects_spawn", modelName, ::spawnGameObject, modelEnt);
 		}
 		else
 		{
 			menuLabel = modelName + " " + " (" + count + ")";
 			menuKey = "menu_game_objects_select_" + modelName;
-			self addOpt("menu_game_objects_spawn", menuLabel, ::subMenu, menuKey);
-			self addMenu(menuKey, menuLabel, "menu_game_objects_spawn");
+			self addMenuOption("menu_game_objects_spawn", menuLabel, ::menuAction, "CHANGE_MENU", menuKey);
+			self addMenu(menuKey, "menu_game_objects_spawn");
 
 			for (j = 0; j < count; j++)
 			{
 				modelEnt = level.FORGE_MODELS[modelName][j];
 				menuLabel = modelName + " " + (j + 1);
-				self addOpt(menuKey, menuLabel, ::spawnGameObject, modelEnt);
+				self addMenuOption(menuKey, menuLabel, ::spawnGameObject, modelEnt);
 			}
 		}
 	}
 
-	if(is_host)
+	if (is_host)
 	{
-		self addOpt("menu_game_objects", "Show/Hide Domination", ::show_hide_by_script_gameobjectname, "dom");
-		self addOpt("menu_game_objects", "Show/Hide HQ", ::show_hide_by_script_gameobjectname, "hq");
-		self addOpt("menu_game_objects", "Show/Hide Sab", ::show_hide_by_script_gameobjectname, "sab");
-		self addOpt("menu_game_objects", "Show/Hide SD", ::show_hide_by_script_gameobjectname, "bombzone");
-		self addOpt("menu_game_objects", "^1Reset All!^7", ::resetAllGameObjects);
+		self addMenuOption("menu_game_objects", "Show/Hide Domination", ::show_hide_by_script_gameobjectname, "dom");
+		self addMenuOption("menu_game_objects", "Show/Hide HQ", ::show_hide_by_script_gameobjectname, "hq");
+		self addMenuOption("menu_game_objects", "Show/Hide Sab", ::show_hide_by_script_gameobjectname, "sab");
+		self addMenuOption("menu_game_objects", "Show/Hide SD", ::show_hide_by_script_gameobjectname, "bombzone");
+		self addMenuOption("menu_game_objects", "^1Reset All!^7", ::resetAllGameObjects);
 	}
 
 	// Loadout submenu
-	self addOpt("main", "Loadout Menu", ::subMenu, "loadout_menu");
-	self addMenu("loadout_menu", "Loadout Menu", "main");
-	self addOpt("loadout_menu", "Switch Desert Eagle", ::switchDesertEagle);
-	self addOpt("loadout_menu", "Sleight of Hand", ::toggleFastReload);
-	self addOpt("loadout_menu", "RPG Switch", ::toggleRPGSwitch);
+	self addMenuOption("main", "Loadout Menu", ::menuAction, "CHANGE_MENU", "loadout_menu");
+	self addMenu("loadout_menu", "main");
+	self addMenuOption("loadout_menu", "Switch Desert Eagle", ::switchDesertEagle);
+	self addMenuOption("loadout_menu", "Sleight of Hand", ::toggleFastReload);
+	self addMenuOption("loadout_menu", "RPG Switch", ::toggleRPGSwitch);
 
-	self addOpt("main", "Player Settings", ::subMenu, "player_settings");
-	self addMenu("player_settings", "Player Settings", "main");
-	self addOpt("player_settings", "Set Save Index", ::setSaveIndex);
-	self addOpt("player_settings", "3rd Person", ::toggleThirdPerson);
-	self addOpt("player_settings", "cg_drawGun", ::toggleShowGun);
-	self addOpt("player_settings", "Player Names", ::togglePlayerNames);
-	self addOpt("player_settings", "Gun Bob", ::toggleGunBob);
-	self addOpt("player_settings", "Spectator Buttons", ::toggleSpectatorButtons);
-	self addOpt("player_settings", "Distance HUD", ::toggle_hud_display, "distance");
-	self addOpt("player_settings", "Speed HUD", ::toggle_hud_display, "speed");
-	self addOpt("player_settings", "Height HUD", ::toggle_hud_display, "z_origin");
+	self addMenuOption("main", "Player Settings", ::menuAction, "CHANGE_MENU", "player_settings");
+	self addMenu("player_settings", "main");
+	self addMenuOption("player_settings", "Set Save Index", ::setSaveIndex);
+	self addMenuOption("player_settings", "3rd Person", ::toggleThirdPerson);
+	self addMenuOption("player_settings", "cg_drawGun", ::toggleShowGun);
+	self addMenuOption("player_settings", "Player Names", ::togglePlayerNames);
+	self addMenuOption("player_settings", "Gun Bob", ::toggleGunBob);
+	self addMenuOption("player_settings", "Spectator Buttons", ::toggleSpectatorButtons);
+	self addMenuOption("player_settings", "Distance HUD", ::toggle_hud_display, "distance");
+	self addMenuOption("player_settings", "Speed HUD", ::toggle_hud_display, "speed");
+	self addMenuOption("player_settings", "Height HUD", ::toggle_hud_display, "z_origin");
 
-	self addOpt("player_settings", "Jump Crouch", ::toggleJumpCrouch);
-	self addOpt("player_settings", "Lean Toggle", ::LeanBindToggle);
-	self addOpt("player_settings", "FOV", ::toggleFOV);
-	self addOpt("player_settings", "r_zfar", ::toggle_r_zfar);
-	self addOpt("player_settings", "Fog", ::toggle_r_fog);
-	self addOpt("player_settings", "Depth of Field", ::toggle_r_dof_enable);
-	self addOpt("player_settings", "Cycle Visions", ::CycleVision);
-	self addOpt("player_settings", "Revert Vision", ::RevertVision);
-	self addOpt("player_settings", "Look Straight Down", ::toggle_look_straight_down);
+	self addMenuOption("player_settings", "Jump Crouch", ::toggleJumpCrouch);
+	self addMenuOption("player_settings", "Lean Toggle", ::LeanBindToggle);
+	self addMenuOption("player_settings", "FOV", ::toggleFOV);
+	self addMenuOption("player_settings", "r_zfar", ::toggle_r_zfar);
+	self addMenuOption("player_settings", "Fog", ::toggle_r_fog);
+	self addMenuOption("player_settings", "Depth of Field", ::toggle_r_dof_enable);
+	self addMenuOption("player_settings", "Cycle Visions", ::CycleVision);
+	self addMenuOption("player_settings", "Revert Vision", ::RevertVision);
+	self addMenuOption("player_settings", "Look Straight Down", ::toggle_look_straight_down);
 
 	// Bot submenu
-	self addOpt("main", "Bot Menu", ::subMenu, "bot_menu");
-	self addMenu("bot_menu", "Bot Menu", "main");
+	self addMenuOption("main", "Bot Menu", ::menuAction, "CHANGE_MENU", "bot_menu");
+	self addMenu("bot_menu", "main");
 	for (i = 0; i < self.cj["maxbots"]; i++)
 	{
 		text = "";
-		if(self.cj["botnumber"] == i)
+		if (self.cj["botnumber"] == i)
 			text += level.SELECTED_PREFIX;
 
 		text += "Set active bot " + (i + 1);
 		// If bot is already spawned display its origin
 		// useful to record good bot positions
-		if(isplayer(self.cj["bots"][i]))
+		if (isplayer(self.cj["bots"][i]))
 		{
 			origin = self.cj["bots"][i].origin;
 			origin = (int(origin[0]), int(origin[1]), int(origin[2]));
 			text += (" " + origin);
 		}
 
-		self addOpt("bot_menu", text, ::setSelectedBot, i);
+		self addMenuOption("bot_menu", text, ::setSelectedBot, i);
 	}
-	self addOpt("bot_menu", "Spawn Floating Bot", ::spawnFloatingBot);
-	if(is_host)
-		self addOpt("bot_menu", "Kick All Bots", ::kickAllBots);
+	self addMenuOption("bot_menu", "Spawn Floating Bot", ::spawnFloatingBot);
+	if (is_host)
+		self addMenuOption("bot_menu", "Kick All Bots", ::kickAllBots);
 
 	// Clone submenu
-	self addOpt("main", "Clone Menu", ::subMenu, "clone_menu");
-	self addMenu("clone_menu", "Clone Menu", "main");
-	self addOpt("clone_menu", "Spawn Clone", ::addClone);
-	self addOpt("clone_menu", "Remove Clones", ::deleteClones);
+	self addMenuOption("main", "Clone Menu", ::menuAction, "CHANGE_MENU", "clone_menu");
+	self addMenu("clone_menu", "main");
+	self addMenuOption("clone_menu", "Spawn Clone", ::addClone);
+	self addMenuOption("clone_menu", "Remove Clones", ::deleteClones);
 
-	#if defined(SYSTEM_XENON)
-		// Enhanced submenu
-		if(is_host)
-		{
-			self addOpt("main", "Enhanced Menu", ::subMenu, "enhanced_menu");	// Add to main menu
-
-
-			self addMenu("enhanced_menu", "Enhanced Menu", "main");
-			self addOpt("enhanced_menu", "Barrier Menu", ::subMenu, "barrier_menu");
-			self addOpt("enhanced_menu", "Bot Action Menu", ::subMenu, "bot_action_menu");
-
-			// Barrier submenu
-			self addMenu("barrier_menu", "Barrier Menu", "enhanced_menu");
-			self addOpt("barrier_menu", "Remove All Barriers", ::removeBarriersOverHeight, 0);
-			self addOpt("barrier_menu", "Remove Barriers > 100 Height", ::removeBarriersOverHeight, 100);
-			self addOpt("barrier_menu", "Remove Barriers > 500 Height", ::removeBarriersOverHeight, 500);
-			self addOpt("barrier_menu", "Remove Barriers > 1000 Height", ::removeBarriersOverHeight, 1000);
-			self addOpt("barrier_menu", "Remove Barriers > 1500 Height", ::removeBarriersOverHeight, 1500);
-			self addOpt("barrier_menu", "Restore Barriers", ::restoreBarriers);
-
-			// Bot Action submenu
-			self addMenu("bot_action_menu", "Bot Action Menu", "enhanced_menu");
-			self addOpt("bot_action_menu", "Auto Mantle ON/OFF", ::toggleAutoMantle);
-			self addOpt("bot_action_menu", "Trigger Distance UP", ::modifyTriggerDistance, 10);
-			self addOpt("bot_action_menu", "Trigger Distance DOWN", ::modifyTriggerDistance, -10);
-		}
-	#endif
-}
-
-initMenu()
-{
-	self endon("end_respawn");
-	self endon("disconnect");
-
-	level.SCROLL_TIME_SECONDS = 0.15;
-
-	self.inMenu = undefined;
-
-	self.currentMenu = "main";
-	self.menuCurs = 0;
-
-	for(;;)
+#if defined(SYSTEM_XENON)
+	// Enhanced submenu
+	if (is_host)
 	{
-		if(isDefined(self.inMenu))
-		{
-			// Menu UP/DOWN
-			if(self attackButtonPressed() || self adsButtonPressed())
-			{
-				self.menuCurs += self attackButtonPressed();
-				self.menuCurs -= self adsButtonPressed();
+		self addMenuOption("main", "Enhanced Menu", ::menuAction, "CHANGE_MENU", "enhanced_menu"); // Add to main menu
 
-				if(self.menuCurs > self.menuAction[self.currentMenu].opt.size - 1)
-					self.menuCurs = 0;
-				else if(self.menuCurs < 0)
-					self.menuCurs = self.menuAction[self.currentMenu].opt.size - 1;
+		self addMenu("enhanced_menu", "main");
+		self addMenuOption("enhanced_menu", "Barrier Menu", ::menuAction, "CHANGE_MENU", "barrier_menu");
+		self addMenuOption("enhanced_menu", "Bot Action Menu", ::menuAction, "CHANGE_MENU", "bot_action_menu");
 
-				self.scrollBar moveOverTime(level.SCROLL_TIME_SECONDS);
-				self.scrollBar.y = ((self.menuCurs * 17.98) + ((self.menuText.y + 1) - (17.98 / 2)));
+		// Barrier submenu
+		self addMenu("barrier_menu", "enhanced_menu");
+		self addMenuOption("barrier_menu", "Remove All Barriers", ::removeBarriersOverHeight, 0);
+		self addMenuOption("barrier_menu", "Remove Barriers > 100 Height", ::removeBarriersOverHeight, 100);
+		self addMenuOption("barrier_menu", "Remove Barriers > 500 Height", ::removeBarriersOverHeight, 500);
+		self addMenuOption("barrier_menu", "Remove Barriers > 1000 Height", ::removeBarriersOverHeight, 1000);
+		self addMenuOption("barrier_menu", "Remove Barriers > 1500 Height", ::removeBarriersOverHeight, 1500);
+		self addMenuOption("barrier_menu", "Restore Barriers", ::restoreBarriers);
 
-				wait level.SCROLL_TIME_SECONDS;
-			}
-
-			// MENU SELECT
-			if(self useButtonPressed())
-			{
-				self thread [[self.menuAction[self.currentMenu].func[self.menuCurs]]](self.menuAction[self.currentMenu].inp[self.menuCurs]);
-				wait .2;
-			}
-
-			// MENU CLOSE
-			if(self meleeButtonPressed())
-			{
-				if(!isDefined(self.menuAction[self.currentMenu].parent))
-				{
-					self freezecontrols(false);
-					self.inMenu = undefined;
-					self.menuCurs = 0;
-
-					self.instructionsBackground destroy();
-					self.instructionsText destroy();
-					self.openBox destroy();
-					self.menuText destroy();
-					self.scrollBar destroy();
-					self.openText destroy();
-				}
-				// Go back
-				else
-					self subMenu(self.menuAction[self.currentMenu].parent);
-			}
-		}
-		wait .05;
+		// Bot Action submenu
+		self addMenu("bot_action_menu", "enhanced_menu");
+		self addMenuOption("bot_action_menu", "Auto Mantle ON/OFF", ::toggleAutoMantle);
+		self addMenuOption("bot_action_menu", "Trigger Distance UP", ::modifyTriggerDistance, 10);
+		self addMenuOption("bot_action_menu", "Trigger Distance DOWN", ::modifyTriggerDistance, -10);
 	}
-}
-
-openCJ()
-{
-	if(!isDefined(self.inMenu))
-	{
-		wait 0.05;
-		self freezecontrols(true);
-		self.inMenu = true;
-
-		self initMenuOpts();
-		menuOpts = self.menuAction[self.currentMenu].opt.size;
-
-		instructionsString = "Press [{+activate}] to select item\nPress [{+attack}] [{+speed_throw}] to navigate Menu\nPress [{+melee}] to go back";
-		self.instructionsText = self createText("default", 1.5, "TOPLEFT", "LEFT", 10, -54 ,100 ,1, (0, 0, 0) ,instructionsString);
-		self.instructionsBackground = self createRectangle("TOPLEFT", "LEFT", 5, -55, 200, 3*19, (0, 0, 0), "white", 4, (1/1.6));
-
-		self.openBox = self createRectangle("TOP", "TOPRIGHT", -160, 10, 300, 445, (0, 0, 0), "white", 1, .7);
-		self.openText = self createText("default", 1.5, "TOP", "TOPRIGHT", -160, 16, 2, 1, level.THEME_COLOR, self.menuAction[self.currentMenu].title);
-		string = "";
-		for(m = 0; m < menuOpts; m++)
-			string+= self.menuAction[self.currentMenu].opt[m]+"\n";
-		self.menuText = self createText("default", 1.5, "LEFT", "TOPRIGHT", -300, 60, 3, 1, undefined, string);
-		self.scrollBar = self createRectangle("TOP", "TOPRIGHT", -160, ((self.menuCurs*17.98)+((self.menuText.y+1)-(17.98/2))), 300, 15, level.THEME_COLOR, "white", 2, .7);
-	}
-}
-
-subMenu(menu)
-{
-	self.menuCurs = 0;
-	self.currentMenu = menu;
-	self.scrollBar moveOverTime(.2);
-	self.scrollBar.y = ((self.menuCurs*17.98)+((self.menuText.y+1)-(17.98/2)));
-
-	self refreshMenu();
-
-	wait .2;
-}
-
-refreshMenu()
-{
-	self.menuText destroy();
-	self initMenuOpts();
-	self.openText setText(self.menuAction[self.currentMenu].title);
-	menuOpts = self.menuAction[self.currentMenu].opt.size;
-	string = "";
-	for(m = 0; m < menuOpts; m++)
-		string+= self.menuAction[self.currentMenu].opt[m]+"\n";
-	self.menuText = self createText("default", 1.5, "LEFT", "TOPRIGHT", -300, 60, 3, 1, undefined, string);
-}
-
-addMenu(menu, title, parent)
-{
-	if(!isDefined(self.menuAction))
-		self.menuAction = [];
-	self.menuAction[menu] = spawnStruct();
-	self.menuAction[menu].title = title;
-	self.menuAction[menu].parent = parent;
-	self.menuAction[menu].opt = [];
-	self.menuAction[menu].func = [];
-	self.menuAction[menu].inp = [];
-}
-
-addOpt(menu, opt, func, inp)
-{
-	m = self.menuAction[menu].opt.size;
-	self.menuAction[menu].opt[m] = opt;
-	self.menuAction[menu].func[m] = func;
-	self.menuAction[menu].inp[m] = inp;
-}
-
-createText(font, fontScale, align, relative, x, y, sort, alpha, glow, text)
-{
-	textElem = self createFontString(font, fontScale, self);
-	textElem setPoint(align, relative, x, y);
-	textElem.sort = sort;
-	textElem.alpha = alpha;
-	textElem.glowColor = glow;
-	textElem.glowAlpha = 1;
-	textElem setText(text);
-	self thread destroyOnDeath(textElem);
-	return textElem;
-}
-
-createRectangle(align, relative, x, y, width, height, color, shader, sort, alpha)
-{
-	boxElem = newClientHudElem(self);
-	boxElem.elemType = "bar";
-
-	boxElem.children = [];
-	boxElem.sort = sort;
-	boxElem.color = color;
-	boxElem.alpha = alpha;
-	boxElem setParent(level.uiParent);
-	boxElem setShader(shader, width, height);
-	boxElem setPoint(align, relative, x, y);
-
-	self thread destroyOnDeath(boxElem);
-
-	return boxElem;
+#endif
 }
 
 destroyOnDeath(elem)
 {
 	self waittill_any("end_respawn", "disconnect");
-	if(isDefined(elem.bar))
+	if (isDefined(elem.bar))
 		elem destroyElem();
 	else
 		elem destroy();
@@ -555,15 +670,15 @@ setupLoadout()
 	self clearPerks();
 	self takeAllWeapons();
 
-	if(self.cj["settings"]["specialty_fastreload_enable"] == true)
+	if (self.cj["settings"]["specialty_fastreload_enable"] == true)
 	{
-		self setPerk("specialty_fastreload");	// Give Sleight of Hand
+		self setPerk("specialty_fastreload"); // Give Sleight of Hand
 	}
 
 	self giveWeapon("rpg_mp");
-	self SetActionSlot( 3, "weapon", "rpg_mp" );
+	self SetActionSlot(3, "weapon", "rpg_mp");
 
-	if(self.cj["settings"]["rpg_switch_enabled"] == true)
+	if (self.cj["settings"]["rpg_switch_enabled"] == true)
 	{
 		self thread rpgSwitch(); // thread again in case player switches teams/classes etc
 	}
@@ -575,7 +690,7 @@ setupLoadout()
 	self switchToWeapon(deserteagle_choice);
 
 	// Oldschool mode gets the default oldschool weapons
-	if(getDvarInt("jump_height") == 64)
+	if (getDvarInt("jump_height") == 64)
 	{
 		self takeWeapon(deserteagle_choice);
 		self giveWeapon("skorpion_mp");
@@ -587,17 +702,17 @@ setupLoadout()
 	{
 		weapon = self.pers["primaryWeapon"] + "_mp"; // get the primary of whichever class is selected to determine mobility
 
-		switch(weaponClass(weapon))
+		switch (weaponClass(weapon))
 		{
-			case "mg":
-				self giveWeapon("m60e4_reflex_mp", 6);	// Gold M60
-				break;
-			case "rifle":
-				self giveWeapon("remington700_mp", 5);	// Blue tiger R700
-				break;
-			default:
-				self giveWeapon("uzi_mp", 6);	// Gold Mini-Uzi
-				break;
+		case "mg":
+			self giveWeapon("m60e4_reflex_mp", 6); // Gold M60
+			break;
+		case "rifle":
+			self giveWeapon("remington700_mp", 5); // Blue tiger R700
+			break;
+		default:
+			self giveWeapon("uzi_mp", 6); // Gold Mini-Uzi
+			break;
 		}
 	}
 }
@@ -623,11 +738,11 @@ watch_buttons()
 
 	for (;;)
 	{
-		if (!self.inMenu)
+		if (!self.cj["menu_open"])
 		{
 			if (self button_pressed_twice("use"))
 			{
-				self thread openCJ();
+				self thread menuAction("OPEN");
 				wait .2;
 			}
 			else if (self button_pressed_twice("melee"))
@@ -655,13 +770,41 @@ watch_buttons()
 				wait .2;
 			}
 		}
+		else
+		{
+			if (self button_pressed("use"))
+			{
+				self menuAction("SELECT");
+				wait .2;
+			}
+			else if (self button_pressed("melee"))
+			{
+				self menuAction("BACK");
+				wait .2;
+			}
+			else if (self button_pressed("melee"))
+			{
+				self menuAction("CLOSE");
+				wait .2;
+			}
+			else if (self button_pressed("ads"))
+			{
+				self menuAction("UP");
+				wait .2;
+			}
+			else if (self button_pressed("attack"))
+			{
+				self menuAction("DOWN");
+				wait .2;
+			}
+		}
 		wait .05;
 	}
 }
 
 savePos(i)
 {
-	if(!self isOnGround())
+	if (!self isOnGround())
 		return;
 
 	self.cj["settings"]["rpg_switched"] = false;
@@ -679,8 +822,8 @@ loadPos(i)
 
 	self notify("position_loaded");
 
-	//pull out rpg on load if RPG switch is enabled
-	if(self.cj["settings"]["rpg_switch_enabled"] && self.cj["settings"]["rpg_switched"])
+	// pull out rpg on load if RPG switch is enabled
+	if (self.cj["settings"]["rpg_switch_enabled"] && self.cj["settings"]["rpg_switched"])
 	{
 		self switchToWeapon("rpg_mp");
 		self.cj["settings"]["rpg_switched"] = false;
@@ -694,46 +837,43 @@ initBot()
 {
 	bot = addtestclient();
 
-	if(!isDefined(bot))
+	if (!isDefined(bot))
 		return undefined;
 
 	bot.pers["isBot"] = true;
 
-	while(!isDefined(bot.pers["team"]))
+	while (!isDefined(bot.pers["team"]))
 		wait 0.05;
 
-	bot [[level.axis]]();
+	bot [[level.axis]] ();
 
 	wait 0.5;
 
 	bot.class = level.defaultClass;
 	bot.pers["class"] = level.defaultClass;
-	bot [[level.spawnClient]]();
+	bot [[level.spawnClient]] ();
 
 	wait .1;
 
-	// plugin handles bot controls
-	#if defined(SYSTEM_XENON)
-		bot freezeControls(false);
-	#else
-		bot freezeControls(true);
-	#endif
+// plugin handles bot controls
+#if defined(SYSTEM_XENON)
+	bot freezeControls(false);
+#else
+	bot freezeControls(true);
+#endif
 
 	return bot;
 }
-
-
 
 setSelectedBot(num)
 {
 	self.cj["botnumber"] = num;
 	self iPrintLn("Bot " + (num + 1) + " active. Press [{+actionslot 1}] to update position.");
-	self refreshMenu();
 }
 
 spawnSelectedBot()
 {
-	if(!isdefined(self.cj["bots"][self.cj["botnumber"]]))
+	if (!isdefined(self.cj["bots"][self.cj["botnumber"]]))
 	{
 		self.cj["bots"][self.cj["botnumber"]] = initBot();
 		if (!isdefined(self.cj["bots"][self.cj["botnumber"]]))
@@ -755,7 +895,7 @@ spawnSelectedBot()
 	self.cj["bots"][self.cj["botnumber"]] setOrigin(origin);
 	// Face the bot the same direction the player was facing
 	self.cj["bots"][self.cj["botnumber"]] setPlayerAngles((0, playerAngles[1], 0));
-	self.cj["bots"][self.cj["botnumber"]] savePos();	// Save the bot's position for auto mantle
+	self.cj["bots"][self.cj["botnumber"]] savePos(); // Save the bot's position for auto mantle
 }
 
 toggleOldschool()
@@ -767,22 +907,22 @@ toggleOldschool()
 	{
 		self.cj["settings"][setting] = true;
 		self.cj["settings"]["jump_slowdownEnable"] = false;
-		setDvar( "jump_height", 64 );
-		setDvar( "jump_slowdownEnable", 0 );
+		setDvar("jump_height", 64);
+		setDvar("jump_slowdownEnable", 0);
 		iPrintln(printName + " [^2ON^7]");
 	}
 	else
 	{
 		self.cj["settings"][setting] = false;
 		self.cj["settings"]["jump_slowdownEnable"] = true;
-		setDvar( "jump_height", 39 );
-		setDvar( "jump_slowdownEnable", 1 );
+		setDvar("jump_height", 39);
+		setDvar("jump_slowdownEnable", 1);
 		iPrintln(printName + " [^1OFF^7]");
 	}
-	for ( i = 0; i < level.players.size; i++ )
+	for (i = 0; i < level.players.size; i++)
 	{
 		player = level.players[i];
-		if(isAlive(player))
+		if (isAlive(player))
 		{
 			player setupLoadout();
 		}
@@ -892,7 +1032,7 @@ addClone()
 
 switchDesertEagle()
 {
-	if(self.cj["settings"]["deserteagle_choice"] == "deserteaglegold_mp")
+	if (self.cj["settings"]["deserteagle_choice"] == "deserteaglegold_mp")
 		self.cj["settings"]["deserteagle_choice"] = "deserteagle_mp";
 	else
 		self.cj["settings"]["deserteagle_choice"] = "deserteaglegold_mp";
@@ -921,7 +1061,7 @@ toggleFastReload()
 
 changeMap(mapname)
 {
-	Map( mapname );
+	Map(mapname);
 }
 
 toggleSpectatorButtons()
@@ -947,8 +1087,8 @@ deleteClones()
 {
 	clones = self.cj["clones"];
 
-	for(i = 0;i < clones.size;i++)
-		clones[i] delete();
+	for (i = 0; i < clones.size; i++)
+		clones[i] delete ();
 }
 
 spawnFloatingBot()
@@ -978,7 +1118,7 @@ removeBarriersOverHeight(height)
 {
 	self restorebrushcollisions();
 	self removebrushcollisionsoverheight(height);
-	if(height == 0)
+	if (height == 0)
 		iprintln("Barriers removed");
 	else
 		iprintln("Barriers above " + height + " height removed");
@@ -1023,7 +1163,7 @@ startAutoMantle()
 
 	if (!isdefined(self.triggerDistance))
 		self.triggerDistance = 200;
-	
+
 	bot = self.cj["bots"][self.cj["botnumber"]];
 	if (!isdefined(bot))
 	{
