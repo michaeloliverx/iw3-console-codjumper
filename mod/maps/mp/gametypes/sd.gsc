@@ -339,6 +339,19 @@ slider_start(dvar)
 	self.cj["slider_hud"]["value"] setPoint("CENTER", "CENTER", 0, -50);
 	self.cj["slider_hud"]["value"] SetValue(dvarValue);
 
+	instructions = [];
+	instructions[instructions.size] = "[{+smoke}] Decrease";
+	instructions[instructions.size] = "[{+frag}] Increase";
+	instructions[instructions.size] = "[{+melee}] Save and exit";
+
+	instructionsString = "";
+	for (i = 0; i < instructions.size; i++)
+		instructionsString += instructions[i] + "\n";
+
+	self.cj["slider_hud"]["instructions"] = createFontString("default", 1.4);
+	self.cj["slider_hud"]["instructions"] setPoint("TOPLEFT", "TOPLEFT", -30, -20);
+	self.cj["slider_hud"]["instructions"] setText(instructionsString);
+
 	for (;;)
 	{
 		if (self fragbuttonpressed() || self secondaryoffhandbuttonpressed())
