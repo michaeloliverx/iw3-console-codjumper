@@ -609,15 +609,8 @@ forgestart()
 
 		if (!isdefined(self.focusedEnt) && !isdefined(self.pickedUpEnt) && self secondaryoffhandbuttonpressed())
 		{
-			speeds = getarraykeys(spectator_speed_settings);
-			self.spectator_speed_index--;
-			if (self.spectator_speed_index < 0)
-				self.spectator_speed_index = speeds.size - 1;
-
-			speed = speeds[self.spectator_speed_index];
-			self setClientDvar("player_spectateSpeedScale", spectator_speed_settings[speed]);
-			self iprintln("Spectator speed: " + speed);
-			wait 0.25;
+			self cycle_spectator_speed();
+			wait 0.1;
 		}
 
 		// don't unfreeze controls if in menu otherwise the menu controls will break
@@ -1000,4 +993,28 @@ setSaveIndex()
 	self.cj["savenum"] = (i + 1) % 10;
 
 	self iPrintln("Position " + (self.cj["savenum"] + 1) + " set");
+}
+
+cycle_spectator_speed()
+{
+	speeds[0] = 0.05;
+	speeds[1] = 0.1;
+	speeds[2] = 0.2;
+	speeds[3] = 0.4;
+	speeds[4] = 0.8;
+	speeds[5] = 1;
+	speeds[6] = 1.5;
+	speeds[7] = 3;
+
+	self.cj["spectator_speed_index"] += 1;
+	if (self.cj["spectator_speed_index"] >= speeds.size)
+		self.cj["spectator_speed_index"] = 0;
+
+	speed = speeds[self.cj["spectator_speed_index"]];
+	self setClientDvar("player_spectateSpeedScale", speed);
+	msg = "player_spectateSpeedScale " + speed;
+	if (speed == 1)
+		msg += " (default)";
+
+	self iprintln(msg);
 }
