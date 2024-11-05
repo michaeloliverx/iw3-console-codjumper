@@ -11,6 +11,14 @@ init()
 	// Replaced by the build script
 	level.VERSION = "__VERSION__";
 
+	// Virtual resolution for HUD elements; scaled to real monitor dimensions by the game engine
+	level.SCREEN_MAX_WIDTH = 640;
+	level.SCREEN_MAX_HEIGHT = 480;
+
+	level.MENU_SCROLL_TIME_SECONDS = 0.250;
+
+	level.THEMES = get_themes();
+
 	level.THEME_COLOR = (0, 0, 1);
 
 	level.SELECTED_PREFIX = "^2-->^7 ";
