@@ -468,8 +468,8 @@ getForgeInstructionsText(state)
 	}
 	else if (state == "HOLD_X")
 	{
-		instructions[instructions.size] = "[{+smoke}] Next mode";
-		instructions[instructions.size] = "[{+frag}] Prev mode";
+		instructions[instructions.size] = "[{+smoke}] Prev mode";
+		instructions[instructions.size] = "[{+frag}] Next mode";
 
 		instructions[instructions.size] = "[{+speed_throw}] Exit Forge";
 		instructions[instructions.size] = "[{+attack}] Pick up/Drop";
@@ -503,7 +503,6 @@ createforgehud()
 	self.forge_hud["mode"] = createFontString("default", 1.4);
 	self.forge_hud["mode"] setPoint("TOPRIGHT", "TOPRIGHT", x, 0);
 	self.forge_hud["mode"] setText("mode: " + self.forge_change_mode);
-	self.forge_hud["mode"].alpha = 0;
 
 	self.forge_hud["pitch"] = createFontString("default", 1.4);
 	self.forge_hud["pitch"] setPoint("TOPRIGHT", "TOPRIGHT", x, 20);
@@ -795,7 +794,6 @@ forgestart()
 				self.forge_hud["x"] SetValue(self.focusedEnt.origin[0]);
 				self.forge_hud["y"] SetValue(self.focusedEnt.origin[1]);
 				self.forge_hud["z"] SetValue(self.focusedEnt.origin[2]);
-				self.forge_hud["mode"].alpha = 1;
 				self.forge_hud["pitch"].alpha = 1;
 				self.forge_hud["yaw"].alpha = 1;
 				self.forge_hud["roll"].alpha = 1;
@@ -805,7 +803,6 @@ forgestart()
 			}
 			else
 			{
-				self.forge_hud["mode"].alpha = 0;
 				self.forge_hud["pitch"].alpha = 0;
 				self.forge_hud["yaw"].alpha = 0;
 				self.forge_hud["roll"].alpha = 0;
