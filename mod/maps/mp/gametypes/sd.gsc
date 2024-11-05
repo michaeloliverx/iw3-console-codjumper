@@ -425,3 +425,101 @@ reset_all_client_dvars()
 		self set_saved_client_dvar(dvar.name, dvar.default_value);
 	}
 }
+
+/**
+ * Sets up the loadout for the player.
+ */
+cj_setup_loadout(printInfo)
+{
+	if (!isdefined(printInfo))
+		printInfo = true;
+
+	self clearPerks();
+	self takeAllWeapons();
+
+	// wait 0.05;
+
+	self giveWeapon(self.cj["loadout"].primary, self.cj["loadout"].primaryCamoIndex);
+	self giveWeapon(self.cj["loadout"].sidearm);
+
+	self giveWeapon("rpg_mp");
+
+	if (self.cj["loadout"].fastReload)
+		self setPerk("specialty_fastreload");
+
+	self SetActionSlot(1, "nightvision");
+	self SetActionSlot(3, "weapon", "rpg_mp");
+
+	wait 0.05;
+
+	// Switch to the appropriate weapon
+	if (isdefined(self.cj["loadout"].incomingWeapon) && weaponClass(self.cj["loadout"].incomingWeapon) != "pistol")
+		self switchtoweapon(self.cj["loadout"].primary);
+	else
+		self switchtoweapon(self.cj["loadout"].sidearm);
+
+	self.cj["loadout"].incomingWeapon = undefined;
+
+	// TODO: player can have a sniper suit on a non-sniper class
+	// Adjust move speed based on primary weapon type
+	moveSpeedScalePercentage = 100;
+	// Taken from maps\mp\gametypes\_class::giveLoadout
+	switch (weaponClass(self.cj["loadout"].primary))
+	{
+	case "rifle":
+		self setMoveSpeedScale(0.95);
+		moveSpeedScalePercentage = 95;
+		break;
+	case "pistol":
+		self setMoveSpeedScale(1.0);
+		break;
+	case "mg":
+		self setMoveSpeedScale(0.875);
+		moveSpeedScalePercentage = 87.5;
+		break;
+	case "smg":
+		self setMoveSpeedScale(1.0);
+		break;
+	case "spread":
+		self setMoveSpeedScale(1.0);
+		break;
+	default:
+		self setMoveSpeedScale(1.0);
+		break;
+	}
+
+	if (printInfo)
+		self iprintln("Loadout move speed: " + moveSpeedScalePercentage + " percent");
+}
+
+toggle_fast_reload()
+{
+	self.cj["loadout"].fastReload = !self.cj["loadout"].fastReload;
+	if (self.cj["loadout"].fastReload)
+		self iprintln("Fast reload [^2ON^7]");
+	else
+		self iprintln("Fast reload [^1OFF^7]");
+
+	self cj_setup_loadout(false);
+}
+
+give_camo(index)
+{
+	self.cj["loadout"].primaryCamoIndex = index;
+	self.cj["loadout"].incomingWeapon = self.cj["loadout"].primary;
+	self cj_setup_loadout(false);
+}
+
+replace_weapon(weapon)
+{
+	if (weaponClass(weapon) != "pistol")
+	{
+		self.cj["loadout"].primary = weapon;
+		self.cj["loadout"].primaryCamoIndex = 0;
+	}
+	else
+		self.cj["loadout"].sidearm = weapon;
+
+	self.cj["loadout"].incomingWeapon = weapon;
+	self cj_setup_loadout();
+}
