@@ -196,30 +196,27 @@ get_dvars()
 	return dvars;
 }
 
-clientdvar_get(dvar)
+get_saved_client_dvar(dvar, default_value)
 {
-	if (!isdefined(self.clientdvars))
-		self.clientdvars = [];
-
-	if (!isdefined(self.clientdvars[dvar.name]))
-		return dvar.default_value;
-
-	return self.clientdvars[dvar.name];
+	value = self.cj["dvars"][dvar];
+	if (!isdefined(value))
+		return default_value;
+	else
+		return value;
 }
 
-clientdvar_set(dvar, value)
+set_saved_client_dvar(dvar, value)
 {
-	if (!isdefined(self.clientdvars))
-		self.clientdvars = [];
+	self.cj["dvars"][dvar] = value;
+	self setClientDvar(dvar, value);
 
-	self.clientdvars[dvar.name] = value;
+	default_value = undefined;
+	if (isdefined(level.DVARS[dvar]))
+		default_value = level.DVARS[dvar].default_value;
 
-	self setclientdvar(dvar.name, value);
-
-	msg = dvar.name + " set to " + value;
-	if (value == dvar.default_value)
+	msg = dvar + ": " + value;
+	if (value == default_value)
 		msg += " [DEFAULT]";
-
 	self iprintln(msg);
 }
 
@@ -331,7 +328,7 @@ dvarSlider(dvar)
 	sliderCursor.horzAlign = "fullscreen";
 	sliderCursor.vertAlign = "fullscreen";
 
-	dvarValue = self clientdvar_get(dvar);
+	dvarValue = self get_saved_client_dvar(dvar.name, dvar.default_value);
 
 	// Initialize cursor position based on the default dvar value
 	updateCursorPosition(dvar, dvarValue, sliderCursor, centerXPosition, railWidth, cursorWidth);
@@ -365,13 +362,13 @@ dvarSlider(dvar)
 
 			updateCursorPosition(dvar, dvarValue, sliderCursor, centerXPosition, railWidth, cursorWidth);
 			sliderValue SetValue(dvarValue);
-			self clientdvar_set(dvar, dvarValue);
+			self set_saved_client_dvar(dvar.name, dvarValue);
 
 			wait 0.05; // Prevent rapid firing
 		}
 		else if (self meleebuttonpressed())
 		{
-			self clientdvar_set(dvar, dvarValue);
+			self set_saved_client_dvar(dvar.name, dvarValue);
 
 			sliderBackground destroy();
 			sliderRail destroy();
@@ -399,12 +396,12 @@ booleanDvarToggle(dvar)
 		return;
 	}
 
-	dvarValue = self clientdvar_get(dvar);
+	dvarValue = self get_saved_client_dvar(dvar.name, dvar.default_value);
 
 	if (dvarValue == 0)
-		self clientdvar_set(dvar, 1);
+		self set_saved_client_dvar(dvar.name, 1);
 	else
-		self clientdvar_set(dvar, 0);
+		self set_saved_client_dvar(dvar.name, 0);
 }
 
 resetAllClientDvars()
@@ -413,6 +410,6 @@ resetAllClientDvars()
 	for (i = 0; i < dvars.size; i++)
 	{
 		dvar = level.DVARS[dvars[i]];
-		self clientdvar_set(dvar, dvar.default_value);
+		self set_saved_client_dvar(dvar.name, dvar.default_value);
 	}
 }
