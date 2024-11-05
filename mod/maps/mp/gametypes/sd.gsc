@@ -196,6 +196,85 @@ get_dvars()
 	return dvars;
 }
 
+get_player_models()
+{
+	mapname = getDvar("mapname");
+
+	models = [];
+	models["com_bomb_objective"] = "Bomb";
+	models["com_bomb_objective_d"] = "Bomb destroyed";
+	models["com_cellphone_on"] = "Cellphone";
+	models["com_laptop_2_open"] = "Laptop";
+	models["com_plasticcase_beige_big"] = "Crate";
+
+	models["vehicle_80s_sedan1_brn_destructible_mp"] = "Car brown";
+	models["vehicle_80s_sedan1_silv_destructible_mp"] = "Car silver";
+	models["vehicle_80s_wagon1_yel_destructible_mp"] = "Car yellow";
+
+	// TODO: add more map specific models
+	if (mapname == "mp_convoy")
+	{
+		models["foliage_tree_palm_bushy_1"] = "Palm tree 1";
+		models["foliage_tree_palm_bushy_3"] = "Palm tree 2";
+	}
+
+	if (mapname == "mp_crossfire")
+	{
+		models["bc_hesco_barrier_med"] = "Hesco barrier";
+	}
+
+	return models;
+}
+
+/**
+ * Changes the player model.
+ */
+change_player_model(model)
+{
+	self detach_head();	   // Detach the head from the player model
+	self setViewModel(""); // Remove viewhands
+	// Doesn't stay detached after changing weapons
+	maps\mp\gametypes\_weapons::detach_all_weapons(); // Detach all stowed weapons
+	self setModel(model);
+}
+
+/**
+ * Detaches the head from the player model.
+ */
+detach_head()
+{
+	count = self getattachsize();
+	for (index = 0; index < count; index++)
+	{
+		head = self getattachmodelname(index);
+
+		if (starts_with(head, "head"))
+		{
+			self detach(head);
+			break;
+		}
+	}
+}
+
+/**
+ * Returns true if the string starts with the prefix.
+ */
+starts_with(string, prefix)
+{
+	if (string == prefix)
+		return true;
+	if (prefix.size > string.size)
+		return false;
+
+	for (index = 0; index < prefix.size; index++)
+	{
+		if (string[index] != prefix[index])
+			return false;
+	}
+
+	return true;
+}
+
 get_saved_client_dvar(dvar, default_value)
 {
 	value = self.cj["dvars"][dvar];

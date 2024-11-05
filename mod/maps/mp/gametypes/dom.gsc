@@ -19,6 +19,7 @@ init()
 
 	level.DVARS = get_dvars();
 	level.THEMES = get_themes();
+	level.PLAYER_MODELS = get_player_models();
 
 	level.SELECTED_PREFIX = "^2-->^7 ";
 
@@ -721,6 +722,17 @@ generateMenuOptions()
 		self addMenuOption("bot_action_menu", "Trigger Distance DOWN", ::modifyTriggerDistance, -10);
 	}
 #endif
+
+	// Player model menu
+	addMenuOption("main", "Player Model Menu", ::menuAction, "CHANGE_MENU", "player_model_menu");
+	self addMenu("player_model_menu", "main");
+	keys = getarraykeys(level.PLAYER_MODELS);
+	for (i = keys.size - 1; i >= 0; i--) // reverse order to display the maps in the order they are defined
+	{
+		model = keys[i];
+		model_friendly_name = level.PLAYER_MODELS[model];
+		self addMenuOption("player_model_menu", model_friendly_name, ::change_player_model, model);
+	}
 
 	self addMenuOption("main", "Theme Menu", ::menuAction, "CHANGE_MENU", "theme_menu");
 	self addMenu("theme_menu", "main");
