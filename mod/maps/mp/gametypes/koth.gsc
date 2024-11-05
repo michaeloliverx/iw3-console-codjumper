@@ -1,15 +1,14 @@
 #include common_scripts\utility;
 #include maps\mp\gametypes\_hud_util;
 
-/**
- * Flattens the origin by converting it to an integer.
- */
-flat_origin(origin)
+is_int(num)
 {
-	x = origin[0];
-	y = origin[1];
-	z = origin[2];
-	return (int(x), int(y), int(z));
+	return num == int(num);
+}
+
+to_int_vector(origin)
+{
+	return (int(origin[0]), int(origin[1]), int(origin[2]));
 }
 
 toggle_hud_display(type)
@@ -254,8 +253,8 @@ show_hide_by_script_gameobjectname(script_gameobjectname)
 spawnGameObject(ent)
 {
 	playerAngles = self getPlayerAngles();
-	ent.origin = flat_origin(self.origin + (anglestoforward(playerAngles) * 150));
-	ent.angles = (0, playerAngles[1], 0);
+	ent.origin = to_int_vector(self.origin + (anglestoforward(playerAngles) * 150));
+	ent.angles = to_int_vector((0, playerAngles[1], 0));
 	self iprintln("Object spawned at " + ent.origin + ent.angles);
 }
 
@@ -590,7 +589,7 @@ forgestart()
 				{
 					ent = self.pickedUpEnt;
 					ent unlink();
-					ent.origin = flat_origin(ent.origin); // snap to whole numbers
+					ent.origin = to_int_vector(ent.origin); // snap to whole numbers
 					self.pickedUpEnt = undefined;
 					self iprintln("Dropped " + getdisplayname(ent));
 					wait 0.25;
@@ -906,6 +905,12 @@ transform_object(ent, axis, amount, time)
 		self iprintln("No object to transform");
 		return;
 	}
+
+	if(!is_int(ent.origin[0]) || !is_int(ent.origin[1]) || !is_int(ent.origin[2]))
+		ent.origin = to_int_vector(ent.origin); // snap to whole numbers
+
+	if(!is_int(ent.angles[0]) || !is_int(ent.angles[1]) || !is_int(ent.angles[2]))
+		ent.angles = to_int_vector(ent.angles); // snap to whole numbers
 
 	if (axis == "pitch")
 		ent rotatepitch(amount, time);
