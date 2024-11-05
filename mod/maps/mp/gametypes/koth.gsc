@@ -12,89 +12,113 @@ flat_origin(origin)
 	return (int(x), int(y), int(z));
 }
 
-initSpeedometerHudElem()
+toggle_hud_display(type)
 {
-	hudElem = newClientHudElem(self);
-	hudElem.horzAlign = "right";
-	hudElem.vertAlign = "bottom";
-	hudElem.alignX = "right";
-	hudElem.alignY = "bottom";
-	hudElem.x = 60;
-	hudElem.y = 35;
-	hudElem.foreground = true;
-	hudElem.font = "objective";
-	hudElem.hideWhenInMenu = true;
-	hudElem.color = (1.0, 1.0, 1.0);
-	hudElem.glowColor = ((125/255), (33/255), (20/255));
-	hudElem.glowAlpha = 0.0;
-	hudElem.fontScale = 1.4;
-	hudElem.archived = false;
-	hudElem.alpha = 0;
-	return hudElem;
-}
+	if (!isdefined(self.cj["meter_hud"]))
+		self.cj["meter_hud"] = [];
 
-initHeightMeterHudElem()
-{
-	hudElem = newClientHudElem(self);
-	hudElem.horzAlign = "right";
-	hudElem.vertAlign = "bottom";
-	hudElem.alignX = "right";
-	hudElem.alignY = "bottom";
-	hudElem.x = 60;
-	hudElem.y = 22;
-	hudElem.foreground = true;
-	hudElem.font = "objective";
-	hudElem.hideWhenInMenu = true;
-	hudElem.color = (1.0, 1.0, 1.0);
-	hudElem.glowColor = ((125/255), (33/255), (20/255));
-	hudElem.glowAlpha = 0.0;
-	hudElem.fontScale = 1.4;
-	hudElem.archived = false;
-	hudElem.alpha = 0;
-	return hudElem;
-}
-
-updateSpeedometerHudElem()
-{
-	self endon("end_respawn");
-	self endon("disconnect");
-	level endon("game_ended");
-
-	if(!isdefined(self.speedometerHudElem))
+	// not defined means OFF
+	if (!isdefined(self.cj["meter_hud"][type]))
 	{
-		self.speedometerHudElem = initSpeedometerHudElem();
-		self.heightMeterHudElem = initHeightMeterHudElem();
-	}
-
-	for (;;)
-	{
-		origin = self.origin;
-		xyzspeed = self getVelocity();
-		normalisedSpeed = int(sqrt(xyzspeed[0] * xyzspeed[0] + xyzspeed[1] * xyzspeed[1]));
-		self.speedometerHudElem setValue(normalisedSpeed);
-		self.heightMeterHudElem setValue(origin[2]);
-		wait .05;
-	}
-}
-
-toggleSpeedometerHudElem()
-{
-	setting = "speedometer_enabled";
-	printName = "Speedometer";
-
-	if (!isdefined(self.cj["settings"][setting]) || self.cj["settings"][setting] == false)
-	{
-		self.cj["settings"][setting] = true;
-		self.speedometerHudElem.alpha = .5;
-		self.heightMeterHudElem.alpha = .5;
-		self iPrintln(printName + " [^2ON^7]");
+		if (type == "distance")
+			self thread start_hud_distance();
+		else if (type == "speed")
+			self thread start_hud_speed();
+		else if (type == "z_origin")
+			self thread start_hud_distance_z_origin();
 	}
 	else
 	{
-		self.cj["settings"][setting] = false;
-		self.speedometerHudElem.alpha = 0;
-		self.heightMeterHudElem.alpha = 0;
-		self iPrintln(printName + " [^1OFF^7]");
+		self notify("end_hud_" + type);
+		self.cj["meter_hud"][type] destroy();
+	}
+}
+
+start_hud_distance()
+{
+	self endon("disconnect");
+	self endon("end_hud_distance");
+
+	fontScale = 1.4;
+	x = 62;
+	y = 10;
+
+	self.cj["meter_hud"]["distance"] = createFontString("small", fontScale);
+	self.cj["meter_hud"]["distance"] setPoint("BOTTOMRIGHT", "BOTTOMRIGHT", x, y);
+	self.cj["meter_hud"]["distance"].alpha = 0.5;
+	self.cj["meter_hud"]["distance"].label = &"distance:&&1";
+
+	for (;;)
+	{
+		// trace using the player's eye position
+		// but measure distance from the player's origin
+		angles = self getPlayerAngles();
+		origin = self.origin;
+
+		stance = self getStance();
+		if (stance == "prone")
+			eye = self.origin + (0, 0, 11);
+		else if (stance == "crouch")
+			eye = self.origin + (0, 0, 40);
+		else
+			eye = self.origin + (0, 0, 60);
+
+		start = eye;
+		end = start + maps\mp\_utility::vector_scale(anglestoforward(angles), 999999);
+
+		endpos = PhysicsTrace(start, end);
+
+		distance = distance(origin, endpos);
+		self.cj["meter_hud"]["distance"] setValue(distance);
+
+		wait 0.05;
+	}
+}
+
+start_hud_speed()
+{
+	self endon("disconnect");
+	self endon("end_hud_speed");
+
+	fontScale = 1.4;
+	x = 62;
+	y = 22;
+	alpha = 0.5;
+
+	self.cj["meter_hud"]["speed"] = createFontString("small", fontScale);
+	self.cj["meter_hud"]["speed"] setPoint("BOTTOMRIGHT", "BOTTOMRIGHT", x, y);
+	self.cj["meter_hud"]["speed"].alpha = alpha;
+	self.cj["meter_hud"]["speed"].label = &"speed:&&1";
+
+	for (;;)
+	{
+		velocity3D = self getVelocity();
+		horizontalSpeed2D = int(sqrt(velocity3D[0] * velocity3D[0] + velocity3D[1] * velocity3D[1]));
+		self.cj["meter_hud"]["speed"] setValue(horizontalSpeed2D);
+
+		wait 0.05;
+	}
+}
+
+start_hud_distance_z_origin()
+{
+	self endon("disconnect");
+	self endon("end_hud_z_origin");
+
+	fontScale = 1.4;
+	x = 62;
+	y = 36;
+
+	self.cj["meter_hud"]["z_origin"] = createFontString("small", fontScale);
+	self.cj["meter_hud"]["z_origin"] setPoint("BOTTOMRIGHT", "BOTTOMRIGHT", x, y);
+	self.cj["meter_hud"]["z_origin"].alpha = 0.5;
+	self.cj["meter_hud"]["z_origin"].label = &"z:&&1";
+
+	for (;;)
+	{
+		self.cj["meter_hud"]["z_origin"] setValue(self.origin[2]);
+
+		wait 0.05;
 	}
 }
 
@@ -956,6 +980,8 @@ ufocontrolsOFF()
 
 	self allowSpectateTeam("freelook", false);
 	self.sessionstate = "playing";
+
+	self freezeControls(false);
 }
 
 getdisplayname(ent)
@@ -966,4 +992,12 @@ getdisplayname(ent)
 		return ent.model;
 	else
 		return ent.classname;
+}
+
+setSaveIndex()
+{
+	i = self.cj["savenum"];
+	self.cj["savenum"] = (i + 1) % 10;
+
+	self iPrintln("Position " + (self.cj["savenum"] + 1) + " set");
 }

@@ -2,6 +2,7 @@
 #include maps\mp\gametypes\_hud_util;
 #include maps\mp\gametypes\koth;
 #include maps\mp\gametypes\sab;
+#include maps\mp\gametypes\sd;
 
 init()
 {
@@ -14,7 +15,7 @@ init()
 
 	level.SELECTED_PREFIX = "^2-->^7 ";
 
-	initForgeModels();
+	level.FORGE_MODELS = get_forge_models();
 
 	// sab_bomb is always on the ground in the middle of the map
     level.MAP_CENTER_GROUND_ORIGIN = getent("sab_bomb", "targetname").origin;
@@ -47,10 +48,21 @@ init()
 	setDvar("bg_fallDamageMinHeight", 9998);
 
 	// Prevent bots from moving
-	setDvar("sv_botsRandomInput", 0);
 	setDvar("sv_botsPressAttackBtn", 0);
 
 	setDvar("userinfo", "L"); // prevent people from freezing consoles via userinfo command
+
+	// prevent dynents from moving from bullets / explosions
+	setDvar("dynEnt_active", 0);
+	setDvar("dynEnt_bulletForce", 0);
+	setDvar("dynEnt_explodeForce", 0);
+	setDvar("dynEnt_explodeMaxEnts", 0);
+	setDvar("dynEnt_explodeMinForce", 9999999999);
+	setDvar("dynEnt_explodeSpinScale", 0);
+	setDvar("dynEnt_explodeUpbias", 0);
+	setDvar("dynEntPieces_angularVelocity", 0);
+	setDvar("dynEntPieces_impactForce", 0);
+	setDvar("dynEntPieces_velocity", 0);
 
 	level thread onPlayerConnect();
 }
@@ -85,14 +97,9 @@ onPlayerSpawned()
 
 		self.cj["settings"]["forge"] = false;
 
-		self thread ammoCheck();
+		self thread replenish_ammo();
 		self thread setupLoadout();
-		self thread watchMeleeButtonPressed();
-		self thread watchSecondaryOffhandButtonPressed();
-		self thread watchFragButtonPressed();
-		self thread updateSpeedometerHudElem();
-		self thread watchDPAD_UP();
-		self thread watchUseButtonPressed();
+		self thread watch_buttons();
 		self thread initMenu();
 		self resetFOV();
 	}
@@ -107,16 +114,19 @@ resetFOV()
 setupPlayer()
 {
 	self.cj = [];
-	self.cj["saves"] = [];
 	self.cj["bots"] = [];
 	self.cj["botnumber"] = 0;
 	self.cj["clones"] = [];
 	self.cj["maxbots"] = 4;
+	self.cj["savenum"] = 0;
+	self.cj["saves"] = [];
 	self.cj["settings"] = [];
 	self.cj["settings"]["deserteagle_choice"] = "deserteaglegold_mp";
 	self.cj["settings"]["specialty_fastreload_enable"] = true;
 	self.cj["settings"]["rpg_switch_enabled"] = false;
 	self.cj["settings"]["rpg_switched"] = false;
+
+	self.cj["meter_hud"] = [];
 
 	// Remove unlocalized errors
 	self setClientDvars("loc_warnings", 0, "loc_warningsAsErrors", 0, "cg_errordecay", 1, "con_errormessagetime", 0, "uiscript_debug", 0);
@@ -222,16 +232,24 @@ initMenuOpts()
 		count = level.FORGE_MODELS[modelName].size;
 		if (count == 0) // skip empty model types
 			continue;
-		menuLabel = modelName + " " + " (" + count + ")";
-		menuKey = "menu_game_objects_select_" + modelName;
-		self addOpt("menu_game_objects_spawn", menuLabel, ::subMenu, menuKey);
-		self addMenu(menuKey, menuLabel, "menu_game_objects_spawn");
-
-		for (j = 0; j < level.FORGE_MODELS[modelName].size; j++)
+		else if (count == 1) // if there is only one model of this type, don't create a submenu
 		{
-			modelEnt = level.FORGE_MODELS[modelName][j];
-			menuLabel = modelName + " " + (j + 1);
-			self addOpt(menuKey, menuLabel, ::spawnGameObject, modelEnt);
+			modelEnt = level.FORGE_MODELS[modelName][0];
+			self addOpt("menu_game_objects_spawn", modelName, ::spawnGameObject, modelEnt);
+		}
+		else
+		{
+			menuLabel = modelName + " " + " (" + count + ")";
+			menuKey = "menu_game_objects_select_" + modelName;
+			self addOpt("menu_game_objects_spawn", menuLabel, ::subMenu, menuKey);
+			self addMenu(menuKey, menuLabel, "menu_game_objects_spawn");
+
+			for (j = 0; j < count; j++)
+			{
+				modelEnt = level.FORGE_MODELS[modelName][j];
+				menuLabel = modelName + " " + (j + 1);
+				self addOpt(menuKey, menuLabel, ::spawnGameObject, modelEnt);
+			}
 		}
 	}
 
@@ -251,21 +269,27 @@ initMenuOpts()
 	self addOpt("loadout_menu", "Sleight of Hand", ::toggleFastReload);
 	self addOpt("loadout_menu", "RPG Switch", ::toggleRPGSwitch);
 
-	self addOpt("main", "3rd Person", ::toggleThirdPerson);
-	self addOpt("main", "cg_drawgun", ::toggleShowGun);
-	self addOpt("main", "Player names", ::togglePlayerNames);
-	self addOpt("main", "Gun bob", ::toggleGunBob);
-	self addOpt("main", "Spectator buttons", ::toggleSpectatorButtons);
-	self addOpt("main", "Speed + Height meter", ::toggleSpeedometerHudElem);
-	self addOpt("main", "Jump Crouch", ::toggleJumpCrouch);
-	self addOpt("main", "Lean Toggle", ::LeanBindToggle);
-	self addOpt("main", "FOV", ::toggleFOV);
-	self addOpt("main", "r_zfar", ::toggle_r_zfar);
-	self addOpt("main", "Fog", ::toggle_r_fog);
-	self addOpt("main", "Depth of field", ::toggle_r_dof_enable);
-	self addOpt("main", "Cycle Visions", ::CycleVision);
-	self addOpt("main", "Revert Vision", ::RevertVision);
-	self addOpt("main", "Look straight down", ::toggle_look_straight_down);
+	self addOpt("main", "Player Settings", ::subMenu, "player_settings");
+	self addMenu("player_settings", "Player Settings", "main");
+	self addOpt("player_settings", "Set Save Index", ::setSaveIndex);
+	self addOpt("player_settings", "3rd Person", ::toggleThirdPerson);
+	self addOpt("player_settings", "cg_drawGun", ::toggleShowGun);
+	self addOpt("player_settings", "Player Names", ::togglePlayerNames);
+	self addOpt("player_settings", "Gun Bob", ::toggleGunBob);
+	self addOpt("player_settings", "Spectator Buttons", ::toggleSpectatorButtons);
+	self addOpt("player_settings", "Distance HUD", ::toggle_hud_display, "distance");
+	self addOpt("player_settings", "Speed HUD", ::toggle_hud_display, "speed");
+	self addOpt("player_settings", "Height HUD", ::toggle_hud_display, "z_origin");
+
+	self addOpt("player_settings", "Jump Crouch", ::toggleJumpCrouch);
+	self addOpt("player_settings", "Lean Toggle", ::LeanBindToggle);
+	self addOpt("player_settings", "FOV", ::toggleFOV);
+	self addOpt("player_settings", "r_zfar", ::toggle_r_zfar);
+	self addOpt("player_settings", "Fog", ::toggle_r_fog);
+	self addOpt("player_settings", "Depth of Field", ::toggle_r_dof_enable);
+	self addOpt("player_settings", "Cycle Visions", ::CycleVision);
+	self addOpt("player_settings", "Revert Vision", ::RevertVision);
+	self addOpt("player_settings", "Look Straight Down", ::toggle_look_straight_down);
 
 	// Bot submenu
 	self addOpt("main", "Bot Menu", ::subMenu, "bot_menu");
@@ -396,6 +420,7 @@ openCJ()
 {
 	if(!isDefined(self.inMenu))
 	{
+		wait 0.05;
 		self freezecontrols(true);
 		self.inMenu = true;
 
@@ -413,36 +438,6 @@ openCJ()
 			string+= self.menuAction[self.currentMenu].opt[m]+"\n";
 		self.menuText = self createText("default", 1.5, "LEFT", "TOPRIGHT", -300, 60, 3, 1, undefined, string);
 		self.scrollBar = self createRectangle("TOP", "TOPRIGHT", -160, ((self.menuCurs*17.98)+((self.menuText.y+1)-(17.98/2))), 300, 15, level.THEME_COLOR, "white", 2, .7);
-	}
-}
-
-watchUseButtonPressed()
-{
-	self endon("disconnect");
-	self endon("end_respawn");
-
-	for(;;)
-	{
-		if(!self.inMenu && self UseButtonPressed())
-		{
-			catch_next = false;
-
-			for(i=0; i<=0.5; i+=0.05)
-			{
-				if(catch_next && self UseButtonPressed() && !(self isMantling()))
-				{
-					wait 0.1;
-					thread openCJ();
-					break;
-				}
-				else if(!(self UseButtonPressed()))
-					catch_next = true;
-
-				wait 0.05;
-			}
-		}
-
-		wait 0.05;
 	}
 }
 
@@ -530,20 +525,20 @@ destroyOnDeath(elem)
 		elem destroy();
 }
 
-ammoCheck()
+/**
+ * Constantly replace the players ammo.
+ */
+replenish_ammo()
 {
 	self endon("end_respawn");
 	self endon("disconnect");
-	level endon("game_ended");
 
 	for (;;)
 	{
-		currentWeapon = self getCurrentWeapon();
-		if (!self isMantling() && !self isOnLadder())
-		{
+		currentWeapon = self getCurrentWeapon(); // undefined if the player is mantling or on a ladder
+		if (isdefined(currentWeapon))
 			self giveMaxAmmo(currentWeapon);
-		}
-		wait 2;
+		wait 1;
 	}
 }
 
@@ -599,87 +594,80 @@ setupLoadout()
 	}
 }
 
-watchMeleeButtonPressed()
+watch_nightvision_press()
 {
 	self endon("disconnect");
 	self endon("end_respawn");
 
-	for(;;)
+	for (;;)
 	{
-		if(!self.inMenu && self meleeButtonPressed())
+		common_scripts\utility::waittill_any("night_vision_on", "night_vision_off");
+		self.nightVisionButtonPressedTime = getTime();
+	}
+}
+
+watch_buttons()
+{
+	self endon("disconnect");
+	self endon("end_respawn");
+
+	self thread watch_nightvision_press();
+
+	for (;;)
+	{
+		if (!self.inMenu)
 		{
-			catch_next = false;
-
-			for(i=0; i<0.5; i+=0.05)
+			if (self button_pressed_twice("use"))
 			{
-				if(catch_next && self meleeButtonPressed() && self isOnGround())
-				{
-					self savePos();
-					wait .1;
-					break;
-				}
-				else if(!(self meleeButtonPressed()) && !(self attackButtonPressed()))
-					catch_next = true;
+				self thread openCJ();
+				wait .2;
+			}
+			else if (self button_pressed_twice("melee"))
+			{
+				self savePos(self.cj["savenum"]);
+				wait .2;
+			}
+			else if (self.sessionstate == "playing" && self button_pressed("smoke"))
+			{
+				self loadPos(self.cj["savenum"]);
+				wait .2;
+			}
+			else if (self button_pressed("frag"))
+			{
+				if (self.sessionstate == "playing")
+					self thread forgestart();
+				else if (self.sessionstate == "spectator")
+					self ufoend();
 
-				wait 0.05;
+				wait .2;
+			}
+			else if (self button_pressed("nightvision"))
+			{
+				self thread spawnSelectedBot();
+				wait .2;
 			}
 		}
-
-		wait 0.05;
+		wait .05;
 	}
 }
 
-watchSecondaryOffhandButtonPressed()
+savePos(i)
 {
-	self endon("disconnect");
-	self endon("end_respawn");
+	if(!self isOnGround())
+		return;
 
-	for(;;)
-	{
-		if(self.sessionstate == "playing" && !self.inMenu && self secondaryOffhandButtonPressed())
-		{
-			self loadPos();
-			wait .1;
-		}
-		wait 0.05;
-	}
-}
-
-watchFragButtonPressed()
-{
-	self endon("disconnect");
-	self endon("end_respawn");
-
-	for(;;)
-	{
-		if(self FragButtonPressed())
-		{
-			if(self.sessionstate == "playing")
-				self thread forgestart();
-			else if(self.sessionstate == "spectator")
-				self ufoend();
-
-			wait 0.5;
-		}
-
-		wait 0.05;
-	}
-}
-
-savePos()
-{
 	self.cj["settings"]["rpg_switched"] = false;
-	self.cj["save"]["org"] = self.origin;
-	self.cj["save"]["ang"] = self getPlayerAngles();
+	self.cj["saves"]["org"][i] = self.origin;
+	self.cj["saves"]["ang"][i] = self getPlayerAngles();
 }
 
-loadPos()
+loadPos(i)
 {
 	self freezecontrols(true);
 	wait 0.05;
 
-	self setPlayerAngles(self.cj["save"]["ang"]);
-	self setOrigin(self.cj["save"]["org"]);
+	self setPlayerAngles(self.cj["saves"]["ang"][i]);
+	self setOrigin(self.cj["saves"]["org"][i]);
 
 	self notify("position_loaded");
 
@@ -710,6 +698,7 @@ initBot()
 
 	wait 0.5;
 
+	bot.class = level.defaultClass;
 	bot.pers["class"] = level.defaultClass;
 	bot [[level.spawnClient]]();
 
@@ -725,20 +714,7 @@ initBot()
 	return bot;
 }
 
-watchDPAD_UP()
-{
-	self endon("end_respawn");
-	self endon("disconnect");
-	level endon("game_ended");
 
-	self SetActionSlot( 1, "nightvision" );
-
-	for(;;)
-	{
-		waittill_any("night_vision_on", "night_vision_off");
-		self thread spawnSelectedBot();
-	}
-}
 
 setSelectedBot(num)
 {
