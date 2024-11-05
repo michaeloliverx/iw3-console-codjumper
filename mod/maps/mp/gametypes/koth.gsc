@@ -654,7 +654,7 @@ forgestart()
 				wait 0.05;
 			}
 
-			if (self.spectator_mode == "forge")
+			if (self.spectator_mode == "forge")	// Forge specific actions
 			{
 
 #if defined(SYSTEM_XENON)
@@ -737,6 +737,13 @@ forgestart()
 
 					wait 0.1;
 				}
+			}
+			else if (self.spectator_mode == "ufo")	// UFO specific actions
+			{
+				if (self secondaryoffhandbuttonpressed())
+					self setplayerangles(self getPlayerAngles() - (0, 0, 1));
+				else if (self fragbuttonpressed())
+					self setplayerangles(self getPlayerAngles() + (0, 0, 1));
 			}
 
 			wait 0.05;
