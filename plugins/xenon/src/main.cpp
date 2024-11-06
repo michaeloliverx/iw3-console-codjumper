@@ -21,8 +21,8 @@ extern "C"
         PTHREAD_START_ROUTINE pStartAddress,
         void *pParameter,
         uint32_t creationFlags);
-    
-    long DbgPrint(const char *format, ...);  
+
+    long DbgPrint(const char *format, ...);
 }
 
 void *ResolveFunction(const std::string &moduleName, uint32_t ordinal)
@@ -74,6 +74,7 @@ uint32_t MonitorTitleId(void *pThreadParameter)
 void (*CG_GameMessage)(int localClientNum, const char *msg) = reinterpret_cast<void (*)(int localClientNum, const char *msg)>(0x8230AAF0);
 dvar_s *(*Dvar_FindMalleableVar)(const char *dvarName) = reinterpret_cast<dvar_s *(*)(const char *dvarName)>(0x821D4C10);
 int (*Scr_GetInt)(unsigned int index) = reinterpret_cast<int (*)(unsigned int index)>(0x8220FD10);
+xfunction_t *(*Scr_GetFunction)(const char **pName, int *type) = reinterpret_cast<xfunction_t *(*)(const char **pName, int *type)>(0x82256ED0);
 xfunction_t *(*Scr_GetMethod)(const char **pName, int *type) = reinterpret_cast<xfunction_t *(*)(const char **pName, int *type)>(0x822570E0);
 xfunction_t *(*Player_GetMethod)(const char **pName) = reinterpret_cast<xfunction_t *(*)(const char **pName)>(0x8227E098);
 xfunction_t *(*ScriptEnt_GetMethod)(const char **pName) = reinterpret_cast<xfunction_t *(*)(const char **pName)>(0x82254D78);
@@ -164,6 +165,30 @@ void GScr_RemoveBrushCollisionsOverHeight(scr_entref_t entref)
 void GScr_RestoreBrushCollisions(scr_entref_t entref)
 {
     RestoreBrushCollisions();
+}
+
+Detour Scr_GetFunction_Detour;
+xfunction_t *Scr_GetFunction_Hook(const char **pName, int *type)
+{
+    if (std::strcmp(*pName, "removebrushcollisionsoverheight") == 0)
+        return reinterpret_cast<xfunction_t *>(&GScr_RemoveBrushCollisionsOverHeight);
+
+    if (std::strcmp(*pName, "restorebrushcollisions") == 0)
+        return reinterpret_cast<xfunction_t *>(&GScr_RestoreBrushCollisions);
+
+    // Reimplement the function fully because we can't call the original function in Xenia
+    BuiltinFunctionDef *functions = reinterpret_cast<BuiltinFunctionDef *>(0x823A2C00);
+    for (BuiltinFunctionDef *i = functions; i < functions + 205; ++i)
+    {
+        // Access fields in *i, which is a BuiltinFunctionDef instance
+        const char *actionString = i->actionString;
+        void (*actionFunc)() = i->actionFunc;
+
+        if (std::strcmp(*pName, actionString) == 0)
+            return reinterpret_cast<xfunction_t *>(actionFunc);
+    }
+
+    return 0;
 }
 
 struct BotAction
@@ -288,12 +313,6 @@ xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
     if (result)
         return result;
 
-    if (std::strcmp(*pName, "removebrushcollisionsoverheight") == 0)
-        return reinterpret_cast<xfunction_t *>(&GScr_RemoveBrushCollisionsOverHeight);
-
-    if (std::strcmp(*pName, "restorebrushcollisions") == 0)
-        return reinterpret_cast<xfunction_t *>(&GScr_RestoreBrushCollisions);
-
     if (std::strcmp(*pName, "botjump") == 0)
         return reinterpret_cast<xfunction_t *>(&GScr_BotJump);
 
@@ -321,6 +340,9 @@ void InitIW3()
     Sleep(1000);
 
     XNotifyQueueUI(0, 0, XNOTIFY_SYSTEM, L"CodJumper - by mo", nullptr);
+
+    Scr_GetFunction_Detour = Detour(Scr_GetFunction, Scr_GetFunction_Hook);
+    Scr_GetFunction_Detour.Install();
 
     Scr_GetMethodDetour = Detour(Scr_GetMethod, Scr_GetMethodHook);
     Scr_GetMethodDetour.Install();

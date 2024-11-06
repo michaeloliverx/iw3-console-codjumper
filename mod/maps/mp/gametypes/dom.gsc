@@ -1011,12 +1011,11 @@ spawnFloatingBot()
 }
 
 #if defined(SYSTEM_XENON)
-// NOTE: Currently all custom GSC functions require self
 
 removeBarriersOverHeight(height)
 {
-	self restorebrushcollisions();
-	self removebrushcollisionsoverheight(height);
+	restorebrushcollisions();
+	removebrushcollisionsoverheight(height);
 	if (height == 0)
 		iprintln("Barriers removed");
 	else
@@ -1025,7 +1024,7 @@ removeBarriersOverHeight(height)
 
 restoreBarriers()
 {
-	self restorebrushcollisions();
+	restorebrushcollisions();
 	iprintln("Barriers restored");
 }
 
