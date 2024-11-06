@@ -108,8 +108,6 @@ onPlayerSpawned()
 	{
 		self waittill("spawned_player");
 
-		self.cj["settings"]["forge"] = false;
-
 		self cj_setup_loadout();
 		self thread replenish_ammo();
 		self thread watch_buttons();
