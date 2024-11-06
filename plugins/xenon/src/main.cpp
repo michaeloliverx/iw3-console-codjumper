@@ -258,6 +258,12 @@ void PlayerCmd_GetForwardMove(scr_entref_t entref)
     Scr_AddInt(cl->lastUsercmd.rightmove);
 }
 
+void PlayerCmd_GetRightMove(scr_entref_t entref)
+{
+    client_t *cl = &svsHeader->clients[entref.entnum];
+    Scr_AddInt(cl->lastUsercmd.forwardmove);
+}
+
 Detour Scr_GetMethodDetour;
 
 xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
@@ -302,6 +308,9 @@ xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
 
     if (std::strcmp(*pName, "getforwardmove") == 0)
         return reinterpret_cast<xfunction_t *>(&PlayerCmd_GetForwardMove);
+
+    if (std::strcmp(*pName, "getrightmove") == 0)
+        return reinterpret_cast<xfunction_t *>(&PlayerCmd_GetRightMove);
 
     return result;
 }
