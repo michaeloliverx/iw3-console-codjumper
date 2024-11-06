@@ -252,6 +252,12 @@ void PlayerCmd_JumpButtonPressed(scr_entref_t *entref)
     Scr_AddInt(((ent->client->buttonsSinceLastFrame | ent->client->buttons) & KEY_MASK_JUMP) != 0);
 }
 
+void PlayerCmd_GetForwardMove(scr_entref_t entref)
+{
+    client_t *cl = &svsHeader->clients[entref.entnum];
+    Scr_AddInt(cl->lastUsercmd.rightmove);
+}
+
 Detour Scr_GetMethodDetour;
 
 xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
@@ -293,6 +299,9 @@ xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
 
     if (std::strcmp(*pName, "jumpbuttonpressed") == 0)
         return reinterpret_cast<xfunction_t *>(&PlayerCmd_JumpButtonPressed);
+
+    if (std::strcmp(*pName, "getforwardmove") == 0)
+        return reinterpret_cast<xfunction_t *>(&PlayerCmd_GetForwardMove);
 
     return result;
 }
