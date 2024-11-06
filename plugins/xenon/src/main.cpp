@@ -88,7 +88,7 @@ char (*va)(char *format, ...) = reinterpret_cast<char (*)(char *format, ...)>(0x
 void (*Scr_AddInt)(int value) = reinterpret_cast<void (*)(int value)>(0x822111C0);
 void (*Scr_Error)(const char *error) = reinterpret_cast<void (*)(const char *error)>(0x8220F6F0);
 gentity_s *(*Scr_GetEntity)(scr_entref_t *entref) = reinterpret_cast<gentity_s *(*)(scr_entref_t *)>(0x8224EE68);
-gentity_s *(*GetEntity)(scr_entref_t *entref) = reinterpret_cast<gentity_s *(*)(scr_entref_t *entref)>(0x82257F30);
+gentity_s *(*GetEntity)(scr_entref_t entref) = reinterpret_cast<gentity_s *(*)(scr_entref_t entref)>(0x82257F30);
 void (*SV_UnlinkEntity)(gentity_s *ent) = reinterpret_cast<void (*)(gentity_s *ent)>(0x82355F08);
 int (*SV_SetBrushModel)(gentity_s *ent) = reinterpret_cast<int (*)(gentity_s *ent)>(0x82205050);
 void (*SV_LinkEntity)(gentity_s *ent) = reinterpret_cast<void (*)(gentity_s *ent)>(0x82355A00);
@@ -227,7 +227,7 @@ void SV_ClientThinkHook(client_t *cl, usercmd_s *cmd)
     }
 }
 
-void GScr_CloneBrushModelToScriptModel(scr_entref_t *scriptModelEntRef)
+void GScr_CloneBrushModelToScriptModel(scr_entref_t scriptModelEntRef)
 {
     gentity_s *scriptEnt = GetEntity(scriptModelEntRef);
     gentity_s *brushEnt = Scr_GetEntity(0);
@@ -240,13 +240,13 @@ void GScr_CloneBrushModelToScriptModel(scr_entref_t *scriptModelEntRef)
     SV_LinkEntity(scriptEnt);
 }
 
-void PlayerCmd_HoldBreathButtonPressed(scr_entref_t *entref)
+void PlayerCmd_HoldBreathButtonPressed(scr_entref_t entref)
 {
     gentity_s *ent = GetEntity(entref);
     Scr_AddInt(((ent->client->buttonsSinceLastFrame | ent->client->buttons) & KEY_MASK_HOLDBREATH) != 0);
 }
 
-void PlayerCmd_JumpButtonPressed(scr_entref_t *entref)
+void PlayerCmd_JumpButtonPressed(scr_entref_t entref)
 {
     gentity_s *ent = GetEntity(entref);
     Scr_AddInt(((ent->client->buttonsSinceLastFrame | ent->client->buttons) & KEY_MASK_JUMP) != 0);
