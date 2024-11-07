@@ -943,7 +943,7 @@ spawnSelectedBot()
 	self.cj["bots"][self.cj["botnumber"]] setOrigin(origin);
 	// Face the bot the same direction the player was facing
 	self.cj["bots"][self.cj["botnumber"]] setPlayerAngles((0, playerAngles[1], 0));
-	self.cj["bots"][self.cj["botnumber"]] savePos(); // Save the bot's position for auto mantle
+	self.cj["bots"][self.cj["botnumber"]] savePos(0); // Save the bot's position for auto mantle
 }
 
 toggleOldschool()
@@ -1073,7 +1073,7 @@ startAutoMantle()
 		self iprintln("Trigger distance: " + self.triggerDistance);
 	}
 
-	bot savePos();
+	bot savePos(0);
 	botEye = bot getEye();
 
 	for (;;)
@@ -1086,7 +1086,7 @@ startAutoMantle()
 			if (bot ismantling())
 				wait 0.5;
 
-			bot loadPos();
+			bot loadPos(0);
 		}
 		wait 0.05;
 	}
