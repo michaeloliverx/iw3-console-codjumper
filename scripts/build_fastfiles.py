@@ -14,7 +14,6 @@ import subprocess
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
-from types import SimpleNamespace
 from typing import Iterable
 
 import pcpp
