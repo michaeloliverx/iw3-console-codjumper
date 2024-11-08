@@ -326,3 +326,33 @@ getentbyorigin(origin, matchNumber)
 		}
 	}
 }
+
+#if defined(SYSTEM_XENON)
+
+removeBarriersOverHeight(height)
+{
+	restorebrushcollisions();
+	removebrushcollisionsoverheight(height);
+	if (height == 0)
+		iprintln("Barriers removed");
+	else
+		iprintln("Barriers above " + height + " height removed");
+}
+
+restoreBarriers()
+{
+	restorebrushcollisions();
+	iprintln("Barriers restored");
+}
+
+enablecollisionforbrushcontainingorigin_wrapper()
+{
+	enablecollisionforbrushcontainingorigin(self.origin);
+}
+
+disablecollisionforbrushcontainingorigin_wrapper()
+{
+	disablecollisionforbrushcontainingorigin(self.origin);
+}
+
+#endif
