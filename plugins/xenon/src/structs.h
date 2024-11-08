@@ -710,41 +710,6 @@ struct gentity_s
 
 static_assert(offsetof(gentity_s, client) == 0x0015C, "");
 
-/* 8761 */
-struct cplane_s
-{
-    float normal[3];
-    float dist;
-    unsigned __int8 type;
-    unsigned __int8 signbits;
-    unsigned __int8 pad[2];
-};
-
-/* 8798 */
-struct __declspec(align(2)) cbrushside_t
-{
-    cplane_s *plane;
-    unsigned int materialNum;
-    __int16 firstAdjacentSideOffset;
-    unsigned __int8 edgeCount;
-};
-
-/* 8961 */
-struct __declspec(align(16)) cbrush_t
-{
-    float mins[3];
-    int contents;
-    float maxs[3];
-    unsigned int numsides;
-    cbrushside_t *sides;
-    __int16 axialMaterialNum[2][3];
-    unsigned __int8 *baseAdjacentSide;
-    __int16 firstAdjacentSideOffsets[2][3];
-    unsigned __int8 edgeCount[2][3];
-};
-
-static_assert(sizeof(cbrush_t) == 80, "");
-
 struct scr_entref_t
 {
     unsigned __int16 entnum;
@@ -982,4 +947,140 @@ struct BuiltinFunctionDef
     const char *actionString;
     void(__cdecl *actionFunc)();
     int type;
+};
+
+/* 8951 */
+struct __declspec(align(4)) cLeaf_t
+{
+    unsigned __int16 firstCollAabbIndex;
+    unsigned __int16 collAabbCount;
+    int brushContents;
+    int terrainContents;
+    float mins[3];
+    float maxs[3];
+    int leafBrushNode;
+    __int16 cluster;
+};
+
+/* 8960 */
+struct cmodel_t
+{
+    float mins[3];
+    float maxs[3];
+    float radius;
+    cLeaf_t leaf;
+};
+
+static_assert(sizeof(cmodel_t) == 72, "");
+
+/* 8761 */
+struct cplane_s
+{
+    float normal[3];
+    float dist;
+    unsigned __int8 type;
+    unsigned __int8 signbits;
+    unsigned __int8 pad[2];
+};
+
+/* 8798 */
+struct __declspec(align(2)) cbrushside_t
+{
+    cplane_s *plane;
+    unsigned int materialNum;
+    __int16 firstAdjacentSideOffset;
+    unsigned __int8 edgeCount;
+};
+
+/* 8961 */
+struct __declspec(align(16)) cbrush_t
+{
+    float mins[3];
+    int contents;
+    float maxs[3];
+    unsigned int numsides;
+    cbrushside_t *sides;
+    __int16 axialMaterialNum[2][3];
+    unsigned __int8 *baseAdjacentSide;
+    __int16 firstAdjacentSideOffsets[2][3];
+    unsigned __int8 edgeCount[2][3];
+};
+
+static_assert(sizeof(cbrush_t) == 80, "");
+
+/* 9073 */
+struct MapEnts
+{
+    const char *name;
+    char *entityString;
+    int numEntityChars;
+};
+
+// stubs
+struct cStaticModel_s;
+struct dmaterial_t;
+struct cNode_t;
+struct cLeaf_t;
+struct cLeafBrushNode_s;
+struct CollisionBorder;
+struct CollisionPartition;
+struct CollisionAabbTree;
+struct DynEntityDef;
+struct DynEntityPose;
+struct DynEntityClient;
+struct DynEntityColl;
+
+/* 9079 */
+struct clipMap_t
+{
+    const char *name;
+    int isInUse; // 82A23244
+    int planeCount;
+    cplane_s *planes;
+    unsigned int numStaticModels;
+    cStaticModel_s *staticModelList;
+    unsigned int numMaterials;
+    dmaterial_t *materials;
+    unsigned int numBrushSides;
+    cbrushside_t *brushsides;
+    unsigned int numBrushEdges;
+    unsigned __int8 *brushEdges;
+    unsigned int numNodes;
+    cNode_t *nodes;
+    unsigned int numLeafs;
+    cLeaf_t *leafs;
+    unsigned int leafbrushNodesCount;
+    cLeafBrushNode_s *leafbrushNodes;
+    unsigned int numLeafBrushes;
+    unsigned __int16 *leafbrushes;
+    unsigned int numLeafSurfaces;
+    unsigned int *leafsurfaces;
+    unsigned int vertCount;
+    float (*verts)[3];
+    int triCount;
+    unsigned __int16 *triIndices;
+    unsigned __int8 *triEdgeIsWalkable;
+    int borderCount;
+    CollisionBorder *borders;
+    int partitionCount;
+    CollisionPartition *partitions;
+    int aabbTreeCount;
+    CollisionAabbTree *aabbTrees;
+    unsigned int numSubModels;
+    cmodel_t *cmodels;
+    unsigned __int16 numBrushes;
+    cbrush_t *brushes;
+    int numClusters;
+    int clusterBytes;
+    unsigned __int8 *visibility;
+    int vised;
+    MapEnts *mapEnts;
+    cbrush_t *box_brush;
+    cmodel_t box_model;
+    unsigned __int16 dynEntCount[2];
+    DynEntityDef *dynEntDefList[2];
+    DynEntityPose *dynEntPoseList[2];
+    DynEntityClient *dynEntClientList[2];
+    DynEntityColl *dynEntCollList[2];
+    unsigned int checksum;
 };
