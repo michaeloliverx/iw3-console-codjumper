@@ -975,3 +975,11 @@ enum conChannel_t : __int32
     CON_CHANNEL_SCRIPT = 0x18,
     CON_BUILTIN_CHANNEL_COUNT = 0x19,
 };
+
+/* 9735 */
+struct BuiltinFunctionDef
+{
+    const char *actionString;
+    void(__cdecl *actionFunc)();
+    int type;
+};
