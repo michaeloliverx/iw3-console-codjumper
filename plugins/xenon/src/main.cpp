@@ -289,6 +289,46 @@ void PlayerCmd_GetRightMove(scr_entref_t entref)
     Scr_AddInt(cl->lastUsercmd.forwardmove);
 }
 
+void PlayerCmd_GetUFO(scr_entref_t entref)
+{
+    gentity_s *ent = GetEntity(entref);
+    Scr_AddInt(ent->client->ufo);
+}
+
+void PlayerCmd_SetUFO(scr_entref_t entref)
+{
+    gentity_s *ent = GetEntity(entref);
+    int ufo = Scr_GetInt(0);
+    if (ufo == 1)
+        ent->client->ufo = true;
+    else if (ufo == 0)
+        ent->client->ufo = false;
+    else
+    {
+        Scr_Error("Invalid argument for SetUFO\n");
+    }
+}
+
+void PlayerCmd_GetNoclip(scr_entref_t entref)
+{
+    gentity_s *ent = GetEntity(entref);
+    Scr_AddInt(ent->client->noclip);
+}
+
+void PlayerCmd_SetNoclip(scr_entref_t entref)
+{
+    gentity_s *ent = GetEntity(entref);
+    int noclip = Scr_GetInt(0);
+    if (noclip == 1)
+        ent->client->noclip = true;
+    else if (noclip == 0)
+        ent->client->noclip = false;
+    else
+    {
+        Scr_Error("Invalid argument for SetNoclip\n");
+    }
+}
+
 Detour Scr_GetMethodDetour;
 
 xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
@@ -330,6 +370,18 @@ xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
 
     if (std::strcmp(*pName, "getrightmove") == 0)
         return reinterpret_cast<xfunction_t *>(&PlayerCmd_GetRightMove);
+
+    if (std::strcmp(*pName, "getufo") == 0)
+        return reinterpret_cast<xfunction_t *>(&PlayerCmd_GetUFO);
+
+    if (std::strcmp(*pName, "setufo") == 0)
+        return reinterpret_cast<xfunction_t *>(&PlayerCmd_SetUFO);
+
+    if (std::strcmp(*pName, "getnoclip") == 0)
+        return reinterpret_cast<xfunction_t *>(&PlayerCmd_GetNoclip);
+
+    if (std::strcmp(*pName, "setnoclip") == 0)
+        return reinterpret_cast<xfunction_t *>(&PlayerCmd_SetNoclip);
 
     return result;
 }
