@@ -74,6 +74,7 @@ uint32_t MonitorTitleId(void *pThreadParameter)
 void (*CG_GameMessage)(int localClientNum, const char *msg) = reinterpret_cast<void (*)(int localClientNum, const char *msg)>(0x8230AAF0);
 dvar_s *(*Dvar_FindMalleableVar)(const char *dvarName) = reinterpret_cast<dvar_s *(*)(const char *dvarName)>(0x821D4C10);
 int (*Scr_GetInt)(unsigned int index) = reinterpret_cast<int (*)(unsigned int index)>(0x8220FD10);
+void (*Scr_GetVector)(unsigned int index, float *vectorValue) = reinterpret_cast<void (*)(unsigned int index, float *vectorValue)>(0x8220FA88);
 xfunction_t *(*Scr_GetFunction)(const char **pName, int *type) = reinterpret_cast<xfunction_t *(*)(const char **pName, int *type)>(0x82256ED0);
 xfunction_t *(*Scr_GetMethod)(const char **pName, int *type) = reinterpret_cast<xfunction_t *(*)(const char **pName, int *type)>(0x822570E0);
 xfunction_t *(*Player_GetMethod)(const char **pName) = reinterpret_cast<xfunction_t *(*)(const char **pName)>(0x8227E098);
@@ -101,7 +102,10 @@ clipMap_t *cm = reinterpret_cast<clipMap_t *>(0x82A23240);
 std::vector<int> originalBrushContents;
 std::string lastMapName;
 
-void RemoveBrushCollisions(int heightLimit)
+/**
+ * Save the original contents of the brushes in the map.
+ */
+void SaveOriginalBrushContents()
 {
     dvar_s *mapname = Dvar_FindMalleableVar("mapname");
     if (lastMapName != mapname->current.string)
@@ -113,6 +117,11 @@ void RemoveBrushCollisions(int heightLimit)
 
         lastMapName = mapname->current.string;
     }
+}
+
+void RemoveBrushCollisions(int heightLimit)
+{
+    SaveOriginalBrushContents();
 
     for (int i = 0; i < cm->numBrushes; i++)
     {
@@ -125,24 +134,10 @@ void RemoveBrushCollisions(int heightLimit)
 
 void RestoreBrushCollisions()
 {
-    if (lastMapName == "")
-        return;
+    SaveOriginalBrushContents();
 
-    // cm.numBrushes
-    uintptr_t cm_numBrushesOffset = 0x82A232CC;
-    unsigned __int16 *cm_numBrushesPtr = reinterpret_cast<unsigned __int16 *>(cm_numBrushesOffset);
-    unsigned __int16 cm_numBrushes = *cm_numBrushesPtr;
-
-    // cm.brushes
-    uintptr_t cm_brushesOffset = 0x82A232D0;
-    cbrush_t **cm_brushesArrayPtr = reinterpret_cast<cbrush_t **>(cm_brushesOffset);
-    cbrush_t *cm_brushesFirst = *cm_brushesArrayPtr;
-
-    for (int i = 0; i < cm_numBrushes; i++)
-    {
-        cbrush_t &brush = *(cm_brushesFirst + i);
-        brush.contents = originalBrushContents[i];
-    }
+    for (int i = 0; i < cm->numBrushes; i++)
+        cm->brushes[i].contents = originalBrushContents[i];
 }
 
 void GScr_RemoveBrushCollisionsOverHeight(scr_entref_t entref)
@@ -156,6 +151,87 @@ void GScr_RestoreBrushCollisions(scr_entref_t entref)
     RestoreBrushCollisions();
 }
 
+bool IsPointInsideBounds(const float point[3], const float mins[3], const float maxs[3])
+{
+    return (point[0] >= mins[0] && point[0] <= maxs[0] &&
+            point[1] >= mins[1] && point[1] <= maxs[1] &&
+            point[2] >= mins[2] && point[2] <= maxs[2]);
+}
+
+void GScr_EnableCollisionForBrushContainingOrigin()
+{
+    SaveOriginalBrushContents();
+
+    float point[3] = {0.0f, 0.0f, 0.0f};
+    Scr_GetVector(0, point);
+
+    int matchBrushIndex = -1;
+
+    for (int i = 0; i < cm->numBrushes; i++)
+    {
+        cbrush_t &brush = cm->brushes[i];
+        if (IsPointInsideBounds(point, brush.mins, brush.maxs) && !(brush.contents & 0x10000))
+        {
+            matchBrushIndex = i;
+            break;
+        }
+    }
+
+    if (matchBrushIndex == -1)
+    {
+        CG_GameMessage(0, "No brush found");
+        DbgPrint("No brush found\n");
+        return;
+    }
+
+    cbrush_t &brush = cm->brushes[matchBrushIndex];
+    // Enable the collision flag
+    brush.contents |= 0x10000;
+
+    // log and print the brush index
+    DbgPrint("Brush collision enabled %d\n", matchBrushIndex);
+
+    const char *state = (brush.contents & 0x10000) ? "^2enabled" : "^1disabled";
+    CG_GameMessage(0, va("brush %d collision %s", matchBrushIndex, state));
+}
+
+void GScr_DisableCollisionForBrushContainingOrigin()
+{
+    SaveOriginalBrushContents();
+
+    float point[3] = {0.0f, 0.0f, 0.0f};
+    Scr_GetVector(0, point);
+
+    int matchBrushIndex = -1;
+
+    for (int i = 0; i < cm->numBrushes; i++)
+    {
+        cbrush_t &brush = cm->brushes[i];
+        if (IsPointInsideBounds(point, brush.mins, brush.maxs) && (brush.contents & 0x10000))
+        {
+            matchBrushIndex = i;
+            break;
+        }
+    }
+
+    if (matchBrushIndex == -1)
+    {
+        CG_GameMessage(0, "No brush found with collision enabled");
+        DbgPrint("No brush found with collision enabled\n");
+        return;
+    }
+
+    cbrush_t &brush = cm->brushes[matchBrushIndex];
+    // Disable the collision flag
+    brush.contents &= ~0x10000;
+
+    // Log and print the brush index
+    DbgPrint("Brush collision disabled %d\n", matchBrushIndex);
+
+    const char *state = (brush.contents & 0x10000) ? "^2enabled" : "^1disabled";
+    CG_GameMessage(0, va("brush %d collision %s", matchBrushIndex, state));
+}
+
 Detour Scr_GetFunction_Detour;
 xfunction_t *Scr_GetFunction_Hook(const char **pName, int *type)
 {
@@ -164,6 +240,12 @@ xfunction_t *Scr_GetFunction_Hook(const char **pName, int *type)
 
     if (std::strcmp(*pName, "restorebrushcollisions") == 0)
         return reinterpret_cast<xfunction_t *>(&GScr_RestoreBrushCollisions);
+    
+    if (std::strcmp(*pName, "enablecollisionforbrushcontainingorigin") == 0)
+        return reinterpret_cast<xfunction_t *>(&GScr_EnableCollisionForBrushContainingOrigin);
+    
+    if (std::strcmp(*pName, "disablecollisionforbrushcontainingorigin") == 0)
+        return reinterpret_cast<xfunction_t *>(&GScr_DisableCollisionForBrushContainingOrigin);
 
     // Reimplement the function fully because we can't call the original function in Xenia
     BuiltinFunctionDef *functions = reinterpret_cast<BuiltinFunctionDef *>(0x823A2C00);
