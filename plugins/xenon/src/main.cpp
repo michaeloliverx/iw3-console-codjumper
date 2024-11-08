@@ -96,38 +96,27 @@ void (*SV_LinkEntity)(gentity_s *ent) = reinterpret_cast<void (*)(gentity_s *ent
 
 // Variables
 serverStaticHeader_t *svsHeader = reinterpret_cast<serverStaticHeader_t *>(0x849F1580);
+clipMap_t *cm = reinterpret_cast<clipMap_t *>(0x82A23240);
 
 std::vector<int> originalBrushContents;
 std::string lastMapName;
 
 void RemoveBrushCollisions(int heightLimit)
 {
-    // cm.numBrushes
-    uintptr_t cm_numBrushesOffset = 0x82A232CC;
-    unsigned __int16 *cm_numBrushesPtr = reinterpret_cast<unsigned __int16 *>(cm_numBrushesOffset);
-    unsigned __int16 cm_numBrushes = *cm_numBrushesPtr;
-
-    // cm.brushes
-    uintptr_t cm_brushesOffset = 0x82A232D0;
-    cbrush_t **cm_brushesArrayPtr = reinterpret_cast<cbrush_t **>(cm_brushesOffset);
-    cbrush_t *cm_brushesFirst = *cm_brushesArrayPtr;
-
     dvar_s *mapname = Dvar_FindMalleableVar("mapname");
     if (lastMapName != mapname->current.string)
     {
         originalBrushContents.clear();
-        originalBrushContents.resize(cm_numBrushes);
-        for (int i = 0; i < cm_numBrushes; i++)
-        {
-            cbrush_t &brush = *(cm_brushesFirst + i);
-            originalBrushContents[i] = brush.contents;
-        }
+        originalBrushContents.resize(cm->numBrushes);
+        for (int i = 0; i < cm->numBrushes; i++)
+            originalBrushContents[i] = cm->brushes[i].contents;
+
         lastMapName = mapname->current.string;
     }
 
-    for (int i = 0; i < cm_numBrushes; i++)
+    for (int i = 0; i < cm->numBrushes; i++)
     {
-        cbrush_t &brush = *(cm_brushesFirst + i);
+        cbrush_t &brush = cm->brushes[i];
         float height = brush.maxs[2] - brush.mins[2];
         if (height > heightLimit)
             brush.contents &= ~0x10000;
