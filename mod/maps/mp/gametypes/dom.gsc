@@ -711,6 +711,8 @@ generateMenuOptions()
 		self addMenuOption("barrier_menu", "Remove Barriers > 500 Height", ::removeBarriersOverHeight, 500);
 		self addMenuOption("barrier_menu", "Remove Barriers > 1000 Height", ::removeBarriersOverHeight, 1000);
 		self addMenuOption("barrier_menu", "Remove Barriers > 1500 Height", ::removeBarriersOverHeight, 1500);
+		self addMenuOption("barrier_menu", "Enable Collision at origin", ::enablecollisionforbrushcontainingorigin_wrapper);
+		self addMenuOption("barrier_menu", "Disable Collision at origin", ::disablecollisionforbrushcontainingorigin_wrapper);
 		self addMenuOption("barrier_menu", "Restore Barriers", ::restoreBarriers);
 
 		// Bot Action submenu
@@ -737,15 +739,6 @@ generateMenuOptions()
 	themes = getarraykeys(level.THEMES);
 	for (i = themes.size - 1; i >= 0; i--) // reverse order to display in the order they are defined
 		self addMenuOption("theme_menu", themes[i], ::menuAction, "CHANGE_THEME", themes[i]);
-}
-
-destroyOnDeath(elem)
-{
-	self waittill_any("end_respawn", "disconnect");
-	if (isDefined(elem.bar))
-		elem destroyElem();
-	else
-		elem destroy();
 }
 
 /**
@@ -1009,22 +1002,6 @@ spawnFloatingBot()
 }
 
 #if defined(SYSTEM_XENON)
-
-removeBarriersOverHeight(height)
-{
-	restorebrushcollisions();
-	removebrushcollisionsoverheight(height);
-	if (height == 0)
-		iprintln("Barriers removed");
-	else
-		iprintln("Barriers above " + height + " height removed");
-}
-
-restoreBarriers()
-{
-	restorebrushcollisions();
-	iprintln("Barriers restored");
-}
 
 toggleAutoMantle()
 {
