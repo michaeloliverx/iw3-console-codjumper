@@ -247,8 +247,8 @@ void SV_ClientThinkHook(client_t *cl, usercmd_s *cmd)
     }
     else
     {
-        char msg = va("Invalid command time %i from client %s, current server time is %i", cmd->serverTime, cl->name, svsHeader->time);
-        Com_PrintError(CON_CHANNEL_SERVER, &msg);
+        char *msg = va("Invalid command time %i from client %s, current server time is %i", cmd->serverTime, cl->name, svsHeader->time);
+        Com_PrintError(CON_CHANNEL_SERVER, msg);
     }
 }
 
