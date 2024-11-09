@@ -632,3 +632,25 @@ replace_weapon(weapon)
 	self.cj["loadout"].incomingWeapon = weapon;
 	self cj_setup_loadout();
 }
+
+#if defined(SYSTEM_XENON)
+toggle_noclip()
+{
+	state = self getnoclip();
+	self setnoclip(!state);
+	if (state)
+		self iprintln("noclip OFF");
+	else
+		self iprintln("noclip ON");
+}
+
+toggle_ufo()
+{
+	state = self getufo();
+	self setufo(!state);
+	if (state)
+		self iprintln("ufomode OFF");
+	else
+		self iprintln("ufomode ON");
+}
+#endif

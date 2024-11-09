@@ -651,6 +651,11 @@ generateMenuOptions()
 	self addMenuOption("player_settings", "Revert Vision", ::RevertVision);
 	self addMenuOption("player_settings", "Look Straight Down", ::toggle_look_straight_down);
 
+#if defined(SYSTEM_XENON)
+	self addMenuOption("player_settings", "Toggle No Clip", ::toggle_noclip);
+	self addMenuOption("player_settings", "Toggle UFO", ::toggle_ufo);
+#endif
+
 	// Bot submenu
 	self addMenuOption("main", "Bot Menu", ::menuAction, "CHANGE_MENU", "bot_menu");
 	self addMenu("bot_menu", "main");
