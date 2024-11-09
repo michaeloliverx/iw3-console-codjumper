@@ -196,6 +196,36 @@ get_dvars()
 	return dvars;
 }
 
+get_maps()
+{
+	maps = [];
+	// Alphabetically sorted by value
+	maps["mp_convoy"] = "Ambush";
+	maps["mp_backlot"] = "Backlot";
+	maps["mp_bloc"] = "Bloc";
+	maps["mp_bog"] = "Bog";
+	maps["mp_broadcast"] = "Broadcast";
+	maps["mp_carentan"] = "Chinatown";
+	maps["mp_countdown"] = "Countdown";
+	maps["mp_crash"] = "Crash";
+	maps["mp_creek"] = "Creek";
+	maps["mp_crossfire"] = "Crossfire";
+	maps["mp_citystreets"] = "District";
+	maps["mp_farm"] = "Downpour";
+	maps["mp_killhouse"] = "Killhouse";
+	maps["mp_overgrown"] = "Overgrown";
+	maps["mp_pipeline"] = "Pipeline";
+	maps["mp_shipment"] = "Shipment";
+	maps["mp_showdown"] = "Showdown";
+	maps["mp_strike"] = "Strike";
+	maps["mp_vacant"] = "Vacant";
+	maps["mp_cargoship"] = "Wet Work";
+	if (level.xenon)
+		maps["mp_crash_snow"] = "Winter Crash";
+
+	return maps;
+}
+
 get_player_models()
 {
 	mapname = getDvar("mapname");

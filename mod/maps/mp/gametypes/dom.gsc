@@ -20,6 +20,7 @@ init()
 	level.DVARS = get_dvars();
 	level.THEMES = get_themes();
 	level.PLAYER_MODELS = get_player_models();
+	level.MAPS = get_maps();
 
 	level.SELECTED_PREFIX = "^2-->^7 ";
 
@@ -514,27 +515,14 @@ generateMenuOptions()
 			// Map selector
 			self addMenuOption("main", "Select map", ::menuAction, "CHANGE_MENU", "host_menu_maps");
 			self addMenu("host_menu_maps", "main");
-			self addMenuOption("host_menu_maps", "Ambush", ::changeMap, "mp_convoy");
-			self addMenuOption("host_menu_maps", "Backlot", ::changeMap, "mp_backlot");
-			self addMenuOption("host_menu_maps", "Bloc", ::changeMap, "mp_bloc");
-			self addMenuOption("host_menu_maps", "Bog", ::changeMap, "mp_bog");
-			self addMenuOption("host_menu_maps", "Broadcast", ::changeMap, "mp_broadcast");
-			self addMenuOption("host_menu_maps", "Chinatown", ::changeMap, "mp_carentan");
-			self addMenuOption("host_menu_maps", "Countdown", ::changeMap, "mp_countdown");
-			self addMenuOption("host_menu_maps", "Crash", ::changeMap, "mp_crash");
-			self addMenuOption("host_menu_maps", "Creek", ::changeMap, "mp_creek");
-			self addMenuOption("host_menu_maps", "Crossfire", ::changeMap, "mp_crossfire");
-			self addMenuOption("host_menu_maps", "District", ::changeMap, "mp_citystreets");
-			self addMenuOption("host_menu_maps", "Downpour", ::changeMap, "mp_farm");
-			self addMenuOption("host_menu_maps", "Killhouse", ::changeMap, "mp_killhouse");
-			self addMenuOption("host_menu_maps", "Overgrown", ::changeMap, "mp_overgrown");
-			self addMenuOption("host_menu_maps", "Pipeline", ::changeMap, "mp_pipeline");
-			self addMenuOption("host_menu_maps", "Shipment", ::changeMap, "mp_shipment");
-			self addMenuOption("host_menu_maps", "Showdown", ::changeMap, "mp_showdown");
-			self addMenuOption("host_menu_maps", "Strike", ::changeMap, "mp_strike");
-			self addMenuOption("host_menu_maps", "Vacant", ::changeMap, "mp_vacant");
-			self addMenuOption("host_menu_maps", "Wet Work", ::changeMap, "mp_cargoship");
-			self addMenuOption("host_menu_maps", "Winter Crash", ::changeMap, "mp_crash_snow");
+			maps = getarraykeys(level.MAPS);
+			// loop in reverse to display the maps in the order they are defined
+			for (i = maps.size - 1; i >= 0; i--)
+			{
+				mapname = maps[i];
+				label = level.MAPS[mapname];
+				self addMenuOption("host_menu_maps", label, ::changeMap, mapname);
+			}
 		}
 	}
 
