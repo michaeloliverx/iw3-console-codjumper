@@ -1084,3 +1084,128 @@ struct clipMap_t
     DynEntityColl *dynEntCollList[2];
     unsigned int checksum;
 };
+
+/* 677 */
+enum XAssetType : __int32
+{
+    ASSET_TYPE_XMODELPIECES = 0x0,
+    ASSET_TYPE_PHYSPRESET = 0x1,
+    ASSET_TYPE_XANIMPARTS = 0x2,
+    ASSET_TYPE_XMODEL = 0x3,
+    ASSET_TYPE_MATERIAL = 0x4,
+    ASSET_TYPE_PIXELSHADER = 0x5,
+    ASSET_TYPE_TECHNIQUE_SET = 0x6,
+    ASSET_TYPE_IMAGE = 0x7,
+    ASSET_TYPE_SOUND = 0x8,
+    ASSET_TYPE_SOUND_CURVE = 0x9,
+    ASSET_TYPE_LOADED_SOUND = 0xA,
+    ASSET_TYPE_CLIPMAP = 0xB,
+    ASSET_TYPE_CLIPMAP_PVS = 0xC,
+    ASSET_TYPE_COMWORLD = 0xD,
+    ASSET_TYPE_GAMEWORLD_SP = 0xE,
+    ASSET_TYPE_GAMEWORLD_MP = 0xF,
+    ASSET_TYPE_MAP_ENTS = 0x10,
+    ASSET_TYPE_GFXWORLD = 0x11,
+    ASSET_TYPE_LIGHT_DEF = 0x12,
+    ASSET_TYPE_UI_MAP = 0x13,
+    ASSET_TYPE_FONT = 0x14,
+    ASSET_TYPE_MENULIST = 0x15,
+    ASSET_TYPE_MENU = 0x16,
+    ASSET_TYPE_LOCALIZE_ENTRY = 0x17,
+    ASSET_TYPE_WEAPON = 0x18,
+    ASSET_TYPE_SNDDRIVER_GLOBALS = 0x19,
+    ASSET_TYPE_FX = 0x1A,
+    ASSET_TYPE_IMPACT_FX = 0x1B,
+    ASSET_TYPE_AITYPE = 0x1C,
+    ASSET_TYPE_MPTYPE = 0x1D,
+    ASSET_TYPE_CHARACTER = 0x1E,
+    ASSET_TYPE_XMODELALIAS = 0x1F,
+    ASSET_TYPE_RAWFILE = 0x20,
+    ASSET_TYPE_STRINGTABLE = 0x21,
+    ASSET_TYPE_COUNT = 0x22,
+    ASSET_TYPE_STRING = 0x22,
+    ASSET_TYPE_ASSETLIST = 0x23,
+};
+
+// stubs
+struct XModelPieces;
+struct PhysPreset;
+struct XAnimParts;
+struct XModel;
+struct Material;
+struct MaterialPixelShader;
+struct MaterialVertexShader;
+struct MaterialTechniqueSet;
+struct GfxImage;
+struct snd_alias_list_t;
+struct SndCurve;
+struct LoadedSound;
+// struct clipMap_t;
+struct ComWorld;
+struct GameWorldSp;
+struct GameWorldMp;
+struct MapEnts;
+struct GfxWorld;
+struct GfxLightDef;
+struct Font_s;
+struct MenuList;
+struct menuDef_t;
+struct LocalizeEntry;
+struct WeaponDef;
+struct SndDriverGlobals;
+struct FxEffectDef;
+struct FxImpactTable;
+// struct RawFile;
+struct StringTable;
+
+/* 9135 */
+struct RawFile
+{
+    const char *name;
+    int len;
+    const char *buffer;
+};
+
+/* 9025 */
+union XAssetHeader
+{
+    XModelPieces *xmodelPieces;
+    PhysPreset *physPreset;
+    XAnimParts *parts;
+    XModel *model;
+    Material *material;
+    MaterialPixelShader *pixelShader;
+    MaterialVertexShader *vertexShader;
+    MaterialTechniqueSet *techniqueSet;
+    GfxImage *image;
+    snd_alias_list_t *sound;
+    SndCurve *sndCurve;
+    LoadedSound *loadSnd;
+    clipMap_t *clipMap;
+    ComWorld *comWorld;
+    GameWorldSp *gameWorldSp;
+    GameWorldMp *gameWorldMp;
+    MapEnts *mapEnts;
+    GfxWorld *gfxWorld;
+    GfxLightDef *lightDef;
+    Font_s *font;
+    MenuList *menuList;
+    menuDef_t *menu;
+    LocalizeEntry *localize;
+    WeaponDef *weapon;
+    SndDriverGlobals *sndDriverGlobals;
+    const FxEffectDef *fx;
+    FxImpactTable *impactFx;
+    RawFile *rawfile;
+    StringTable *stringTable;
+    void *data;
+};
+
+/* 1100 */
+enum FsThread : __int32
+{
+    FS_THREAD_MAIN = 0x0,
+    FS_THREAD_STREAM = 0x1,
+    FS_THREAD_DATABASE = 0x2,
+    FS_THREAD_BACKEND = 0x3,
+};

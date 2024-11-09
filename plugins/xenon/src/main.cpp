@@ -94,6 +94,12 @@ gentity_s *(*GetEntity)(scr_entref_t entref) = reinterpret_cast<gentity_s *(*)(s
 void (*SV_UnlinkEntity)(gentity_s *ent) = reinterpret_cast<void (*)(gentity_s *ent)>(0x82355F08);
 int (*SV_SetBrushModel)(gentity_s *ent) = reinterpret_cast<int (*)(gentity_s *ent)>(0x82205050);
 void (*SV_LinkEntity)(gentity_s *ent) = reinterpret_cast<void (*)(gentity_s *ent)>(0x82355A00);
+char *(*Scr_ReadFile_FastFile)(const char *filename, const char *extFilename, const char *codePos) = reinterpret_cast<char *(*)(const char *filename, const char *extFilename, const char *codePos)>(0x82221220);
+void (*Scr_AddSourceBufferInternal)(const char *extFilename, const char *codePos, char *sourceBuf, int len, bool doEolFixup, bool archive) = reinterpret_cast<void (*)(const char *extFilename, const char *codePos, char *sourceBuf, int len, bool doEolFixup, bool archive)>(0x822210E0);
+XAssetHeader *(*DB_FindXAssetHeader)(XAssetType type, const char *name) = reinterpret_cast<XAssetHeader *(*)(XAssetType type, const char *name)>(0x822A0298);
+unsigned int (*FS_FOpenFileReadForThread)(const char *filename, int *file, FsThread thread) = reinterpret_cast<unsigned int (*)(const char *filename, int *file, FsThread thread)>(0x821DB8B0);
+int (*FS_ReadFile)(const char *qpath, void **buffer) = reinterpret_cast<int (*)(const char *qpath, void **buffer)>(0x821DBB60);
+int (*FS_FCloseFile)(int f) = reinterpret_cast<int (*)(int f)>(0x821DB780);
 
 // Variables
 serverStaticHeader_t *svsHeader = reinterpret_cast<serverStaticHeader_t *>(0x849F1580);
@@ -240,10 +246,10 @@ xfunction_t *Scr_GetFunction_Hook(const char **pName, int *type)
 
     if (std::strcmp(*pName, "restorebrushcollisions") == 0)
         return reinterpret_cast<xfunction_t *>(&GScr_RestoreBrushCollisions);
-    
+
     if (std::strcmp(*pName, "enablecollisionforbrushcontainingorigin") == 0)
         return reinterpret_cast<xfunction_t *>(&GScr_EnableCollisionForBrushContainingOrigin);
-    
+
     if (std::strcmp(*pName, "disablecollisionforbrushcontainingorigin") == 0)
         return reinterpret_cast<xfunction_t *>(&GScr_DisableCollisionForBrushContainingOrigin);
 
@@ -457,12 +463,71 @@ xfunction_t *Scr_GetMethodHook(const char **pName, int *type)
     return result;
 }
 
+Detour Scr_ReadFile_FastFile_Detour;
+
+char *Scr_ReadFile_FastFile_Hook(const char *filename, const char *extFilename, const char *codePos, bool archive)
+{
+    // Check if the file is in the raw folder
+    char *path = va("raw/%s", extFilename);
+    auto file_handle = 0;
+    auto file_size = FS_FOpenFileReadForThread(path, &file_handle, FS_THREAD_MAIN);
+    if (file_size != -1)
+    {
+        DbgPrint("[SCR_READFILE_FASTFILE_HOOK] Loading file from raw folder: FilePath=%s\n", path);
+        void *fileData = nullptr;
+        int result = FS_ReadFile(path, &fileData);
+        if (result)
+        {
+            Scr_AddSourceBufferInternal(extFilename, codePos, static_cast<char *>(fileData), file_size, 1, 1);
+            return static_cast<char *>(fileData);
+        }
+
+        FS_FCloseFile(file_handle);
+    }
+
+    DbgPrint("[SCR_READFILE_FASTFILE_HOOK] Loading file from fastfile: FilePath=%s\n", path);
+
+    // original function logic
+
+    XAssetHeader *v6; // r3
+    char *result;     // r3
+    char *v8;         // r31
+    char *v9;         // r11
+
+    v6 = DB_FindXAssetHeader(ASSET_TYPE_RAWFILE, extFilename);
+    if (v6)
+    {
+        v8 = (char *)v6[2].xmodelPieces;
+        v9 = v8;
+        while (*v9++)
+            ;
+        Scr_AddSourceBufferInternal(
+            extFilename,
+            codePos,
+            (char *)v6[2].xmodelPieces,
+            v9 - (char *)v6[2].xmodelPieces - 1,
+            1,
+            archive);
+        result = v8;
+    }
+    else
+    {
+        Scr_AddSourceBufferInternal(extFilename, codePos, 0, -1, 1, archive);
+        result = 0;
+    }
+
+    return result;
+}
+
 void InitIW3()
 {
     // Waiting a little bit for the game to be fully loaded in memory
     Sleep(1000);
 
     XNotifyQueueUI(0, 0, XNOTIFY_SYSTEM, L"CodJumper - by mo", nullptr);
+
+    Scr_ReadFile_FastFile_Detour = Detour(Scr_ReadFile_FastFile, Scr_ReadFile_FastFile_Hook);
+    Scr_ReadFile_FastFile_Detour.Install();
 
     Scr_GetFunction_Detour = Detour(Scr_GetFunction, Scr_GetFunction_Hook);
     Scr_GetFunction_Detour.Install();
