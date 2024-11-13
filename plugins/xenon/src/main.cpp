@@ -7,6 +7,8 @@
 #include <vector>
 #include <map>
 #include <fstream>
+#include <algorithm>
+
 #include "detour.h"
 #include "structs.h"
 
@@ -116,6 +118,22 @@ serverStaticHeader_t *svsHeader = reinterpret_cast<serverStaticHeader_t *>(0x849
 clipMap_t *cm = reinterpret_cast<clipMap_t *>(0x82A23240);
 XAssetEntryPoolEntry *g_assetEntryPool = reinterpret_cast<XAssetEntryPoolEntry *>(0x82583B60);
 const int POOL_SIZE = 30000;
+
+/* 9724 */
+union XAssetPoolEntryRawFile
+{
+    RawFile entry;
+    XAssetPoolEntryRawFile *next;
+};
+
+/* 9725 */
+struct XAssetPoolRawFile
+{
+    XAssetPoolEntryRawFile *freeHead;
+    XAssetPoolEntryRawFile entries[1024];
+};
+
+XAssetPoolRawFile *xassetpool_rawfile = reinterpret_cast<XAssetPoolRawFile *>(0x82708C20);
 
 // void (*Load_XAssetHeader)(bool value) = reinterpret_cast<void (*)(bool atStreamStart)>(0x822B1838);
 // XAsset *varXAsset = reinterpret_cast<XAsset *>(0x82475654);
@@ -426,11 +444,32 @@ void GScr_DisableCollisionForBrushContainingOrigin()
 //     DbgPrint("Name: %s\n", image->name ? image->name : "NULL");
 // }
 
-// Define necessary DDS constants
-#define DDS_MAGIC 0x20534444 // 'DDS ' in hexadecimal
-#define DDS_HEADER_SIZE 124
-#define DDS_PIXEL_FORMAT_SIZE 32
-#define DXN_FOURCC 0x32495441 // 'ATI2' (DXN) in hexadecimal
+// Helper function to convert 32-bit values to little-endian
+uint32_t to_little_endian(uint32_t value)
+{
+    return ((value & 0xFF000000) >> 24) |
+           ((value & 0x00FF0000) >> 8) |
+           ((value & 0x0000FF00) << 8) |
+           ((value & 0x000000FF) << 24);
+}
+
+// Helper function to convert 16-bit values to little-endian
+uint16_t to_little_endian(uint16_t value)
+{
+    return (value >> 8) | (value << 8);
+}
+
+// DDS constants as const variables with explicit types
+const uint32_t DDS_MAGIC = 0x20534444; // 'DDS ' in hexadecimal
+const uint32_t DDS_HEADER_SIZE = 124;
+const uint32_t DDS_PIXEL_FORMAT_SIZE = 32;
+const uint32_t DXT1_FOURCC = 0x31545844; // 'DXT1' in hexadecimal
+const uint32_t DDSD_CAPS = 0x1;
+const uint32_t DDSD_HEIGHT = 0x2;
+const uint32_t DDSD_WIDTH = 0x4;
+const uint32_t DDSD_PIXELFORMAT = 0x1000;
+const uint32_t DDPF_FOURCC = 0x4;
+const uint32_t DDSCAPS_TEXTURE = 0x1000;
 
 // DDS header structure
 struct DDSHeader
@@ -465,10 +504,6 @@ struct DDSHeader
 // Function to write DDS file with raw pixel data using ofstream
 void dumpGfxImageToDDS(const GfxImage *gfxImage, const char *filename)
 {
-    // Create directories if they don't already exist
-    CreateDirectory("game:\\dump", nullptr);
-    CreateDirectory("game:\\dump\\images", nullptr);
-
     // Construct the full file path
     std::string path_str = "game:\\dump\\images\\";
     path_str += filename; // Concatenate the filename to the path
@@ -477,44 +512,44 @@ void dumpGfxImageToDDS(const GfxImage *gfxImage, const char *filename)
     std::ofstream file(path_str.c_str(), std::ios::binary);
     if (!file)
     {
-        printf("Failed to open file for writing.\n");
+        DbgPrint("Failed to open file for writing.\n");
         return;
     }
 
-    // Prepare DDS header
+    // Prepare DDS header with little-endian conversion
     DDSHeader header;
     memset(&header, 0, sizeof(DDSHeader));
-    header.magic = DDS_MAGIC;
-    header.size = DDS_HEADER_SIZE;
-    header.flags = 0x00021007; // DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT
-    header.height = gfxImage->height;
-    header.width = gfxImage->width;
-    header.pitchOrLinearSize = gfxImage->baseSize;
-    header.depth = gfxImage->depth;
-    header.mipMapCount = 1;
-    header.pixelFormat.size = DDS_PIXEL_FORMAT_SIZE;
-    header.pixelFormat.flags = 0x00000004;  // DDPF_FOURCC
-    header.pixelFormat.fourCC = DXN_FOURCC; // FourCC for DXN (ATI2)
-    header.caps = 0x1000;                   // DDSCAPS_TEXTURE
+    header.magic = to_little_endian(DDS_MAGIC);
+    header.size = to_little_endian(DDS_HEADER_SIZE);
+    header.flags = to_little_endian(DDSD_CAPS | DDSD_HEIGHT | DDSD_WIDTH | DDSD_PIXELFORMAT);
+    header.height = to_little_endian(static_cast<uint32_t>(gfxImage->height));
+    header.width = to_little_endian(static_cast<uint32_t>(gfxImage->width));
+    header.pitchOrLinearSize = to_little_endian(static_cast<uint32_t>(gfxImage->baseSize));
+    header.depth = to_little_endian(static_cast<uint32_t>(gfxImage->depth));
+    header.mipMapCount = to_little_endian(static_cast<uint32_t>(1));
+    header.pixelFormat.size = to_little_endian(DDS_PIXEL_FORMAT_SIZE);
+    header.pixelFormat.flags = to_little_endian(DDPF_FOURCC);
+    header.pixelFormat.fourCC = to_little_endian(DXT1_FOURCC);
+    header.caps = to_little_endian(DDSCAPS_TEXTURE);
 
-    // Write the DDS header
+    // Write the DDS header with little-endian format
     file.write(reinterpret_cast<const char *>(&header), sizeof(DDSHeader));
     if (!file)
     {
-        printf("Failed to write DDS header.\n");
+        DbgPrint("Failed to write DDS header.\n");
         return;
     }
 
-    // Write the pixel data
+    // Write the pixel data (no endian conversion needed for raw bytes)
     file.write(reinterpret_cast<const char *>(gfxImage->pixels), gfxImage->baseSize);
     if (!file)
     {
-        printf("Failed to write pixel data.\n");
+        DbgPrint("Failed to write pixel data.\n");
         return;
     }
 
     file.close();
-    printf("Image dumped to %s successfully.\n", path_str.c_str());
+    DbgPrint("Image dumped to %s successfully.\n", path_str.c_str());
 }
 
 void Gscr_LogAssetInfo()
@@ -655,18 +690,17 @@ void Gscr_LogAssetInfo()
         if (type == ASSET_TYPE_MAP_ENTS)
         {
             auto mapEnts = entry->entry.asset.header.mapEnts;
-            DbgPrint("entityString: \n%s", mapEnts->entityString);
+            // DbgPrint("entityString: \n%s", mapEnts->entityString);s
         }
         else if (type == ASSET_TYPE_IMAGE)
         {
             auto image = entry->entry.asset.header.image;
-            DbgPrint("width: %d height: %d depth: %d delayLoadPixels: %d", image->width, image->height, image->depth, image->delayLoadPixels);
+            // DbgPrint("width: %d height: %d depth: %d delayLoadPixels: %d", image->width, image->height, image->depth, image->delayLoadPixels);
             // viewhands_marine_gloves_col
-            if (strcmp(image->name, "viewhands_marine_gloves_col") == 0)
+            if (strcmp(image->name, "viewhands_marine_gloves_col") == 0 || strcmp(image->name, "weapon_desert_eagle_silver_col") == 0)
             {
-                // dump raw pixels data
-                DbgPrint("Dumping raw pixels data\n");
-                dumpGfxImageToDDS(image, "viewhands_marine_gloves_col.dds");
+                // Dump the raw pixels data to a DDS file
+                dumpGfxImageToDDS(image, image->name);
             }
         }
     }
@@ -1216,6 +1250,52 @@ int Com_sprintf_Hook(char *dest, int size, const char *fmt, ...)
 //     }
 // }
 
+// // Convert RGB values (8 bits each) to RGB 5:6:5 format (16 bits)
+// uint16_t rgb_to_565(uint8_t red, uint8_t green, uint8_t blue)
+// {
+//     return ((red >> 3) << 11) | ((green >> 2) << 5) | (blue >> 3);
+// }
+
+// // Function to fill DXT1 pixel data with a solid color
+// void fill_dxt1_with_color(uint8_t *pixel_data, int width, int height, uint8_t red, uint8_t green, uint8_t blue)
+// {
+//     uint16_t color565 = rgb_to_565(red, green, blue);
+//     uint64_t dxt1_block;
+
+//     // Set color0 and color1 to the same color for a solid fill
+//     dxt1_block = (static_cast<uint64_t>(color565) << 48) | (static_cast<uint64_t>(color565) << 32);
+
+//     // Set all indices to 0 to use the color0 value
+//     // This fills in the last 4 bytes (32 bits) of the block
+//     dxt1_block |= 0x00000000FFFFFFFF;
+
+//     // Calculate the number of blocks (4x4 pixels per block)
+//     int num_blocks = (width / 4) * (height / 4);
+
+//     // Fill each 8-byte block with the solid color
+//     for (int i = 0; i < num_blocks; ++i)
+//     {
+//         memcpy(pixel_data + i * 8, &dxt1_block, sizeof(dxt1_block));
+//     }
+// }
+
+XAssetEntryPoolEntry *(*DB_FindXAssetEntry)(XAssetType type, const char *name) = reinterpret_cast<XAssetEntryPoolEntry *(*)(XAssetType type, const char *name)>(0x8229EB98);
+
+#include <cstdlib> // For std::rand
+#include <ctime>   // For std::time
+
+void fill_pixels_with_random(GfxImage *image)
+{
+    // Seed random number generator for unpredictable values
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
+    // Loop through the pixels array and replace each byte up to baseSize with random values
+    for (unsigned int i = 0; i < image->baseSize; ++i)
+    {
+        image->pixels[i] = static_cast<unsigned __int8>(std::rand() % 256); // Random value between 0 and 255
+    }
+}
+
 void InitIW3()
 {
     // Waiting a little bit for the game to be fully loaded in memory
@@ -1268,7 +1348,73 @@ void InitIW3()
     XNotifyQueueUI(0, 0, XNOTIFY_SYSTEM, L"iw3xenon loaded", nullptr);
 
     Sleep(5000);
-    Gscr_LogAssetInfo();
+
+    // Create directories if they don't already exist
+    CreateDirectory("game:\\dump", nullptr);
+    CreateDirectory("game:\\dump\\images", nullptr);
+    CreateDirectory("game:\\dump\\rawfiles", nullptr);
+
+    for (int i = 0; i < POOL_SIZE; i++)
+    {
+        auto entry = &g_assetEntryPool[i];
+        // if (entry == nullptr || entry->next == nullptr)
+        //     break;
+
+        int type = entry->entry.asset.type;
+
+        if (type == ASSET_TYPE_IMAGE)
+        {
+            auto image = entry->entry.asset.header.image;
+
+            if (strcmp(image->name, "viewhands_marine_gloves_col") == 0)
+            {
+                DbgPrint("Found image: %s baseSize: %d\n", image->name, image->baseSize);
+                fill_pixels_with_random(image);
+                // fill_dxt1_with_color(image->pixels, image->width, image->height, 255, 0, 0);
+            }
+        }
+    }
+
+    // auto *image = DB_FindXAssetEntry(ASSET_TYPE_IMAGE, "viewhands_marine_gloves_col");
+    // if (image)
+    // {
+    //     DbgPrint("Found image: %s\n", image->entry.asset.header.image->name);
+
+    //     fill_dxt1_with_color(image->entry.asset.header.image->pixels, image->entry.asset.header.image->width, image->entry.asset.header.image->height, 255, 0, 0);
+    // }
+
+    // Gscr_LogAssetInfo();
+
+    // // Loop through all 1024 entries
+    // for (int i = 0; i < 383; ++i)
+    // {
+    //     RawFile &rawFile = xassetpool_rawfile->entries[i].entry;
+    //     if (rawFile.name != nullptr && rawFile.len != 0)
+    //     {
+    //         std::cout << "Dumping Entry " << i << ": Name = " << rawFile.name << " Length = " << rawFile.len << "\n";
+    //         std::string path_str = rawFile.name;
+    //         std::replace(path_str.begin(), path_str.end(), '/', '_');
+    //         std::cout << "Modified string: " << path_str << std::endl;
+    //         path_str = "game:\\dump\\rawfiles\\" + path_str;
+
+    //         // Open a file for binary writing
+    //         std::ofstream file(path_str);
+    //         // Check if the file is open
+    //         if (file.is_open())
+    //         {
+    //             // Write the buffer to the file
+    //             file.write(rawFile.buffer, strlen(rawFile.buffer)); // use strlen to get the length of the buffer minus the null terminator
+
+    //             // Close the file after writing
+    //             file.close();
+    //             std::cout << "Buffer written to file successfully." << std::endl;
+    //         }
+    //         else
+    //         {
+    //             std::cerr << "Error opening file for writing: " << std::strerror(errno) << std::endl;
+    //         }
+    //     }
+    // }
 }
 
 int DllMain(HANDLE hModule, DWORD reason, void *pReserved)
@@ -1276,11 +1422,11 @@ int DllMain(HANDLE hModule, DWORD reason, void *pReserved)
     switch (reason)
     {
     case DLL_PROCESS_ATTACH:
-        printf("CodJumper Loaded!\n");
+        DbgPrint("CodJumper Loaded!\n");
         ExCreateThread(nullptr, 0, nullptr, nullptr, reinterpret_cast<PTHREAD_START_ROUTINE>(MonitorTitleId), nullptr, 2);
         break;
     case DLL_PROCESS_DETACH:
-        printf("CodJumper Unloaded!\n");
+        DbgPrint("CodJumper Unloaded!\n");
         break;
     }
 
