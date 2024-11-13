@@ -1085,6 +1085,18 @@ struct clipMap_t
     unsigned int checksum;
 };
 
+/* 8794 */
+struct __declspec(align(8)) MaterialInfo
+{
+    const char *name;
+    // unsigned __int8 gameFlags;
+    // unsigned __int8 sortKey;
+    // unsigned __int8 textureAtlasRowCount;
+    // unsigned __int8 textureAtlasColumnCount;
+    // GfxDrawSurf drawSurf;
+    // unsigned int surfaceTypeBits;
+};
+
 /* 677 */
 enum XAssetType : __int32
 {
@@ -1127,36 +1139,464 @@ enum XAssetType : __int32
     ASSET_TYPE_ASSETLIST = 0x23,
 };
 
-// stubs
-struct XModelPieces;
-struct PhysPreset;
-struct XAnimParts;
-struct XModel;
-struct Material;
-struct MaterialPixelShader;
-struct MaterialVertexShader;
-struct MaterialTechniqueSet;
-struct GfxImage;
-struct snd_alias_list_t;
-struct SndCurve;
-struct LoadedSound;
+/* 8914 */
+struct XModel
+{
+    const char *name;
+    //   unsigned __int8 numBones;
+    //   unsigned __int8 numRootBones;
+    //   unsigned __int8 numsurfs;
+    //   unsigned __int8 lodRampType;
+    //   unsigned __int16 *boneNames;
+    //   unsigned __int8 *parentList;
+    //   __int16 *quats;
+    //   float *trans;
+    //   unsigned __int8 *partClassification;
+    //   DObjAnimMat *baseMat;
+    //   XSurface *surfs;
+    //   Material **materialHandles;
+    //   XModelLodInfo lodInfo[4];
+    //   XModelCollSurf_s *collSurfs;
+    //   int numCollSurfs;
+    //   int contents;
+    //   XBoneInfo *boneInfo;
+    //   float radius;
+    //   float mins[3];
+    //   float maxs[3];
+    //   __int16 numLods;
+    //   __int16 collLod;
+    //   XModelStreamInfo streamInfo;
+    //   int memUsage;
+    //   unsigned __int8 flags;
+    //   PhysPreset *physPreset;
+    //   PhysGeomList *physGeoms;
+};
+
+/* 9056 */
+struct XModelPiece
+{
+    XModel *model;
+    float offset[3];
+};
+
+/* 9057 */
+struct XModelPieces
+{
+    const char *name;
+    int numpieces;
+    XModelPiece *pieces;
+};
+
+/* 8908 */
+struct __declspec(align(4)) PhysPreset
+{
+    const char *name;
+    int type;
+    float mass;
+    float bounce;
+    float friction;
+    float bulletForceScale;
+    float explosiveForceScale;
+    const char *sndAliasPrefix;
+    float piecesSpreadFraction;
+    float piecesUpwardVelocity;
+    bool tempDefaultToCylinder;
+};
+
+/* 8884 */
+struct XAnimParts
+{
+    const char *name;
+    //   unsigned __int16 dataByteCount;
+    //   unsigned __int16 dataShortCount;
+    //   unsigned __int16 dataIntCount;
+    //   unsigned __int16 randomDataByteCount;
+    //   unsigned __int16 randomDataIntCount;
+    //   unsigned __int16 numframes;
+    //   bool bLoop;
+    //   bool bDelta;
+    //   unsigned __int8 boneCount[12];
+    //   unsigned __int8 notifyCount;
+    //   unsigned __int8 assetType;
+    //   bool pad;
+    //   unsigned int randomDataShortCount;
+    //   unsigned int indexCount;
+    //   float framerate;
+    //   float frequency;
+    //   unsigned __int16 *names;
+    //   unsigned __int8 *dataByte;
+    //   __int16 *dataShort;
+    //   int *dataInt;
+    //   __int16 *randomDataShort;
+    //   unsigned __int8 *randomDataByte;
+    //   int *randomDataInt;
+    //   XAnimIndices indices;
+    //   XAnimNotifyInfo *notify;
+    //   XAnimDeltaPart *deltaPart;
+};
+
+/* 8820 */
+struct Material
+{
+    MaterialInfo info;
+    //   unsigned __int8 stateBitsEntry[26];
+    //   unsigned __int8 textureCount;
+    //   unsigned __int8 constantCount;
+    //   unsigned __int8 stateBitsCount;
+    //   unsigned __int8 stateFlags;
+    //   unsigned __int8 cameraRegion;
+    //   MaterialTechniqueSet *techniqueSet;
+    //   MaterialTextureDef *textureTable;
+    //   MaterialConstantDef *constantTable;
+    //   GfxStateBits *stateBitsTable;
+};
+
+/* 8802 */
+struct GfxPixelShaderLoadDef
+{
+    unsigned __int8 *cachedPart;
+    unsigned __int8 *physicalPart;
+    unsigned __int16 cachedPartSize;
+    unsigned __int16 physicalPartSize;
+};
+
+/* 8803 */
+union MaterialPixelShaderProgram
+{
+    D3DPixelShader *ps;
+    GfxPixelShaderLoadDef loadDef;
+};
+
+/* 8804 */
+struct MaterialPixelShader
+{
+    const char *name;
+    MaterialPixelShaderProgram prog;
+};
+
+/* 8799 */
+struct GfxVertexShaderLoadDef
+{
+    unsigned __int8 *cachedPart;
+    unsigned __int8 *physicalPart;
+    unsigned __int16 cachedPartSize;
+    unsigned __int16 physicalPartSize;
+};
+
+/* 8800 */
+union MaterialVertexShaderProgram
+{
+    D3DVertexShader *vs;
+    GfxVertexShaderLoadDef loadDef;
+};
+
+/* 8801 */
+struct MaterialVertexShader
+{
+    const char *name;
+    MaterialVertexShaderProgram prog;
+};
+
+/* 8795 */
+struct MaterialTechniqueSet
+{
+    const char *name;
+    unsigned __int8 worldVertFormat;
+    unsigned __int8 unused[2];
+    MaterialTechniqueSet *remappedTechniqueSet;
+    //   MaterialTechnique *techniques[26];
+};
+
+/* 943 */
+enum MapType : __int32
+{
+    MAPTYPE_NONE = 0x0,
+    MAPTYPE_INVALID1 = 0x1,
+    MAPTYPE_INVALID2 = 0x2,
+    MAPTYPE_2D = 0x3,
+    MAPTYPE_3D = 0x4,
+    MAPTYPE_CUBE = 0x5,
+    MAPTYPE_COUNT = 0x6,
+};
+
+struct GfxImageLoadDef; // forward declaration
+
+/* 8810 */
+union GfxTexture
+{
+    D3DBaseTexture *basemap;
+    D3DTexture *map;
+    D3DVolumeTexture *volmap;
+    D3DCubeTexture *cubemap;
+    GfxImageLoadDef *loadDef;
+};
+
+/* 8811 */
+struct GfxImageLoadDef
+{
+    unsigned __int8 levelCount;
+    unsigned __int8 flags;
+    __int16 dimensions[3];
+    int format;
+    GfxTexture texture;
+};
+
+static_assert(offsetof(GfxImageLoadDef, texture) == 12, "");
+
+/* 8812 */
+struct CardMemory
+{
+    int platform[1];
+};
+
+/* 8813 */
+struct GfxImage
+{
+    MapType mapType;
+    GfxTexture texture;
+    unsigned __int8 semantic;
+    CardMemory cardMemory;
+    unsigned __int16 width;
+    unsigned __int16 height;
+    unsigned __int16 depth;
+    unsigned __int8 category;
+    bool delayLoadPixels;
+    unsigned __int8 *pixels;
+    unsigned int baseSize;
+    unsigned __int16 streamSlot;
+    bool streaming;
+    const char *name;
+};
+
+struct snd_alias_t;
+
+/* 8976 */
+struct snd_alias_list_t
+{
+    const char *aliasName;
+    snd_alias_t *head;
+    int count;
+};
+
+/* 8930 */
+struct SndCurve
+{
+    const char *filename;
+    int knotCount;
+    float knots[8][2];
+};
+
+/* 8924 */
+struct LoadedSound
+{
+    const char *name;
+    // XaSound sound;
+};
+
 // struct clipMap_t;
-struct ComWorld;
-struct GameWorldSp;
-struct GameWorldMp;
-struct MapEnts;
-struct GfxWorld;
-struct GfxLightDef;
-struct Font_s;
-struct MenuList;
+
+/* 9080 */
+struct ComPrimaryLight
+{
+    unsigned __int8 type;
+    unsigned __int8 canUseShadowMap;
+    unsigned __int8 exponent;
+    unsigned __int8 unused;
+    float color[3];
+    float dir[3];
+    float origin[3];
+    float radius;
+    float cosHalfFovOuter;
+    float cosHalfFovInner;
+    float cosHalfFovExpanded;
+    float rotationLimit;
+    float translationLimit;
+    const char *defName;
+};
+
+/* 9081 */
+struct ComWorld
+{
+    const char *name;
+    int isInUse;
+    unsigned int primaryLightCount;
+    ComPrimaryLight *primaryLights;
+};
+
+/* 9092 */
+struct GameWorldSp
+{
+    const char *name;
+    //   PathData path;
+};
+
+/* 9093 */
+struct GameWorldMp
+{
+    const char *name;
+};
+
+/* 9131 */
+struct GfxWorld
+{
+    const char *name;
+    const char *baseName;
+    int planeCount;
+    int nodeCount;
+    int indexCount;
+    unsigned __int16 *indices;
+    //   D3DIndexBuffer indexBuffer;
+    //   int surfaceCount;
+    //   GfxWorldStreamInfo streamInfo;
+    //   int skySurfCount;
+    //   int *skyStartSurfs;
+    //   GfxImage *skyImage;
+    //   unsigned __int8 skySamplerState;
+    //   unsigned int vertexCount;
+    //   GfxWorldVertexData vd;
+    //   unsigned int vertexLayerDataSize;
+    //   GfxWorldVertexLayerData vld;
+    //   SunLightParseParams sunParse;
+    //   GfxLight *sunLight;
+    //   float sunColorFromBsp[3];
+    //   unsigned int sunPrimaryLightIndex;
+    //   unsigned int primaryLightCount;
+    //   int cullGroupCount;
+    //   unsigned int reflectionProbeCount;
+    //   GfxReflectionProbe *reflectionProbes;
+    //   GfxTexture *reflectionProbeTextures;
+    //   GfxWorldDpvsPlanes dpvsPlanes;
+    //   int cellBitsCount;
+    //   GfxCell *cells;
+    //   int lightmapCount;
+    //   GfxLightmapArray *lightmaps;
+    //   GfxLightGrid lightGrid;
+    //   GfxTexture *lightmapPrimaryTextures;
+    //   GfxTexture *lightmapSecondaryTextures;
+    //   int modelCount;
+    //   GfxBrushModel *models;
+    //   float mins[3];
+    //   float maxs[3];
+    //   unsigned int checksum;
+    //   int materialMemoryCount;
+    //   MaterialMemory *materialMemory;
+    //   sunflare_t sun;
+    //   float outdoorLookupMatrix[4][4];
+    //   GfxImage *outdoorImage;
+    //   unsigned int *cellCasterBits;
+    //   GfxSceneDynModel *sceneDynModel;
+    //   GfxSceneDynBrush *sceneDynBrush;
+    //   unsigned int *primaryLightEntityShadowVis;
+    //   unsigned int *primaryLightDynEntShadowVis[2];
+    //   unsigned __int8 *nonSunPrimaryLightForModelDynEnt;
+    //   GfxShadowGeometry *shadowGeom;
+    //   GfxLightRegion *lightRegion;
+    //   GfxWorldDpvsStatic dpvs;
+    //   GfxWorldDpvsDynamic dpvsDyn;
+};
+
+/* 8929 */
+struct __declspec(align(4)) GfxLightImage
+{
+    GfxImage *image;
+    unsigned __int8 samplerState;
+};
+
+/* 8933 */
+struct GfxLightDef
+{
+    const char *name;
+    GfxLightImage attenuation;
+    int lmapLookupStart;
+};
+
+/* 8828 */
+struct Glyph
+{
+    unsigned __int16 letter;
+    char x0;
+    char y0;
+    unsigned __int8 dx;
+    unsigned __int8 pixelWidth;
+    unsigned __int8 pixelHeight;
+    float s0;
+    float t0;
+    float s1;
+    float t1;
+};
+
+/* 8829 */
+struct Font_s
+{
+    const char *fontName;
+    int pixelHeight;
+    int glyphCount;
+    Material *material;
+    Material *glowMaterial;
+    Glyph *glyphs;
+};
+
+/* 9030 */
+struct MenuList
+{
+    const char *name;
+    int menuCount;
+    // menuDef_t **menus;
+};
+
 struct menuDef_t;
-struct LocalizeEntry;
-struct WeaponDef;
-struct SndDriverGlobals;
-struct FxEffectDef;
-struct FxImpactTable;
-// struct RawFile;
-struct StringTable;
+
+/* 9132 */
+struct LocalizeEntry
+{
+    const char *value;
+    const char *name;
+};
+
+/* 9133 */
+struct WeaponDef
+{
+    const char *szInternalName;
+    const char *szDisplayName;
+    const char *szOverlayName;
+    // ... lots of fields
+};
+
+/* 9049 */
+struct XaReverbSettings;
+
+/* 9134 */
+struct SndDriverGlobals
+{
+    XaReverbSettings *reverbSettings;
+    const char *name;
+};
+
+/* 8953 */
+const struct FxElemDef;
+
+/* 8947 */
+const struct FxEffectDef
+{
+    const char *name;
+    int flags;
+    int totalSize;
+    int msecLoopingLife;
+    int elemDefCountLooping;
+    int elemDefCountOneShot;
+    int elemDefCountEmission;
+    const FxElemDef *elemDefs;
+};
+
+/* 9050 */
+struct FxImpactEntry;
+
+/* 9055 */
+struct FxImpactTable
+{
+    const char *name;
+    FxImpactEntry *table;
+};
 
 /* 9135 */
 struct RawFile
@@ -1164,6 +1604,15 @@ struct RawFile
     const char *name;
     int len;
     const char *buffer;
+};
+
+/* 9053 */
+struct StringTable
+{
+    const char *name;
+    int columnCount;
+    int rowCount;
+    const char **values;
 };
 
 /* 9025 */
@@ -1208,4 +1657,29 @@ enum FsThread : __int32
     FS_THREAD_STREAM = 0x1,
     FS_THREAD_DATABASE = 0x2,
     FS_THREAD_BACKEND = 0x3,
+};
+
+/* 9646 */
+struct XAsset
+{
+    XAssetType type;
+    XAssetHeader header;
+};
+
+/* 9743 */
+struct XAssetEntry
+{
+    XAsset asset;
+    unsigned __int8 zoneIndex;
+    bool inuse;
+    unsigned __int16 nextHash;
+    unsigned __int16 nextOverride;
+    unsigned __int16 usageFrame;
+};
+
+/* 9748 */
+union XAssetEntryPoolEntry
+{
+    XAssetEntry entry;
+    XAssetEntryPoolEntry *next;
 };
