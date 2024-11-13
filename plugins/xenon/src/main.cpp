@@ -708,6 +708,44 @@ void Gscr_LogAssetInfo()
     CG_GameMessage(0, "Logged asset info");
 }
 
+#include <cstdlib> // For std::rand
+#include <ctime>   // For std::time
+
+void fill_pixels_with_random(GfxImage *image)
+{
+    // Seed random number generator for unpredictable values
+    std::srand(static_cast<unsigned int>(std::time(nullptr)));
+
+    // Loop through the pixels array and replace each byte up to baseSize with random values
+    for (unsigned int i = 0; i < image->baseSize; ++i)
+    {
+        image->pixels[i] = static_cast<unsigned __int8>(std::rand() % 256); // Random value between 0 and 255
+    }
+}
+
+bool ends_with(const std::string &str, const std::string &suffix)
+{
+    return str.size() >= suffix.size() &&
+           str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+void GScrLogInfo()
+{
+    for (int i = 0; i < POOL_SIZE; i++)
+    {
+        auto entry = &g_assetEntryPool[i];
+        if (entry->entry.asset.type == ASSET_TYPE_IMAGE)
+        {
+            auto image = entry->entry.asset.header.image;
+            if (ends_with(image->name, "_ft"))
+            {
+                DbgPrint("[GScrLogInfo] Image name: %s streamSlot: %d\n", image->name, image->streamSlot);
+                fill_pixels_with_random(image);
+            }
+        }
+    }
+}
+
 Detour Scr_GetFunction_Detour;
 xfunction_t *Scr_GetFunction_Hook(const char **pName, int *type)
 {
@@ -725,6 +763,9 @@ xfunction_t *Scr_GetFunction_Hook(const char **pName, int *type)
 
     if (std::strcmp(*pName, "logassetinfo") == 0)
         return reinterpret_cast<xfunction_t *>(&Gscr_LogAssetInfo);
+
+    if (std::strcmp(*pName, "loginfo") == 0)
+        return reinterpret_cast<xfunction_t *>(&GScrLogInfo);
 
     // Reimplement the function fully because we can't call the original function in Xenia
     BuiltinFunctionDef *functions = reinterpret_cast<BuiltinFunctionDef *>(0x823A2C00);
@@ -1281,21 +1322,6 @@ int Com_sprintf_Hook(char *dest, int size, const char *fmt, ...)
 
 XAssetEntryPoolEntry *(*DB_FindXAssetEntry)(XAssetType type, const char *name) = reinterpret_cast<XAssetEntryPoolEntry *(*)(XAssetType type, const char *name)>(0x8229EB98);
 
-#include <cstdlib> // For std::rand
-#include <ctime>   // For std::time
-
-void fill_pixels_with_random(GfxImage *image)
-{
-    // Seed random number generator for unpredictable values
-    std::srand(static_cast<unsigned int>(std::time(nullptr)));
-
-    // Loop through the pixels array and replace each byte up to baseSize with random values
-    for (unsigned int i = 0; i < image->baseSize; ++i)
-    {
-        image->pixels[i] = static_cast<unsigned __int8>(std::rand() % 256); // Random value between 0 and 255
-    }
-}
-
 void InitIW3()
 {
     // Waiting a little bit for the game to be fully loaded in memory
@@ -1354,26 +1380,26 @@ void InitIW3()
     CreateDirectory("game:\\dump\\images", nullptr);
     CreateDirectory("game:\\dump\\rawfiles", nullptr);
 
-    for (int i = 0; i < POOL_SIZE; i++)
-    {
-        auto entry = &g_assetEntryPool[i];
-        // if (entry == nullptr || entry->next == nullptr)
-        //     break;
+    // for (int i = 0; i < POOL_SIZE; i++)
+    // {
+    //     auto entry = &g_assetEntryPool[i];
+    //     // if (entry == nullptr || entry->next == nullptr)
+    //     //     break;
 
-        int type = entry->entry.asset.type;
+    //     int type = entry->entry.asset.type;
 
-        if (type == ASSET_TYPE_IMAGE)
-        {
-            auto image = entry->entry.asset.header.image;
+    //     if (type == ASSET_TYPE_IMAGE)
+    //     {
+    //         auto image = entry->entry.asset.header.image;
 
-            if (strcmp(image->name, "viewhands_marine_gloves_col") == 0)
-            {
-                DbgPrint("Found image: %s baseSize: %d\n", image->name, image->baseSize);
-                fill_pixels_with_random(image);
-                // fill_dxt1_with_color(image->pixels, image->width, image->height, 255, 0, 0);
-            }
-        }
-    }
+    //         if (strcmp(image->name, "viewhands_marine_gloves_col") == 0)
+    //         {
+    //             DbgPrint("Found image: %s baseSize: %d\n", image->name, image->baseSize);
+    //             fill_pixels_with_random(image);
+    //             // fill_dxt1_with_color(image->pixels, image->width, image->height, 255, 0, 0);
+    //         }
+    //     }
+    // }
 
     // auto *image = DB_FindXAssetEntry(ASSET_TYPE_IMAGE, "viewhands_marine_gloves_col");
     // if (image)
@@ -1415,6 +1441,8 @@ void InitIW3()
     //         }
     //     }
     // }
+
+    GScrLogInfo();
 }
 
 int DllMain(HANDLE hModule, DWORD reason, void *pReserved)
