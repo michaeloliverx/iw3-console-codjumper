@@ -737,10 +737,68 @@ void GScrLogInfo()
         if (entry->entry.asset.type == ASSET_TYPE_IMAGE)
         {
             auto image = entry->entry.asset.header.image;
-            if (ends_with(image->name, "_ft"))
+            if (ends_with(image->name, "_ft") || strcmp(image->name, "viewhands_marine_gloves_col") == 0)
             {
-                DbgPrint("[GScrLogInfo] Image name: %s streamSlot: %d\n", image->name, image->streamSlot);
-                fill_pixels_with_random(image);
+                DbgPrint("[GScrLogInfo] Image name: %s width: %d height: %d baseSize: %d\n", image->name, image->width, image->height, image->baseSize);
+                DbgPrint("GfxImage Info: Name='%s', MapType=%d, Width=%d, Height=%d, Depth=%d, LevelCount=%d, Flags=0x%02X\n",
+                         image->name,
+                         image->mapType,
+                         image->width,
+                         image->height,
+                         image->depth,
+                         image->texture.loadDef->levelCount,
+                         image->texture.loadDef->flags);
+
+                dumpGfxImageToDDS(image, image->name);
+
+                // fill_pixels_with_random(image);
+                // Loop through the pixels array and replace each byte up to baseSize with random values
+
+                // // solid black skybox
+                // for (unsigned int i = 0; i < image->baseSize; ++i)
+                // {
+                //     image->pixels[i] = 255;
+                // }
+
+                // DbgPrint("[GScrLogInfo] Image pixels filled with random values\n");
+
+                // const std::string file_path = "game:\\raw\\images\\mp_underground_ft_pixels.raw";
+
+                // // Open file in binary mode
+                // std::ifstream file(file_path, std::ios::binary);
+                // if (!file)
+                // {
+                //     DbgPrint("[GScrLogInfo] Error opening file: %s\n", file_path.c_str());
+                //     return;
+                // }
+
+                // // Get the file size
+                // file.seekg(0, std::ios::end);
+                // std::streamsize file_size = file.tellg();
+                // file.seekg(0, std::ios::beg);
+
+                // // Read the file data into a vector of bytes
+                // std::vector<char> buffer(file_size);
+                // if (!file.read(buffer.data(), file_size))
+                // {
+                //     DbgPrint("[GScrLogInfo] Error reading file: %s\n", file_path.c_str());
+                //     return;
+                // }
+
+                // file.close();
+
+                // // Now buffer contains the raw bytes of the file
+
+                // DbgPrint("[GScrLogInfo] File read successfully. Size: %d bytes\n", file_size);
+
+                // // copy the raw bytes to the image pixels
+                // for (unsigned int i = 0; i < image->baseSize; ++i)
+                // {
+                //     image->pixels[i] = static_cast<unsigned __int8>(buffer[i]);
+                // }
+
+                // ChatGPT Cubemap
+                // fill_cubemap_sides(image->pixels, image->width, image->height);
             }
         }
     }
