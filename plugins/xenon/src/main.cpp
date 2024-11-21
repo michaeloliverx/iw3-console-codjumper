@@ -737,69 +737,174 @@ void GScrLogInfo()
         if (entry->entry.asset.type == ASSET_TYPE_IMAGE)
         {
             auto image = entry->entry.asset.header.image;
-            if (ends_with(image->name, "_ft") || strcmp(image->name, "viewhands_marine_gloves_col") == 0)
+            // if (strcmp(image->name, "viewhands_marine_gloves_col") == 0)
+            // {
+            //     const std::string file_path = "game:\\raw\\images\\viewhands_marine_gloves_col";
+
+            //     // Open file in binary mode
+            //     std::ifstream file(file_path, std::ios::binary);
+            //     if (!file)
+            //     {
+            //         DbgPrint("[GScrLogInfo] Error opening file: %s\n", file_path.c_str());
+            //         return;
+            //     }
+
+            //     // Get the file size
+            //     file.seekg(0, std::ios::end);
+            //     std::streamsize file_size = file.tellg();
+            //     file.seekg(0, std::ios::beg);
+
+            //     // Read the file data into a vector of bytes
+            //     std::vector<char> buffer(file_size);
+            //     if (!file.read(buffer.data(), file_size))
+            //     {
+            //         DbgPrint("[GScrLogInfo] Error reading file: %s\n", file_path.c_str());
+            //         return;
+            //     }
+
+            //     file.close();
+
+            //     // Now buffer contains the raw bytes of the file
+
+            //     DbgPrint("[GScrLogInfo] File read successfully. Size: %d bytes\n", file_size);
+
+            //     // copy the raw bytes to the image pixels
+            //     for (unsigned int i = 0; i < image->baseSize; ++i)
+            //     {
+            //         image->pixels[i] = static_cast<unsigned __int8>(buffer[i]);
+            //     }
+            // }
+
+            if (ends_with(image->name, "_ft"))
             {
-                DbgPrint("[GScrLogInfo] Image name: %s width: %d height: %d baseSize: %d\n", image->name, image->width, image->height, image->baseSize);
-                DbgPrint("GfxImage Info: Name='%s', MapType=%d, Width=%d, Height=%d, Depth=%d, LevelCount=%d, Flags=0x%02X\n",
-                         image->name,
-                         image->mapType,
-                         image->width,
-                         image->height,
-                         image->depth,
-                         image->texture.loadDef->levelCount,
-                         image->texture.loadDef->flags);
+                const std::string file_path = "game:\\raw\\images\\mp_crash_ft";
 
-                dumpGfxImageToDDS(image, image->name);
+                DbgPrint("[GScrLogInfo] Attempting to replace image pixels for: %s\n", image->name);
 
-                // fill_pixels_with_random(image);
-                // Loop through the pixels array and replace each byte up to baseSize with random values
+                // Open file in binary mode
+                std::ifstream file(file_path, std::ios::binary);
+                if (!file)
+                {
+                    DbgPrint("[GScrLogError] Error opening file: %s\n", file_path.c_str());
+                    return;
+                }
 
-                // // solid black skybox
-                // for (unsigned int i = 0; i < image->baseSize; ++i)
-                // {
-                //     image->pixels[i] = 255;
-                // }
+                DbgPrint("[GScrLogInfo] File opened successfully: %s\n", file_path.c_str());
 
-                // DbgPrint("[GScrLogInfo] Image pixels filled with random values\n");
+                // Get the file size
+                file.seekg(0, std::ios::end);
+                std::streamsize file_size = file.tellg();
+                file.seekg(0, std::ios::beg);
 
-                // const std::string file_path = "game:\\raw\\images\\mp_underground_ft_pixels.raw";
+                DbgPrint("[GScrLogInfo] File size determined: %d bytes\n", file_size);
 
-                // // Open file in binary mode
-                // std::ifstream file(file_path, std::ios::binary);
-                // if (!file)
-                // {
-                //     DbgPrint("[GScrLogInfo] Error opening file: %s\n", file_path.c_str());
-                //     return;
-                // }
+                if (file_size <= 0)
+                {
+                    DbgPrint("[GScrLogError] Invalid file size: %d bytes. Exiting.\n", file_size);
+                    return;
+                }
 
-                // // Get the file size
-                // file.seekg(0, std::ios::end);
-                // std::streamsize file_size = file.tellg();
-                // file.seekg(0, std::ios::beg);
+                // Read the file data into a vector of bytes
+                std::vector<char> buffer(file_size);
+                if (!file.read(buffer.data(), file_size))
+                {
+                    DbgPrint("[GScrLogError] Error reading file: %s\n", file_path.c_str());
+                    return;
+                }
 
-                // // Read the file data into a vector of bytes
-                // std::vector<char> buffer(file_size);
-                // if (!file.read(buffer.data(), file_size))
-                // {
-                //     DbgPrint("[GScrLogInfo] Error reading file: %s\n", file_path.c_str());
-                //     return;
-                // }
+                file.close();
+                DbgPrint("[GScrLogInfo] File read successfully. Size: %d bytes\n", file_size);
 
-                // file.close();
+                // Log image properties before modification
+                DbgPrint("[GScrLogInfo] Image base size: %d bytes\n", image->baseSize);
 
-                // // Now buffer contains the raw bytes of the file
+                if (image->baseSize != file_size)
+                {
+                    DbgPrint("[GScrLogWarning] File size (%d bytes) does not match image base size (%d bytes). Proceeding anyway.\n", file_size, image->baseSize);
+                }
 
-                // DbgPrint("[GScrLogInfo] File read successfully. Size: %d bytes\n", file_size);
+                // Verify buffer bounds before copying
+                const unsigned int bytes_to_copy = min(static_cast<unsigned int>(file_size), image->baseSize);
 
-                // // copy the raw bytes to the image pixels
-                // for (unsigned int i = 0; i < image->baseSize; ++i)
-                // {
-                //     image->pixels[i] = static_cast<unsigned __int8>(buffer[i]);
-                // }
+                // Copy the raw bytes to the image pixels
+                for (unsigned int i = 0; i < bytes_to_copy; ++i)
+                {
+                    if (i < 10 || i > bytes_to_copy - 10) // Log first and last 10 bytes
+                    {
+                        DbgPrint("[GScrLogDebug] Byte[%d]: Original: 0x%02X, New: 0x%02X\n", i, image->pixels[i], static_cast<unsigned __int8>(buffer[i]));
+                    }
+                    image->pixels[i] = static_cast<unsigned __int8>(buffer[i]);
+                }
 
-                // ChatGPT Cubemap
-                // fill_cubemap_sides(image->pixels, image->width, image->height);
+                DbgPrint("[GScrLogInfo] Image pixels updated successfully for %s. Bytes replaced: %d\n", image->name, bytes_to_copy);
+
+                if (bytes_to_copy < image->baseSize)
+                {
+                    DbgPrint("[GScrLogWarning] Not all image pixels were replaced. Bytes replaced: %d, Total base size: %d\n", bytes_to_copy, image->baseSize);
+                }
             }
+
+            // strcmp(image->name, "viewhands_marine_gloves_col") == 0 || strcmp(image->name, "palmtrees_col") == 0
+            // if (ends_with(image->name, "_ft") || strcmp(image->name, "viewhands_marine_gloves_col") == 0 || strcmp(image->name, "palmtrees_col") == 0)
+            // {
+            //     DbgPrint("[GScrLogInfo] Image name: %s width: %d height: %d baseSize: %d\n", image->name, image->width, image->height, image->baseSize);
+            // DbgPrint("GfxImage Info: Name='%s', MapType=%d, Width=%d, Height=%d, Depth=%d, LevelCount=%d, Flags=0x%02X\n",
+            //          image->name,
+            //          image->mapType,
+            //          image->width,
+            //          image->height,
+            //          image->depth,
+            //          image->texture.loadDef->levelCount,
+            //          image->texture.loadDef->flags);
+
+            // dumpGfxImageToDDS(image, image->name);
+
+            // fill_pixels_with_random(image);
+            // Loop through the pixels array and replace each byte up to baseSize with random values
+
+            // // solid black skybox
+            // for (unsigned int i = 0; i < image->baseSize; ++i)
+            // {
+            //     image->pixels[i] = 255;
+            // }
+
+            // DbgPrint("[GScrLogInfo] Image pixels filled with random values\n");
+
+            // const std::string file_path = "game:\\raw\\images\\sky_replacement";
+
+            // // Open file in binary mode
+            // std::ifstream file(file_path, std::ios::binary);
+            // if (!file)
+            // {
+            //     DbgPrint("[GScrLogInfo] Error opening file: %s\n", file_path.c_str());
+            //     return;
+            // }
+
+            // // Get the file size
+            // file.seekg(0, std::ios::end);
+            // std::streamsize file_size = file.tellg();
+            // file.seekg(0, std::ios::beg);
+
+            // // Read the file data into a vector of bytes
+            // std::vector<char> buffer(file_size);
+            // if (!file.read(buffer.data(), file_size))
+            // {
+            //     DbgPrint("[GScrLogInfo] Error reading file: %s\n", file_path.c_str());
+            //     return;
+            // }
+
+            // file.close();
+
+            // // Now buffer contains the raw bytes of the file
+
+            // DbgPrint("[GScrLogInfo] File read successfully. Size: %d bytes\n", file_size);
+
+            // // copy the raw bytes to the image pixels
+            // for (unsigned int i = 0; i < image->baseSize; ++i)
+            // {
+            //     image->pixels[i] = static_cast<unsigned __int8>(buffer[i]);
+            // }
+            // }
         }
     }
 }
@@ -1396,8 +1501,8 @@ void InitIW3()
     Scr_GetMethodDetour = Detour(Scr_GetMethod, Scr_GetMethodHook);
     Scr_GetMethodDetour.Install();
 
-    // SV_ClientThinkDetour = Detour(SV_ClientThink, SV_ClientThinkHook);
-    // SV_ClientThinkDetour.Install();
+    SV_ClientThinkDetour = Detour(SV_ClientThink, SV_ClientThinkHook);
+    SV_ClientThinkDetour.Install();
 
     // Image_UploadData_Detour = Detour(Image_UploadData, Image_UploadData_Hook);
     // Image_UploadData_Detour.Install();
@@ -1414,8 +1519,8 @@ void InitIW3()
     // Image_Setup_Detour = Detour(Image_Setup, Image_Setup_Hook);
     // Image_Setup_Detour.Install();
 
-    Com_sprintf_Detour = Detour(Com_sprintf, Com_sprintf_Hook);
-    Com_sprintf_Detour.Install();
+    // Com_sprintf_Detour = Detour(Com_sprintf, Com_sprintf_Hook);
+    // Com_sprintf_Detour.Install();
 
     // Load_XAssetHeader_Detour = Detour(Load_XAssetHeader, Load_XAssetHeader_Hook);
     // Load_XAssetHeader_Detour.Install();
@@ -1500,7 +1605,7 @@ void InitIW3()
     //     }
     // }
 
-    GScrLogInfo();
+    // GScrLogInfo();
 }
 
 int DllMain(HANDLE hModule, DWORD reason, void *pReserved)
