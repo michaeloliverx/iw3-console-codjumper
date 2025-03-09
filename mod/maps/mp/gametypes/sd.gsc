@@ -569,7 +569,9 @@ cj_setup_loadout(printInfo)
 
 	self.cj["loadout"].incomingWeapon = undefined;
 
-	// TODO: player can have a sniper suit on a non-sniper class
+	baseWeapon = strTok(self.cj["loadout"].primary, "_")[0];
+	self maps\mp\gametypes\_teams::playerModelForWeapon(baseWeapon);
+
 	// Adjust move speed based on primary weapon type
 	moveSpeedScalePercentage = 100;
 	// Taken from maps\mp\gametypes\_class::giveLoadout
